@@ -272,7 +272,7 @@ a:hover {
 .engagement-item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 0.75rem;
   color: #1E1E1E;
   font-weight: 300;
   line-height: normal;
