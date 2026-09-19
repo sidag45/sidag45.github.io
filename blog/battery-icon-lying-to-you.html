@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Battery Icon Is Lying to You — On Purpose</title>
+<meta name="description" content="What Apple's battery health patent (US11,363,133) reveals about designing honest-feeling interfaces on top of noisy, degrading data.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="./style.css" rel="stylesheet">
+</head>
+<body>
+
+<div class="masthead">
+  <div class="wide">
+    <div class="brand"><b>Enclave Notes</b> · design &amp; interaction</div>
+    <div class="brand">reading time · 8 min</div>
+  </div>
+</div>
+
+<div class="hero wide">
+  <div class="patent-tag"><span class="dot"></span> US 11,363,133 B1 · Apple Inc. · filed 2017 · granted 2022</div>
+  <h1 class="title">The battery icon is lying to you (on purpose, and for good reason)</h1>
+  <p class="deck">What a decade-old Apple patent reveals about designing honest-<em>feeling</em> interfaces on top of noisy, physically-degrading data.</p>
+  <div class="byline">Design &amp; HCI notes · case study</div>
+
+  <div class="battery-hero">
+    <div class="battery-shell" aria-hidden="true"><div class="battery-fill"></div></div>
+    <div class="battery-readout">The number on screen only ever moves <span class="cap">down</span>. The battery underneath doesn't work that way.</div>
+  </div>
+</div>
+
+<article class="wide">
+
+<p class="lede">If you work in design, HCI, or frontend, you've built some version of this: a progress bar, a status pill, a "remaining amount" widget. And you've probably hit the same problem Apple's engineers hit with the battery icon — the underlying number is noisy, but the interface needs to feel stable.</p>
+
+<p>Apple's solution is patented: <span class="mono">US11,363,133 B1</span>, <em>"Battery health-based power management."</em> It's a good case study precisely because it isn't really about batteries — it's about how to design a truthful-<em>feeling</em> indicator on top of messy, non-linear, degrading physical data.</p>
+
+<h2>The problem: real data doesn't move in a straight line</h2>
+
+<p>A battery's actual charge fluctuates with temperature, current draw, internal resistance, and cumulative wear. Displayed raw, that number could:</p>
+
+<ul class="spec">
+  <li><b>Tick upward.</b> If the phone warms up, internal resistance briefly drops and the "true" available charge can nudge up. Mathematically correct. Experientially, unsettling.</li>
+  <li><b>Overpromise.</b> An old or cold battery can't always deliver its last bit of charge fast enough — a gap between displayed capacity and deliverable capacity, which is how a phone dies at "20%."</li>
+</ul>
+
+<p>The patent's fix is a smoothing layer sitting on top of the real battery math, paired with a separate system that throttles performance using the same health signal.</p>
+
+<h2>How the algorithm works</h2>
+
+<p>Four moving parts, in order:</p>
+
+<h3>1. A background health score, always running</h3>
+<p>The device continuously tracks battery age, charge cycles, temperature, and impedance (internal resistance) — building an ongoing health assessment that's entirely separate from whatever percentage is on screen.</p>
+
+<h3>2. The displayed number is monotonic — it only goes down</h3>
+<p>Even when the real calculation ticks up slightly, the UI holds steady rather than showing an increase. The patent is explicit about why: people read this number like a fuel gauge, and a fuel gauge that refills itself without you fueling up reads as broken, not accurate.</p>
+
+<h3>3. The step size scales with wear</h3>
+<p>On a healthy battery, the percentage decreases in small, even steps — about 1% at a time. On a worn one, a <b>scale factor</b> (the ratio of original "design capacity" to current real capacity) makes each step larger — 1.5%, 2.5%. Still smooth, still monotonic. Just accelerating.</p>
+
+<div class="panel">
+  <svg viewBox="0 0 760 300" role="img" aria-label="Chart comparing the noisy calculated charge line against the smooth, always-decreasing displayed charge line">
+    <!-- gridlines -->
+    <g stroke="#2a3441" stroke-width="1">
+      <line x1="60" y1="40" x2="60" y2="250"/>
+      <line x1="60" y1="250" x2="730" y2="250"/>
+      <line x1="60" y1="145" x2="730" y2="145" stroke-dasharray="2 5"/>
+    </g>
+    <text x="30" y="45" fill="#8f95a0" font-family="IBM Plex Mono, monospace" font-size="12">100%</text>
+    <text x="30" y="150" fill="#8f95a0" font-family="IBM Plex Mono, monospace" font-size="12">50%</text>
+    <text x="40" y="254" fill="#8f95a0" font-family="IBM Plex Mono, monospace" font-size="12">0%</text>
+
+    <!-- calculated (noisy) line -->
+    <path d="M60,60 L120,80 L160,72 L200,100 L240,90 L280,120 L320,108 L360,140 L400,150 L440,138 L480,168 L520,190 L560,178 L600,205 L640,200 L680,222 L720,215"
+      fill="none" stroke="#4fa8a6" stroke-width="2.5" stroke-linejoin="round" />
+
+    <!-- displayed (monotonic step) line -->
+    <path d="M60,58 L110,58 L110,78 L165,78 L165,96 L215,96 L215,118 L265,118 L265,140 L315,140 L315,160 L365,160 L365,180 L415,180 L415,198 L465,198 L465,215 L515,215 L515,215 L565,215 L565,215 L615,215 L615,215 L665,215 L665,215 L715,215"
+      fill="none" stroke="#e3a23c" stroke-width="3" stroke-linejoin="miter" />
+  </svg>
+  <div class="legend">
+    <span><i class="swatch" style="background:#e3a23c"></i>displayed percentage — steps down only</span>
+    <span><i class="swatch" style="background:#4fa8a6"></i>calculated charge — fluctuates in reality</span>
+  </div>
+  <div class="cap-label">Fig. 1 — Redrawn from the patent's timeline (Fig. 3C): the UI shows a clean staircase even while the underlying measurement wobbles.</div>
+</div>
+
+<h3>4. The same health score caps performance</h3>
+<p>Separately, when health, temperature, or charge drop below set thresholds, the phone limits peak CPU/GPU speed, flash brightness, and other power-hungry behavior. This is the throttling mechanism behind the "Peak Performance Capability" story from a few years back.</p>
+
+<p>None of this shows up in the interface. There's no indicator reading "step size increased." The user experiences all four systems as one thing: <em>the number went down, smoothly, like it always does.</em></p>
+
+<h2>Why this matters for HCI: perception, not just data</h2>
+
+<p>This is where it's worth pausing as a designer. The patent isn't only an engineering trick — it's a perceptual contract with the user, and that contract quietly changes shape over the life of the device.</p>
+
+<div class="stages">
+  <div class="stage">
+    <div class="stage-name">EARLY LIFE</div>
+    <svg viewBox="0 0 200 60"><g fill="none" stroke="#ece6d8" stroke-width="2"><rect x="4" y="14" width="176" height="32" rx="4"/><rect x="182" y="24" width="6" height="12" rx="1" fill="#ece6d8" stroke="none"/></g><rect x="10" y="20" width="160" height="20" rx="2" fill="#e3a23c"/></svg>
+    <p><b>Reads as a linear fuel gauge.</b> 100% means a full day. Small, even steps. Trust is high; the icon anchors daily planning and mood.</p>
+  </div>
+  <div class="stage">
+    <div class="stage-name">MID LIFE</div>
+    <svg viewBox="0 0 200 60"><g fill="none" stroke="#ece6d8" stroke-width="2"><rect x="4" y="14" width="176" height="32" rx="4"/><rect x="182" y="24" width="6" height="12" rx="1" fill="#ece6d8" stroke="none"/></g><rect x="10" y="20" width="96" height="20" rx="2" fill="#e3a23c"/></svg>
+    <p><b>Falls faster, no explanation.</b> Scale factor exceeds 1. Users feel "the battery seems worse" before ever opening Battery Health.</p>
+  </div>
+  <div class="stage">
+    <div class="stage-name">LATE LIFE</div>
+    <svg viewBox="0 0 200 60"><g fill="none" stroke="#ece6d8" stroke-width="2"><rect x="4" y="14" width="176" height="32" rx="4"/><rect x="182" y="24" width="6" height="12" rx="1" fill="#ece6d8" stroke="none"/></g><rect x="10" y="20" width="42" height="20" rx="2" fill="#c9683f"/></svg>
+    <p><b>Same number, different meaning.</b> Performance throttling stacks with faster decay — "40%" no longer buys what it used to.</p>
+  </div>
+</div>
+
+<blockquote class="pull">
+  A full battery gauge made them feel positive and as though they could go anywhere. Anything less than half full induced feelings of profound anxiety and discomfort.
+  <cite>— commuter interview, Robinson &amp; Arnould, on battery-icon perception</cite>
+</blockquote>
+
+<p>That's the emotional baseline the algorithm is designed against. Early on, the icon is read literally — trusted and linear. Later, it still <em>looks</em> like the same simple gauge, but it's quietly reporting a moving target: the same percentage represents a shrinking amount of real usable time and capability. Apple traded transparency for stability — no confusing jumps, no disclosed recalibration.</p>
+
+<h2>The pattern, generalized</h2>
+
+<p>Strip away "battery," and this is a reusable pattern for anyone displaying a remaining-capacity or health-score metric over noisy real-world data:</p>
+
+<ul class="spec">
+  <li><b>Monotonicity as a UX rule, not just a data rule.</b> Sometimes the right call is to suppress a technically correct fluctuation because it breaks a mental model your users already carry — fuel gauge, progress bar, loading percentage.</li>
+  <li><b>Variable step size as a silent channel.</b> You can encode a second signal — "this is wearing down" — purely through rate of change, with zero new UI chrome or copy.</li>
+  <li><b>Decide, on purpose, whether to disclose recalibration.</b> Apple kept the scale factor out of the primary UI and one screen deeper, in Battery Health. That's a legitimate call — but worth asking of your own work: when a number's meaning shifts, can your users find out, if they go looking?</li>
+</ul>
+
+<h2>Open questions worth researching</h2>
+
+<p>The patent tells you what the algorithm does. It doesn't tell you what people actually feel as a result — and that gap looks genuinely under-studied:</p>
+
+<ul class="spec">
+  <li>Does hiding the scale factor protect users from anxiety, or erode trust once they notice the mismatch — say, at resale, when Battery Health suddenly becomes very visible and very consequential?</li>
+  <li>How do people's mental models of "time remaining" actually update over months of ownership — gradually, or via a sudden correction?</li>
+  <li>Is there a middle ground between silent recalibration and exposing confusing raw numbers?</li>
+</ul>
+
+<p>Most existing HCI work covers moment-to-moment battery <em>level</em> perception, not long-horizon battery <em>health</em> perception. That's the gap this patent quietly designs around — and a legitimate opening for original research.</p>
+
+</article>
+
+<footer class="wide">
+  <h4>Further reading</h4>
+  <ul class="refs">
+    <li>Apple Inc., <a href="https://patents.google.com/patent/US11363133B1" target="_blank" rel="noopener">US11,363,133 B1 — "Battery health-based power management"</a>, filed Dec. 2017, granted Jun. 2022.</li>
+    <li>Bloom, Eardley, Geelhoed &amp; Manahan, "Investigating the Relationship Between Battery Life and User Acceptance of Dynamic, Energy-Aware Interfaces on Handhelds," <em>MobileHCI</em> 2004.</li>
+    <li>Robinson, T. &amp; Arnould, E., "Portable technology and multi-domain energy practices" — battery-icon perception study, Bayes (Cass) Business School.</li>
+  </ul>
+</footer>
+
+</body>
+</html>
