@@ -1,0 +1,414 @@
+/* ==========================================================================
+   Recipe Card — Classic Chocolate Chip Cookies
+   Note: All comments were written with the help of AI (Claude)
+   --------------------------------------------------------------------------
+   Contents
+     1. Fonts
+     2. Design tokens (custom properties)
+     3. Base / reset
+     4. Page layout — CSS Grid (mobile first)
+     5. Header: title + photo
+     6. Description
+     7. Recipe meta — Flexbox row
+     8. Section headings + dividers
+     9. Ingredients — Flexbox checklist
+    10. Instructions — Flexbox numbered steps
+    11. Footer
+    12. Breakpoint: 48rem+ (two-column grid)
+    13. Breakpoint: 75rem+ (wide screens)
+    14. Accessibility + print
+
+   The HTML is unchanged. <header> uses `display: contents` so the title and
+   photo can be placed in separate grid areas without moving any markup.
+   ========================================================================== */
+
+
+/* 1. Fonts — two families max: Kanit (display) + Inter (body)
+   ========================================================================== */
+@import url("https://fonts.googleapis.com/css2?family=Kanit:wght@700;800&family=Inter:wght@400;500;600;700&display=swap");
+
+
+/* 2. Design tokens
+   ========================================================================== */
+:root {
+    /* Colour palette — 4 colours (all pairs checked for WCAG AA)
+       ink on cream        ≈ 16.7:1  (AAA)
+       cocoa on cream      ≈  7.7:1  (AAA)
+       muted on cream      ≈  7.0:1  (AAA)
+       cream on cocoa      ≈  7.7:1  (AAA)                            */
+    --color-cream: #fbf7ea;     /* page background            */
+    --color-ink:   #1a1714;     /* headings + body text       */
+    --color-cocoa: #7a3e1d;     /* accent: numbers, checkboxes */
+    --color-muted: #5c5348;     /* secondary text, footer     */
+
+    /* Tints derived from the palette (not new colours) */
+    --color-cocoa-tint: rgb(122 62 29 / 0.08);
+    --color-rule:       var(--color-ink);
+    --color-rule-soft:  rgb(92 83 72 / 0.35);
+
+    /* Typography */
+    --font-display: "Kanit", "Arial Black", system-ui, sans-serif;
+    --font-body:    "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+    --text-sm:   0.875rem;
+    --text-base: 1rem;
+    --text-md:   1.0625rem;
+    --text-lg:   1.25rem;
+    --text-h2:   clamp(1.5rem, 1.2rem + 1.5vw, 2.125rem);
+    --text-h1:   clamp(1.875rem, 1.2rem + 3.4vw, 3.25rem);
+
+    --leading-tight: 1.1;
+    --leading-body:  1.6;
+
+    /* Spacing scale */
+    --space-3xs: 0.25rem;
+    --space-2xs: 0.5rem;
+    --space-xs:  0.75rem;
+    --space-sm:  1rem;
+    --space-md:  1.5rem;
+    --space-lg:  2rem;
+    --space-xl:  3rem;
+    --space-2xl: 4rem;
+
+    /* Layout */
+    --page-max:    80rem;
+    --page-gutter: var(--space-sm);
+    --column-gap:  var(--space-xl);
+    --radius:      1rem;
+    --rule-width:  1.5px;
+}
+
+
+/* 3. Base / reset — replaces all of the starter's "ugly" styles
+   ========================================================================== */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    min-height: 100vh;
+    min-height: 100dvh;
+    background-color: var(--color-cream);
+    color: var(--color-ink);
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    line-height: var(--leading-body);
+    overflow-wrap: break-word;
+    -webkit-font-smoothing: antialiased;
+}
+
+img {
+    display: block;
+    max-width: 100%;
+}
+
+
+/* 4. Page layout — CSS Grid, mobile first (under 48rem = one column)
+   Reading/cooking order: title → photo → what it is → key facts →
+   what you need → what to do.
+   ========================================================================== */
+.recipe-container {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+        "header"
+        "photo"
+        "description"
+        "meta"
+        "ingredients"
+        "instructions"
+        "footer";
+    width: 100%;
+    max-width: var(--page-max);
+    min-height: 100dvh;
+    margin-inline: auto;
+    padding: var(--space-md) var(--page-gutter) var(--space-xl);
+}
+
+/* Header box disappears; its children become grid items */
+.recipe-header {
+    display: contents;
+}
+
+.recipe-title         { grid-area: header; }
+.recipe-image         { grid-area: photo; }
+.recipe-description   { grid-area: description; }
+.recipe-meta          { grid-area: meta; }
+.ingredients-section  { grid-area: ingredients; }
+.instructions-section { grid-area: instructions; }
+.recipe-footer        { grid-area: footer; }
+
+
+/* 5. Header: title + photo
+   ========================================================================== */
+.recipe-title {
+    margin-bottom: var(--space-sm);
+    font-family: var(--font-display);
+    font-size: var(--text-h1);
+    font-weight: 800;
+    line-height: var(--leading-tight);
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+}
+
+.recipe-image {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 3;
+    margin-bottom: var(--space-md);
+    border-radius: var(--radius);
+    object-fit: cover;
+}
+
+
+/* 6. Description
+   ========================================================================== */
+.recipe-description {
+    max-width: 38rem;
+    margin-bottom: var(--space-md);
+    color: var(--color-muted);
+    font-size: var(--text-md);
+}
+
+
+/* 7. Recipe meta — Flexbox row of key facts
+   ========================================================================== */
+.recipe-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm) var(--space-md);
+    padding-bottom: var(--space-lg);
+}
+
+.meta-item {
+    display: flex;
+    flex: 1 1 5.5rem;
+    flex-direction: column;
+    gap: var(--space-3xs);
+    font-size: var(--text-base);
+    font-weight: 500;
+}
+
+.meta-item strong {
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+
+/* 8. Section headings + dividers
+   ========================================================================== */
+.ingredients-section,
+.instructions-section {
+    padding-block: var(--space-md) var(--space-lg);
+    border-top: var(--rule-width) solid var(--color-rule);
+}
+
+.ingredients-section h2,
+.instructions-section h2 {
+    margin-bottom: var(--space-sm);
+    font-family: var(--font-display);
+    font-size: var(--text-h2);
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+
+/* 9. Ingredients — Flexbox checklist
+   Each item gets a checkbox-style marker so it reads as a shopping list.
+   ========================================================================== */
+.ingredients-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2xs);
+    list-style: none;
+    font-size: var(--text-md);
+}
+
+.ingredients-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-xs);
+    line-height: 1.45;
+}
+
+.ingredients-list li::before {
+    content: "";
+    flex: 0 0 auto;
+    width: 1.1em;
+    height: 1.1em;
+    margin-top: 0.15em;
+    border: 2px solid var(--color-cocoa);
+    border-radius: 0.3em;
+}
+
+
+/* 10. Instructions — Flexbox numbered steps
+   The <ol> is a flex column that spaces the steps. Numbers come from a CSS
+   counter in a badge. Each step stays a block (not flex) so the <strong>
+   label and the text after it flow as one sentence instead of splitting
+   into separate flex columns.
+   ========================================================================== */
+.instructions-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    list-style: none;
+    counter-reset: step;
+    font-size: var(--text-md);
+}
+
+.instruction-step {
+    --badge-size: 1.75rem;
+    position: relative;
+    min-height: calc(var(--badge-size) + var(--space-sm));
+    padding: var(--space-2xs);
+    padding-left: calc(var(--badge-size) + var(--space-sm));
+    margin-inline: calc(var(--space-2xs) * -1);
+    border-radius: calc(var(--radius) / 2);
+    counter-increment: step;
+    line-height: var(--leading-body);
+    transition: background-color 0.15s ease;
+}
+
+.instruction-step::before {
+    content: counter(step);
+    position: absolute;
+    top: calc(var(--space-2xs) + 0.05rem);
+    left: var(--space-2xs);
+    display: flex;                   /* centres the number in the badge */
+    align-items: center;
+    justify-content: center;
+    width: var(--badge-size);
+    height: var(--badge-size);
+    border-radius: 50%;
+    background-color: var(--color-cocoa);
+    color: var(--color-cream);
+    font-size: var(--text-sm);
+    font-weight: 700;
+}
+
+/* Step label ("Mix dry ingredients:") makes steps scannable */
+.instruction-step strong {
+    font-weight: 700;
+}
+
+/* Highlight the step you're on (pointer or keyboard) */
+.instruction-step:hover {
+    background-color: var(--color-cocoa-tint);
+}
+
+
+/* 11. Footer
+   ========================================================================== */
+.recipe-footer {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3xs);
+    padding-top: var(--space-sm);
+    border-top: 1px solid var(--color-rule-soft);
+    color: var(--color-muted);
+    font-size: var(--text-sm);
+}
+
+/* Assignment-instructions box from the starter (safe to delete in HTML) */
+.recipe-container + div {
+    display: none;
+}
+
+
+/* 12. Breakpoint: 48rem+ — two-column grid (text left, photo right)
+   ========================================================================== */
+@media (min-width: 48rem) {
+    :root {
+        --page-gutter: var(--space-lg);
+        --column-gap:  var(--space-lg);
+    }
+
+    .recipe-container {
+        grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+        grid-template-rows: auto auto auto auto 1fr auto;
+        grid-template-areas:
+            "header       photo"
+            "description  photo"
+            "meta         photo"
+            "ingredients  photo"
+            "instructions photo"
+            "footer       .";
+        column-gap: var(--column-gap);
+        align-items: start;
+        padding-block: var(--space-xl) var(--space-2xl);
+    }
+
+    .recipe-image {
+        position: sticky;            /* photo stays visible while cooking */
+        top: var(--space-lg);
+        aspect-ratio: 3 / 4;
+        margin-bottom: 0;
+    }
+
+    .recipe-description {
+        margin-bottom: var(--space-lg);
+    }
+
+    .recipe-meta {
+        padding-bottom: var(--space-xl);
+    }
+
+    .ingredients-section,
+    .instructions-section {
+        padding-block: var(--space-lg) var(--space-xl);
+    }
+}
+
+
+/* 13. Breakpoint: 75rem+ — wide screens, matches the mock's 50/50 split
+   ========================================================================== */
+@media (min-width: 75rem) {
+    :root {
+        --column-gap: var(--space-2xl);
+        --text-md:    var(--text-lg);
+    }
+
+    .recipe-container {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    .recipe-meta {
+        flex-wrap: nowrap;
+    }
+}
+
+
+/* 14. Accessibility + print
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+    .instruction-step {
+        transition: none;
+    }
+}
+
+/* Print a clean card to stick on the fridge / tick off with a pen */
+@media print {
+    .recipe-container {
+        min-height: auto;
+        padding: 0;
+    }
+
+    .recipe-image {
+        display: none;
+    }
+
+    .instruction-step::before {
+        border: 1px solid var(--color-ink);
+        background: none;
+        color: var(--color-ink);
+    }
+}
