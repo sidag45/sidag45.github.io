@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Privacy Policy · Pagelift</title>
+  <meta name="description" content="Pagelift privacy policy: what the Chrome extension, the Figma plugin and URL import do with page data. No accounts, no tracking, nothing stored.">
+  <link rel="canonical" href="https://sidag45.github.io/pagelift/privacy.html">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <meta name="theme-color" content="#0a0a0a">
+  <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+  <link rel="icon" href="assets/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@500;700;800;900&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="styles.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+<header class="hero legal-head">
+  <nav class="nav wrap" aria-label="Main">
+    <a class="brand" href="./"><img src="assets/logo.svg" alt="" width="30" height="30">Pagelift</a>
+    <div class="nav-links">
+      <a href="./#features">Features</a>
+      <a href="./#compare">Compare</a>
+      <a href="./#install">Install</a>
+      <a href="./#faq">FAQ</a>
+    </div>
+    <a class="pill pill-sm" href="assets/pagelift.zip" download>Download free</a>
+  </nav>
+</header>
+<main class="wrap">
+  <article class="legal">
+    <p class="eyebrow">Privacy policy</p>
+    <h1>Pagelift privacy policy</h1>
+    <p class="fine">Effective 5 October 2026. Applies to the Pagelift Chrome extension ("Pagelift — Capture"), the Pagelift Figma plugin, the Pagelift proxy and this website.</p>
+
+    <h2>The short version</h2>
+    <p>Pagelift doesn't collect, sell or share personal data. It has no accounts, no analytics and no tracking. Captures made with the Chrome extension never leave your computer. Pages imported by URL pass through our proxy so the plugin can read them, and the proxy doesn't keep them.</p>
+
+    <h2>The Chrome extension</h2>
+    <p>When you click <b>Capture page</b>, the extension reads the page in your current tab: its layout, text, styles, links and images. It does this only when you click, and only on that tab.</p>
+    <ul>
+      <li>The capture is kept in the extension's memory until you copy it or download it as a <code>.pagelift.json</code> file. It is never sent to Enclave Studios or anyone else.</li>
+      <li>To include images, the extension downloads them from the websites that already serve them to you, the same way your browser does.</li>
+      <li>Closing the browser clears the capture from memory. Downloaded files stay where you saved them.</li>
+    </ul>
+
+    <h2>Why the extension asks for each permission</h2>
+    <ul>
+      <li><b>Access to the active tab and scripting:</b> to read the page you choose to capture.</li>
+      <li><b>Debugger:</b> only during a capture, to resize the page to tablet and mobile widths, switch dark mode on, and trigger hover states. Chrome shows a notice while this happens.</li>
+      <li><b>Access to all sites:</b> so captures work on any website you choose, and so the page's images can be included.</li>
+    </ul>
+
+    <h2>The Figma plugin and URL import</h2>
+    <p>When you import a capture file, the plugin reads that file and creates layers in your Figma file. Nothing is sent anywhere.</p>
+    <p>When you import by URL, the plugin asks the Pagelift proxy, which runs on Cloudflare, to fetch the page and its stylesheets, images and fonts. The proxy passes them back to the plugin and doesn't log or store them. Cloudflare may keep short-lived cache copies and standard request logs, such as IP addresses, under its own privacy policy. The plugin can't contact any other server, which Figma enforces.</p>
+
+    <h2>This website</h2>
+    <p>This site is hosted on GitHub Pages and uses fonts from Google Fonts. It has no cookies, analytics or tracking of its own. GitHub and Google may log basic request data such as IP addresses under their own privacy policies.</p>
+
+    <h2>Children</h2>
+    <p>Pagelift isn't directed at children and collects no data from anyone.</p>
+
+    <h2>Changes</h2>
+    <p>If this policy changes, we'll update this page and its effective date.</p>
+
+    <h2>Contact</h2>
+    <p>Questions about privacy: <span class="copy">hello@enclave-studios.com</span></p>
+  </article>
+</main>
+<footer class="wrap footer">
+  <div class="row">
+    <a class="brand small" href="./"><img src="assets/logo.svg" alt="" width="22" height="22">Pagelift</a>
+    <span>Made by Enclave Studios · <span class="copy">hello@enclave-studios.com</span></span>
+  </div>
+  <div class="row muted"><span><a href="privacy.html">Privacy policy</a> · Not affiliated with Figma, html.to.design or Web to Figma.</span></div>
+</footer>
+</body>
+</html>

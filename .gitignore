@@ -1,0 +1,10 @@
+# macOS
+.DS_Store
+
+# Dependencies and build output
+node_modules/
+
+# Working files that aren't part of the website
+pagelift/Claude outputs/
+pagelift/assets/package-lock.json
+pagelift/assets/pagelift/
