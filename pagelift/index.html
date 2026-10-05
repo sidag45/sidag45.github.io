@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pagelift</title>
+  <meta name="description" content="Pagelift turns any webpage, including pages behind a login, into editable Figma layers. Free, with no import limits.">
+  <meta name="theme-color" content="#0d99ff">
+  <meta property="og:title" content="Pagelift">
+  <meta property="og:description" content="Lift any webpage into Figma. Free, with no import limits.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="assets/icon-512.png">
+  <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+  <link rel="icon" href="assets/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@500;700;800&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="styles.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+  <nav aria-label="Main">
+    <a class="brand" href="#top" id="top">
+      <img src="assets/logo.svg" alt="" width="28" height="28">
+      Pagelift
+    </a>
+    <div class="navlinks">
+      <a href="#compare">Compare</a>
+      <a href="#tradeoffs">Trade-offs</a>
+      <a href="#install">Install</a>
+      <a class="btn btn-primary dl" href="assets/pagelift.zip" download>Download</a>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="hero-copy">
+      <span class="eyebrow">Chrome extension + Figma plugin</span>
+      <h1>Lift any webpage into Figma. Free, with no import limits.</h1>
+      <p class="lede">Pagelift captures the page you're looking at in Chrome, <strong>including pages behind a login</strong>, and rebuilds it in Figma as frames, auto layout, editable text, images and styles. <strong>Nothing leaves your computer.</strong></p>
+      <div class="ctas">
+        <a class="btn btn-primary dl" href="assets/pagelift.zip" download id="dl-hero">Download Pagelift <span class="mono" style="opacity:.8">44 KB</span></a>
+        <a class="btn btn-ghost" href="#compare">See how it compares</a>
+      </div>
+      <p class="fine dl-status" id="dl-status" role="status" aria-live="polite">No account. No monthly cap. Made by Enclave Studios.</p>
+    </div>
+
+    <figure class="capture" aria-label="A logged-in dashboard in Chrome becomes a tree of named Figma layers" style="margin:0">
+      <div class="browser">
+        <div class="chrome"><i></i><i></i><i></i><span class="url"><span class="lock">●</span> app.yourproduct.com/dashboard</span></div>
+        <div class="page">
+          <div class="pg-nav"><b></b><span><i></i><i></i><i></i></span><em></em></div>
+          <div class="pg-hero"><i></i><i></i><u></u></div>
+          <div class="pg-cards"><div></div><div></div><div></div></div>
+        </div>
+      </div>
+      <div class="arrow" aria-hidden="true">
+        <svg viewBox="0 0 44 20"><path d="M2 10h36" stroke="currentColor" stroke-width="2" fill="none"/><path d="M32 4l7 6-7 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        .json
+      </div>
+      <div class="layers">
+        <div class="layers-head">Layers <span>Desktop 1440</span></div>
+        <ul>
+          <li><svg class="ic" viewBox="0 0 12 12"><path d="M3 1v10M9 1v10M1 3h10M1 9h10" stroke="currentColor" fill="none"/></svg><b>Dashboard — Desktop 1440</b></li>
+          <li class="d1"><svg class="ic" viewBox="0 0 12 12"><path d="M1 3h10M1 6h10M1 9h10" stroke="currentColor" fill="none"/></svg>Header</li>
+          <li class="d2"><svg class="ic" viewBox="0 0 12 12"><path d="M2 2h8v8H2z" stroke="currentColor" fill="none"/></svg>Navigation</li>
+          <li class="d2 sel"><svg class="ic" viewBox="0 0 12 12"><path d="M2 2h8v8H2z" stroke="currentColor" fill="none"/></svg>Button <s>· Upgrade</s></li>
+          <li class="d1"><svg class="ic" viewBox="0 0 12 12"><path d="M2 3h8M2 6h8M2 9h8" stroke="currentColor" fill="none"/></svg>Section <s>· Overview</s></li>
+          <li class="d2"><svg class="ic" viewBox="0 0 12 12"><path d="M3 2h6M6 2v8" stroke="currentColor" fill="none"/></svg>H1 <s>· Welcome back</s></li>
+          <li class="d1"><svg class="ic" viewBox="0 0 12 12"><path d="M1 3h3v6H1zM5 3h2v6H5zM8 3h3v6H8z" stroke="currentColor" fill="none"/></svg>Cards</li>
+        </ul>
+      </div>
+    </figure>
+  </header>
+
+  <section class="block" aria-labelledby="why">
+    <div class="sec-head col">
+      <span class="eyebrow">Why Pagelift</span>
+      <h2 id="why">Two reasons to use it</h2>
+    </div>
+    <div class="usps">
+      <div class="usp">
+        <span class="big">$0, forever</span>
+        <h3>No plan, no cap, no account</h3>
+        <p>Import as many pages and viewports as you like. There's no server to pay for, so there's nothing to charge for. Pagelift is free now and will stay free.</p>
+      </div>
+      <div class="usp">
+        <span class="big">Your tab</span>
+        <h3>Captures pages behind a login</h3>
+        <p>Pagelift reads the page from your own signed-in Chrome tab, so dashboards, admin panels, staging sites and localhost all work. The capture is saved as a file on your computer, and the Figma plugin has no network access at all.</p>
+      </div>
+    </div>
+    <p class="note col">To be fair: html.to.design's Chrome extension can also capture logged-in pages. Pagelift's difference is that it does this for free with no monthly limit, and without any server involved.</p>
+  </section>
+
+  <section class="block" id="compare" aria-labelledby="compare-h">
+    <div class="sec-head col">
+      <span class="eyebrow">Compare</span>
+      <h2 id="compare-h">Pagelift next to the alternatives</h2>
+      <p>Based on each tool's public docs and listings, checked 5 October 2026. "Not stated" means we couldn't find it documented, not that the tool can't do it.</p>
+    </div>
+    <div class="legend" aria-hidden="true">
+      <span><span class="chip c-yes">Yes</span> available</span>
+      <span><span class="chip c-part">Partly</span> limited, paid, or not stated</span>
+      <span><span class="chip c-no">No</span> not available</span>
+    </div>
+    <div class="tablewrap" role="region" aria-label="Comparison table" tabindex="0">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col"><span class="sr">Feature</span></th>
+            <th scope="col" class="us">Pagelift<small>Enclave Studios</small></th>
+            <th scope="col">Web to Figma<small>Imarti Creations</small></th>
+            <th scope="col">html.to.design<small>‹div›RIOTS</small></th>
+            <th scope="col">Figma Chrome extension<small>Figma</small></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">Price</th>
+            <td class="us"><span class="chip c-yes">Free</span><p>No limits, no paid tier.</p></td>
+            <td><span class="chip c-part">Freemium</span><p>Free tier has limited imports. PRO unlocks unlimited imports.</p></td>
+            <td><span class="chip c-part">Freemium</span><p>Free: 10 imports every 30 days. PRO: $12/month billed yearly, $18 monthly.</p></td>
+            <td><span class="chip c-yes">Free</span><p>Available on all Figma plans.</p></td>
+          </tr>
+          <tr>
+            <th scope="row">Pages behind a login</th>
+            <td class="us"><span class="chip c-yes">Yes</span><p>Captures from your signed-in tab.</p></td>
+            <td><span class="chip c-part">Not stated</span></td>
+            <td><span class="chip c-yes">Yes</span><p>Via its Chrome extension.</p></td>
+            <td><span class="chip c-part">Not stated</span></td>
+          </tr>
+          <tr>
+            <th scope="row">Import by pasting a URL in Figma</th>
+            <td class="us"><span class="chip c-no">No</span><p>Chrome only.</p></td>
+            <td><span class="chip c-yes">Yes</span></td>
+            <td><span class="chip c-yes">Yes</span></td>
+            <td><span class="chip c-no">No</span><p>Captures from Chrome.</p></td>
+          </tr>
+          <tr>
+            <th scope="row">Desktop, tablet and mobile in one go</th>
+            <td class="us"><span class="chip c-yes">Yes</span><p>1440, 768 and 390 px, side by side.</p></td>
+            <td><span class="chip c-part">PRO</span><p>Custom viewport sizing is a PRO feature.</p></td>
+            <td><span class="chip c-yes">Yes</span><p>Included free.</p></td>
+            <td><span class="chip c-part">Not stated</span></td>
+          </tr>
+          <tr>
+            <th scope="row">Auto layout</th>
+            <td class="us"><span class="chip c-yes">Yes</span><p>Applied only where it doesn't move anything.</p></td>
+            <td><span class="chip c-part">Not stated</span></td>
+            <td><span class="chip c-yes">Yes</span></td>
+            <td><span class="chip c-part">Implied</span><p>Docs mention padding and gap on captured frames.</p></td>
+          </tr>
+          <tr>
+            <th scope="row">Colour and text styles</th>
+            <td class="us"><span class="chip c-yes">Yes</span><p>Local styles, applied to layers.</p></td>
+            <td><span class="chip c-part">PRO</span><p>Style imports are a PRO feature.</p></td>
+            <td><span class="chip c-yes">Yes</span></td>
+            <td><span class="chip c-no">No</span><p>Plain layers. Can bind existing variables.</p></td>
+          </tr>
+          <tr>
+            <th scope="row">Hover states, dark mode, prototype links</th>
+            <td class="us"><span class="chip c-no">No</span></td>
+            <td><span class="chip c-part">Not stated</span></td>
+            <td><span class="chip c-yes">Yes</span><p>Light/dark themes and prototype features, free.</p></td>
+            <td><span class="chip c-part">Not stated</span></td>
+          </tr>
+          <tr>
+            <th scope="row">Installation</th>
+            <td class="us"><span class="chip c-part">Manual</span><p>Load unpacked in Chrome developer mode, then import the plugin in Figma's desktop app.</p></td>
+            <td><span class="chip c-yes">One click</span><p>Figma Community and Chrome Web Store.</p></td>
+            <td><span class="chip c-yes">One click</span><p>Figma Community and Chrome Web Store.</p></td>
+            <td><span class="chip c-yes">One click</span><p>Chrome Web Store.</p></td>
+          </tr>
+          <tr>
+            <th scope="row">Figma in the browser</th>
+            <td class="us"><span class="chip c-no">No</span><p>Desktop app only, for now.</p></td>
+            <td><span class="chip c-yes">Yes</span></td>
+            <td><span class="chip c-yes">Yes</span></td>
+            <td><span class="chip c-yes">Yes</span></td>
+          </tr>
+          <tr>
+            <th scope="row">Support</th>
+            <td class="us"><span class="chip c-part">Best effort</span><p>A small studio. Email us.</p></td>
+            <td><span class="chip c-part">PRO</span><p>Priority support with PRO.</p></td>
+            <td><span class="chip c-yes">Yes</span><p>Discord, premium support with PRO.</p></td>
+            <td><span class="chip c-yes">Yes</span><p>Figma Help Center.</p></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="block" id="tradeoffs" aria-labelledby="trade-h">
+    <div class="sec-head col">
+      <span class="eyebrow">Trade-offs</span>
+      <h2 id="trade-h">When another tool is the better pick</h2>
+      <p>Pagelift is young. Here is what it doesn't do yet, so you can decide before you install.</p>
+    </div>
+    <ul class="cons">
+      <li><b>It isn't in the Figma Community or Chrome Web Store yet.</b><span>You install both parts by hand from a zip. It takes about two minutes, but it's not one click.</span></li>
+      <li><b>It needs Figma's desktop app.</b><span>Development plugins don't run in Figma in the browser. Until Pagelift is published, use the Mac or Windows app.</span></li>
+      <li><b>Chrome only, and no URL import.</b><span>You capture from a Chrome tab. Other tools can fetch a public page from a URL pasted into Figma.</span></li>
+      <li><b>No hover states, dark mode or prototype links.</b><span>You get what's on screen at capture time. html.to.design handles these.</span></li>
+      <li><b>Some CSS isn't carried over.</b><span>Rotated or skewed elements are placed straight, decorative <code>::before</code> and <code>::after</code> content is skipped, and iframes become grey placeholders.</span></li>
+      <li><b>Fonts must be installed in Figma.</b><span>Missing fonts are swapped for the closest match, and the import summary lists every swap.</span></li>
+      <li><b>Two steps instead of one.</b><span>You download a <code>.pagelift.json</code> file in Chrome and drop it into Figma. Copy and paste works too.</span></li>
+      <li><b>Small team, best-effort support.</b><span>There's no help desk or SLA. If something breaks, email us the JSON file and we'll look.</span></li>
+    </ul>
+  </section>
+
+  <section class="block" aria-labelledby="how-h">
+    <div class="sec-head col">
+      <span class="eyebrow">How it works</span>
+      <h2 id="how-h">Capture, download, import</h2>
+    </div>
+    <ol class="steps">
+      <li><h3>Capture in Chrome</h3><p>Open the page, click the Pagelift icon, pick Desktop, Tablet or Mobile, and click <b>Capture page</b>. Pagelift scrolls the page first so lazy-loaded content appears.</p></li>
+      <li><h3>Download the file</h3><p>Click <b>Download .json</b>. The file holds the page's layout, text, styles and images, and stays on your computer.</p></li>
+      <li><h3>Import in Figma</h3><p>Run Pagelift in Figma, drop in the file, and click <b>Import to Figma</b>. Each viewport becomes its own frame, with named layers and local styles.</p></li>
+    </ol>
+  </section>
+
+  <section class="block" id="install" aria-labelledby="install-h">
+    <div class="sec-head col">
+      <span class="eyebrow">Install</span>
+      <h2 id="install-h">Set up in about two minutes</h2>
+      <p>Download and unzip <code>pagelift.zip</code>. It has two folders: <code>extension</code> and <code>figma-plugin</code>.</p>
+    </div>
+    <div class="install">
+      <div class="card">
+        <h3>Chrome extension</h3>
+        <ol>
+          <li>Go to <code>chrome://extensions</code>.</li>
+          <li>Turn on <b>Developer mode</b> (top right).</li>
+          <li>Click <b>Load unpacked</b> and choose the <code>extension</code> folder.</li>
+          <li>Pin <b>Pagelift — Capture</b> to your toolbar.</li>
+        </ol>
+      </div>
+      <div class="card">
+        <h3>Figma plugin</h3>
+        <ol>
+          <li>Open the Figma desktop app.</li>
+          <li>Go to <b>Plugins → Development → Import plugin from manifest…</b></li>
+          <li>Choose <code>figma-plugin/manifest.json</code>.</li>
+          <li>Run it from <b>Plugins → Development → Pagelift</b>.</li>
+        </ol>
+      </div>
+    </div>
+    <div class="ctas"><a class="btn btn-primary dl" href="assets/pagelift.zip" download id="dl-install">Download Pagelift</a><span class="fine dl-status" role="status" aria-live="polite"></span></div>
+  </section>
+
+  <section class="block" aria-labelledby="faq-h">
+    <div class="sec-head col">
+      <span class="eyebrow">Questions</span>
+      <h2 id="faq-h">Good to know</h2>
+    </div>
+    <div class="faq col">
+      <details>
+        <summary>Is it really free forever?</summary>
+        <p>Yes. Pagelift runs entirely on your computer, so it costs us nothing when you use it. There's no account, no trial and no paid tier planned.</p>
+      </details>
+      <details>
+        <summary>Where does my page data go?</summary>
+        <p>Nowhere. The Chrome extension saves the capture as a file on your computer, and the Figma plugin reads that file. The plugin declares no network access, which Figma enforces. The only requests the extension makes are for the page's own images, from the sites already serving them to you. All the code is plain JavaScript in the zip, so you can read it.</p>
+      </details>
+      <details>
+        <summary>Why does Chrome show "started debugging this browser"?</summary>
+        <p>That's how Pagelift resizes the page to tablet and mobile widths. The bar disappears when the capture finishes. Tick <b>Current window size only</b> to skip resizing, and the bar won't appear.</p>
+      </details>
+      <details>
+        <summary>Which plugin is Pagelift in my Figma menu?</summary>
+        <p>The one tagged <b>Development</b>. Another plugin called "Web to Figma" is unrelated.</p>
+      </details>
+      <details>
+        <summary>Can I capture someone else's website?</summary>
+        <p>Pagelift captures whatever your browser shows. Use it for your own products, client work you're permitted to use, and reference. Respect copyright and trademarks.</p>
+      </details>
+    </div>
+  </section>
+
+  <footer>
+    <div class="row">
+      <span>Pagelift is made by Enclave Studios. Questions or bugs: <span class="copy">hello@enclave-studios.com</span></span>
+      <span>Not affiliated with Figma, html.to.design or Web to Figma.</span>
+    </div>
+    <div>
+      Comparison sources:
+      <ul>
+        <li><a href="https://html.to.design/docs/free-features/" target="_blank" rel="noopener">html.to.design free features</a> and <a href="https://html.to.design/docs/pro-plan/" target="_blank" rel="noopener">PRO plan</a></li>
+        <li><a href="https://www.figma.com/community/plugin/1297530151115228662/web-to-figma-convert-any-website-or-html-code-to-design" target="_blank" rel="noopener">Web to Figma on Figma Community</a> and <a href="https://chromewebstore.google.com/detail/web-to-figma/mafpepbepbabkenbfpcdjmmjmeeemoal" target="_blank" rel="noopener">Chrome Web Store</a></li>
+        <li><a href="https://help.figma.com/hc/en-us/articles/40826832449303-Turn-webpages-into-editable-design-layers" target="_blank" rel="noopener">Figma: Turn webpages into editable design layers</a></li>
+      </ul>
+    </div>
+  </footer>
+</div>
+</body>
+</html>
