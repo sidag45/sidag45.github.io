@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EL-01 watch embed demo</title>
+<style>
+  body{margin:0;font-family:Georgia,serif;background:#f3f1ee;color:#1b1d21}
+  .hero{display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:24px;max-width:1200px;margin:0 auto;padding:48px 24px}
+  .hero h1{font-size:56px;font-weight:400;margin:0 0 12px}
+  .watch{height:560px}
+  .dark{background:#0b0e13;color:#e1e5ea}
+  @media (max-width:760px){.hero{grid-template-columns:1fr}.watch{height:420px}}
+</style></head>
+<body>
+  <section class="hero"><div><h1>Light section</h1><p>Default settings: mechanical 8-beat second hand, slow sway, drag to turn.</p></div>
+    <div class="watch" data-el01-watch></div></section>
+  <section class="dark"><div class="hero"><div><h1>Dark section</h1><p>data-tick="quartz" data-angle="40"</p></div>
+    <div class="watch" data-el01-watch data-tick="quartz" data-angle="40"></div></div></section>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/geometries/RoundedBoxGeometry.js"></script>
+  <script src="el01-watch.js"></script>
+</body></html>

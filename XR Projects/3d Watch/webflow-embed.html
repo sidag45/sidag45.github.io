@@ -1,0 +1,486 @@
+<!-- EL-01 ticking watch: paste into a Webflow Embed element. Set the height on the div. -->
+<div data-el01-watch data-tick="mechanical" style="width:100%;height:520px"></div>
+<script>
+(function(){
+  function load(src,cb){var s=document.createElement('script');s.src=src;s.onload=cb;document.head.appendChild(s);}
+  function start(){ /*!
+ * EL-01 ticking watch embed (three.js r147)
+ * Usage:
+ *   <div data-el01-watch style="height:520px"></div>
+ *   <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"><\/script>
+ *   <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/geometries/RoundedBoxGeometry.js"><\/script>
+ *   <script src="el01-watch.js"><\/script>
+ * Options (data attributes on the div):
+ *   data-tick="mechanical" (default, 8 beats/s) | "quartz" (one tick per second) | "sweep" (continuous)
+ *   data-drag="off"   disable drag-to-turn
+ *   data-spin="off"   disable the slow idle sway
+ *   data-angle="45"   camera elevation in degrees (default 52)
+ */
+(function(){
+"use strict";
+if(!window.THREE){console.warn('EL-01 watch: load three.js before el01-watch.js');return;}
+const TAU=Math.PI*2;
+const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
+
+function mount(host){
+  if(host.__el01) return; host.__el01=true;
+  const REDUCED=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const TICK=(host.dataset.tick||'mechanical').toLowerCase();
+  const DRAG=host.dataset.drag!=='off', SPIN=host.dataset.spin!=='off'&&!REDUCED;
+  const ELEV=(parseFloat(host.dataset.angle)||52)*Math.PI/180;
+  if(getComputedStyle(host).position==='static') host.style.position='relative';
+  if(host.clientHeight<10) host.style.height='480px';
+  const canvas=document.createElement('canvas');
+  canvas.setAttribute('role','img');canvas.setAttribute('aria-label','3D wristwatch showing the current time');
+  canvas.style.cssText='display:block;width:100%;height:100%;touch-action:pan-y;'+(DRAG?'cursor:grab;':'');
+  // fade the strap out at the top and bottom edges instead of hard-cropping it
+  const fade='linear-gradient(to bottom,transparent 0,#000 14%,#000 86%,transparent 100%)';
+  canvas.style.webkitMaskImage=fade;canvas.style.maskImage=fade;
+  host.appendChild(canvas);
+
+  const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+  renderer.outputEncoding=THREE.sRGBEncoding;
+  renderer.toneMapping=THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure=1.18;
+renderer.setClearColor(0x000000,0);
+
+const scene=new THREE.Scene();
+/* Product-photography studio, used only for reflections: a dim room with softboxes and strip lights.
+   Polished steel reads as real when it mirrors crisp, high-contrast light shapes. */
+function studio(){
+  const st=new THREE.Scene();
+  const room=new THREE.Mesh(new THREE.SphereGeometry(100,48,24),new THREE.ShaderMaterial({
+    side:THREE.BackSide,depthWrite:false,
+    vertexShader:'varying vec3 vP;void main(){vP=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+    fragmentShader:'varying vec3 vP;void main(){float h=normalize(vP).y;vec3 top=vec3(.42,.44,.48),mid=vec3(.10,.11,.13),bot=vec3(.03,.03,.035);vec3 c=h>0.?mix(mid,top,smoothstep(0.,1.,h)):mix(mid,bot,smoothstep(0.,-.6,h));gl_FragColor=vec4(c,1.);}'
+  }));
+  st.add(room);
+  const panel=(w,h,i,x,y,z,tint=[1,1,1])=>{
+    const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({color:new THREE.Color(i*tint[0],i*tint[1],i*tint[2]),side:THREE.DoubleSide}));
+    m.position.set(x,y,z);m.lookAt(0,0,0);st.add(m);
+  };
+  panel(70,26,7,0,70,8);            // overhead softbox
+  panel(10,60,9,-62,18,24);         // left strip
+  panel(10,60,6,60,14,-30);         // right strip
+  panel(46,22,3.2,10,22,64);        // front fill
+  panel(60,6,4,-20,-14,-58,[.85,.92,1.1]); // low cool kicker behind
+  panel(8,40,5,40,30,55);           // front-right edge light
+  return st;
+}
+const pmrem=new THREE.PMREMGenerator(renderer);
+scene.environment=pmrem.fromScene(studio(),0.015).texture;
+scene.add(new THREE.HemisphereLight(0xf2f5ff,0x15110e,0.55));
+const key=new THREE.DirectionalLight(0xfff6ea,1.6); key.position.set(40,80,60); scene.add(key);
+const fill=new THREE.DirectionalLight(0xdfe9ff,0.7); fill.position.set(-70,20,40); scene.add(fill);
+const rim=new THREE.DirectionalLight(0x9fbcff,0.9); rim.position.set(-60,30,-70); scene.add(rim);
+
+  const camera=new THREE.PerspectiveCamera(30,1,1,1000);
+  const root=new THREE.Group(); scene.add(root);
+
+/* ---------- textures ---------- */
+function canvasTex(size,draw,opts={}){
+  const c=document.createElement('canvas'); c.width=c.height=size;
+  const g=c.getContext('2d'); draw(g,size);
+  const t=new THREE.CanvasTexture(c);
+  t.encoding=THREE.sRGBEncoding;
+  t.anisotropy=renderer.capabilities.getMaxAnisotropy();
+  if(opts.repeat){t.wrapS=t.wrapT=THREE.RepeatWrapping;}
+  t.userData.redraw=()=>{draw(g,size);t.needsUpdate=true;};
+  return t;
+}
+const perlageTex=canvasTex(512,(g,s)=>{
+  g.fillStyle='#b9bfc6';g.fillRect(0,0,s,s);
+  const step=36,r=30;
+  for(let y=-step;y<s+step;y+=step*0.72){
+    const row=Math.round(y/(step*0.72));
+    for(let x=-step;x<s+step;x+=step){
+      const cx=x+(row%2?step/2:0),cy=y;
+      const gr=g.createRadialGradient(cx-4,cy-4,2,cx,cy,r);
+      gr.addColorStop(0,'rgba(255,255,255,.55)');gr.addColorStop(.55,'rgba(210,215,222,.25)');gr.addColorStop(1,'rgba(60,66,74,.35)');
+      g.fillStyle=gr;g.beginPath();g.arc(cx,cy,r,0,TAU);g.fill();
+    }
+  }
+},{repeat:true});
+perlageTex.repeat.set(2.5,2.5);
+
+function stripes(base,light,dark){
+  return (g,s)=>{
+    g.fillStyle=base;g.fillRect(0,0,s,s);
+    const bands=4,bw=s/bands;
+    for(let i=0;i<bands;i++){
+      const gr=g.createLinearGradient(0,i*bw,0,(i+1)*bw);
+      gr.addColorStop(0,dark);gr.addColorStop(.5,light);gr.addColorStop(1,dark);
+      g.fillStyle=gr;g.fillRect(0,i*bw,s,bw);
+    }
+  };
+}
+const cotesTex=canvasTex(512,stripes('#c4c9cf','#f2f4f6','#9aa1a9'),{repeat:true});
+cotesTex.repeat.set(1/9,1/9); cotesTex.center.set(.5,.5); cotesTex.rotation=0.55;
+const goldTex=canvasTex(512,stripes('#c9a35a','#f3d995','#9b7836'),{repeat:true});
+goldTex.repeat.set(1/7,1/7); goldTex.center.set(.5,.5); goldTex.rotation=-0.4;
+
+// fine circular brushing for case flanks (lathe UVs run around the case)
+function rng(seed){return()=>{seed=(seed*16807)%2147483647;return(seed-1)/2147483646;};}
+const brushTex=(()=>{
+  const c=document.createElement('canvas');c.width=64;c.height=1024;const g=c.getContext('2d');const r=rng(7);
+  for(let y=0;y<1024;y++){const v=Math.round(150+r()*60);g.fillStyle=`rgb(${v},${v},${v})`;g.fillRect(0,y,64,1);}
+  const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(1,3);return t;
+})();
+
+// pebbled calf leather with saddle stitching; UVs are in millimetres across a 20 x 56 mm strap
+function leatherCanvases(){
+  const W=512,H=1536,r=rng(11);
+  const col=document.createElement('canvas'),bmp=document.createElement('canvas');
+  col.width=bmp.width=W;col.height=bmp.height=H;
+  const gc=col.getContext('2d'),gb=bmp.getContext('2d');
+  const base=gc.createLinearGradient(0,0,W,0);
+  base.addColorStop(0,'#4a2a17');base.addColorStop(.5,'#5d3720');base.addColorStop(1,'#4a2a17');
+  gc.fillStyle=base;gc.fillRect(0,0,W,H);
+  gb.fillStyle='#808080';gb.fillRect(0,0,W,H);
+  for(let i=0;i<26000;i++){ // grain pebbles
+    const x=r()*W,y=r()*H,rad=1.4+r()*3.2,l=r();
+    gb.fillStyle=`rgba(${l>.5?255:0},${l>.5?255:0},${l>.5?255:0},${(0.06+r()*0.12).toFixed(3)})`;
+    gb.beginPath();gb.ellipse(x,y,rad,rad*(0.7+r()*0.5),r()*3,0,TAU);gb.fill();
+    if(i%3===0){gc.fillStyle=`rgba(${l>.5?120:20},${l>.5?78:10},${l>.5?48:4},${(0.05+r()*0.08).toFixed(3)})`;
+      gc.beginPath();gc.arc(x,y,rad*1.4,0,TAU);gc.fill();}
+  }
+  // stitching 1.3 mm in from each edge, ~1 mm stitch pitch at this scale
+  [0.09,0.91].forEach(u=>{
+    const x=u*W;
+    // groove
+    gb.strokeStyle='rgba(0,0,0,.35)';gb.lineWidth=7;gb.beginPath();gb.moveTo(x,0);gb.lineTo(x,H);gb.stroke();
+    gc.strokeStyle='rgba(20,10,4,.35)';gc.lineWidth=7;gc.beginPath();gc.moveTo(x,0);gc.lineTo(x,H);gc.stroke();
+    for(let y=6;y<H;y+=30){
+      gc.fillStyle='rgba(15,8,3,.6)';gc.beginPath();gc.ellipse(x+1,y+22,3,2.4,0,0,TAU);gc.fill();
+      gc.save();gc.translate(x,y+10);gc.rotate(-0.25);
+      const th=gc.createLinearGradient(-3,0,3,0);th.addColorStop(0,'#bfae92');th.addColorStop(.5,'#f3e8d2');th.addColorStop(1,'#a8977c');
+      gc.fillStyle=th;gc.beginPath();gc.ellipse(0,0,3,10,0,0,TAU);gc.fill();gc.restore();
+      gb.save();gb.translate(x,y+10);gb.rotate(-0.25);gb.fillStyle='rgba(255,255,255,.9)';gb.beginPath();gb.ellipse(0,0,3.2,10,0,0,TAU);gb.fill();gb.restore();
+    }
+  });
+  const mk=(cv,srgb)=>{const t=new THREE.CanvasTexture(cv);t.wrapS=t.wrapT=THREE.RepeatWrapping;
+    if(srgb)t.encoding=THREE.sRGBEncoding;t.anisotropy=renderer.capabilities.getMaxAnisotropy();
+    t.repeat.set(1/20,1/56);t.offset.set(0.5,0.982);return t;};
+  return {map:mk(col,true),bump:mk(bmp,false)};
+}
+const LEATHER=leatherCanvases();
+
+const dialTex=canvasTex(1536,(g,s)=>{
+  const c=s/2;
+  g.save();g.translate(c,c);
+  const bg=g.createRadialGradient(0,0,0,0,0,c);
+  bg.addColorStop(0,'#dcdfe3');bg.addColorStop(.6,'#c9cdd3');bg.addColorStop(1,'#a9b0b9');
+  g.fillStyle=bg;g.fillRect(-c,-c,s,s);
+  // sunray brushing
+  for(let i=0;i<720;i++){
+    const a=i/720*TAU;
+    g.strokeStyle=(i%2?'rgba(255,255,255,':'rgba(70,80,95,')+(0.03+0.05*Math.abs(Math.sin(a*2+0.6))).toFixed(3)+')';
+    g.lineWidth=1.2;g.beginPath();g.moveTo(0,0);g.lineTo(Math.cos(a)*c,Math.sin(a)*c);g.stroke();
+  }
+  const sheen=g.createLinearGradient(-c,-c,c,c);
+  sheen.addColorStop(0,'rgba(255,255,255,.10)');sheen.addColorStop(.5,'rgba(255,255,255,0)');sheen.addColorStop(1,'rgba(255,255,255,.06)');
+  g.fillStyle=sheen;g.fillRect(-c,-c,s,s);
+  // minute track
+  g.strokeStyle='#16223a';
+  for(let i=0;i<60;i++){
+    const a=i/60*TAU-Math.PI/2, five=i%5===0;
+    const r1=c*0.958, r0=five?c*0.89:c*0.925;
+    g.lineWidth=five?10:4.5;
+    g.beginPath();g.moveTo(Math.cos(a)*r0,Math.sin(a)*r0);g.lineTo(Math.cos(a)*r1,Math.sin(a)*r1);g.stroke();
+  }
+  g.lineWidth=3.5;g.beginPath();g.arc(0,0,c*0.962,0,TAU);g.stroke();
+  g.textAlign='center';g.textBaseline='middle';
+  // wordmark
+  g.fillStyle='#14213a';
+  g.font=`600 ${Math.round(s*0.062)}px "Bodoni Moda", Didot, Georgia, serif`;
+  g.fillText('EL-01',0,-c*0.38);
+  g.font=`500 ${Math.round(s*0.021)}px "JetBrains Mono", monospace`;
+  g.fillStyle='#1d2b47';
+  if('letterSpacing' in g) g.letterSpacing='6px';
+  g.fillText('ENCLAVE LABS',0,-c*0.27);
+  g.font=`italic 500 ${Math.round(s*0.038)}px "Bodoni Moda", Didot, Georgia, serif`;
+  if('letterSpacing' in g) g.letterSpacing='0px';
+  g.fillStyle='#14213a';
+  g.fillText('Automatique',0,c*0.36);
+  g.font=`500 ${Math.round(s*0.018)}px "JetBrains Mono", monospace`;
+  g.fillStyle='#2a3956';
+  if('letterSpacing' in g) g.letterSpacing='4px';
+  g.fillText('28 800 A/H · 25 RUBIS',0,c*0.45);
+  if('letterSpacing' in g) g.letterSpacing='0px';
+  g.restore();
+});
+
+/* ---------- materials ---------- */
+const MAT={
+  polished:new THREE.MeshStandardMaterial({color:0xe9ecef,metalness:1,roughness:0.07}),
+  brushed:new THREE.MeshStandardMaterial({color:0xd6dade,metalness:1,roughness:0.5,roughnessMap:brushTex}),
+  rhodium:new THREE.MeshStandardMaterial({color:0xd5dae0,metalness:1,roughness:0.3,map:perlageTex}),
+  cotes:new THREE.MeshStandardMaterial({color:0xe0e4e8,metalness:1,roughness:0.26,map:cotesTex}),
+  gilt:new THREE.MeshStandardMaterial({color:0xe2b866,metalness:1,roughness:0.26}),
+  rotor:new THREE.MeshStandardMaterial({color:0xffffff,metalness:1,roughness:0.24,map:goldTex}),
+  blued:new THREE.MeshStandardMaterial({color:0x2c62c4,metalness:0.85,roughness:0.2,emissive:0x061430}),
+  ruby:new THREE.MeshPhysicalMaterial({color:0xd0234a,metalness:0,roughness:0.08,clearcoat:1,emissive:0x3a0010}),
+  crystal:new THREE.MeshPhysicalMaterial({color:0xf2f6ff,metalness:0,roughness:0,transparent:true,opacity:0.09,clearcoat:1,depthWrite:false}),
+  glass:new THREE.MeshPhysicalMaterial({color:0xe6f0ff,metalness:0,roughness:0,transparent:true,opacity:0.1,clearcoat:1,depthWrite:false}),
+  dial:new THREE.MeshStandardMaterial({map:dialTex,metalness:0,roughness:0.66}),
+  lume:new THREE.MeshStandardMaterial({color:0xe8f0da,roughness:0.6,metalness:0,emissive:0x1d2a16}),
+  leather:new THREE.MeshStandardMaterial({color:0xffffff,map:LEATHER.map,bumpMap:LEATHER.bump,bumpScale:0.06,roughness:0.58,metalness:0}),
+  edgePaint:new THREE.MeshStandardMaterial({color:0x2a160c,roughness:0.42,metalness:0}),
+  leatherPlain:new THREE.MeshStandardMaterial({color:0x5a3520,bumpMap:LEATHER.bump,bumpScale:0.04,roughness:0.6,metalness:0}),
+  steelDark:new THREE.MeshStandardMaterial({color:0x8d949c,metalness:1,roughness:0.45}),
+};
+Object.values(MAT).forEach(m=>{m.color&&m.color.convertSRGBToLinear();m.emissive&&m.emissive.convertSRGBToLinear();m.envMapIntensity=1.15;});
+MAT.dial.envMapIntensity=0.45;
+MAT.crystal.envMapIntensity=0.25; // anti-reflective coating: keep the dial readable through the glass
+function mesh(geo,mat){return new THREE.Mesh(geo,Array.isArray(mat)?mat.map(m=>m.clone()):mat.clone());}
+// smooth shading for non-indexed extrusions, per material group so caps stay crisp
+function smoothNormals(geo){
+  const pos=geo.attributes.position,n=new Float32Array(pos.count*3);
+  const groups=geo.groups.length?geo.groups:[{start:0,count:pos.count}];
+  const a=new THREE.Vector3(),b=new THREE.Vector3(),c=new THREE.Vector3(),ab=new THREE.Vector3(),cb=new THREE.Vector3();
+  const key=i=>pos.getX(i).toFixed(3)+','+pos.getY(i).toFixed(3)+','+pos.getZ(i).toFixed(3);
+  groups.forEach(g=>{
+    const map=new Map();
+    for(let i=g.start;i<g.start+g.count;i+=3){
+      a.fromBufferAttribute(pos,i);b.fromBufferAttribute(pos,i+1);c.fromBufferAttribute(pos,i+2);
+      cb.subVectors(c,b);ab.subVectors(a,b);cb.cross(ab);
+      for(let k=0;k<3;k++){const kk=key(i+k);const v=map.get(kk)||[0,0,0];v[0]+=cb.x;v[1]+=cb.y;v[2]+=cb.z;map.set(kk,v);}
+    }
+    for(let i=g.start;i<g.start+g.count;i++){const v=map.get(key(i)),l=Math.hypot(v[0],v[1],v[2])||1;n[i*3]=v[0]/l;n[i*3+1]=v[1]/l;n[i*3+2]=v[2]/l;}
+  });
+  geo.setAttribute('normal',new THREE.BufferAttribute(n,3));
+  return geo;
+}
+
+/* ---------- part registry ---------- */
+const parts=[];
+function part(key,o){
+  const g=new THREE.Group();
+  g.userData=Object.assign({key,baseY:0,dy:0,dx:0,dz:0,w0:0,w1:1,bx:0,bz:0},o);
+  g.position.set(g.userData.bx,g.userData.baseY,g.userData.bz);
+  root.add(g);parts.push(g);return g;
+}
+function sub(parent,key){const g=new THREE.Group();g.userData={key};parent.add(g);return g;}
+
+function lathe(pts,seg=128){
+  return new THREE.LatheGeometry(pts.map(p=>new THREE.Vector2(p[0],p[1])),seg);
+}
+function flatShapeGeo(shape,depth,seg=24){
+  const geo=new THREE.ExtrudeGeometry(shape,{depth,bevelEnabled:false,curveSegments:seg});
+  geo.rotateX(-Math.PI/2); // shape plane -> XZ, extrude along +Y; shape +y -> world -z
+  return geo;
+}
+
+/* ---------- case middle ---------- */
+const caseG=part('case',{});
+{
+  const body=mesh(lathe([[16.4,-4],[19.2,-4],[19.9,-3],[20.3,-0.5],[20.1,2.2],[19.4,3],[16.4,3],[16.4,-4]]),MAT.brushed);
+  body.material.side=THREE.DoubleSide; caseG.add(body);
+  const lugGeo=THREE.RoundedBoxGeometry?new THREE.RoundedBoxGeometry(3.2,3.4,7.5,4,0.9):new THREE.BoxGeometry(3.2,3.4,7.5);
+  [[-8,-1],[8,-1],[-8,1],[8,1]].forEach(([x,s])=>{
+    const l=mesh(lugGeo,MAT.polished); l.position.set(x,-0.6,s*20.6); l.rotation.x=s*0.16; caseG.add(l);
+  });
+  const barGeo=new THREE.CylinderGeometry(0.45,0.45,13,12); barGeo.rotateZ(Math.PI/2);
+  [-1,1].forEach(s=>{const b=mesh(barGeo,MAT.steelDark);b.position.set(0,-1.1,s*22.6);caseG.add(b);});
+  const crownGeo=new THREE.CylinderGeometry(2.7,2.7,3.2,144,1); // knurled grip
+  {const cp=crownGeo.attributes.position;for(let i=0;i<cp.count;i++){const x=cp.getX(i),z=cp.getZ(i),r=Math.hypot(x,z);if(r<2.6)continue;
+    const a=Math.atan2(z,x),k=1+0.045*Math.sign(Math.sin(a*36));cp.setX(i,x*k);cp.setZ(i,z*k);}crownGeo.computeVertexNormals();}
+  crownGeo.rotateZ(Math.PI/2);
+  const crown=mesh(crownGeo,MAT.polished); crown.position.set(21.9,-0.4,0); caseG.add(crown);
+  const stemGeo=new THREE.CylinderGeometry(1.2,1.2,1.6,20); stemGeo.rotateZ(Math.PI/2);
+  const stem=mesh(stemGeo,MAT.brushed); stem.position.set(20.4,-0.4,0); caseG.add(stem);
+  const capGeo=new THREE.SphereGeometry(6,48,12,0,TAU,0,Math.asin(2.5/6)); capGeo.translate(0,-6*Math.cos(Math.asin(2.5/6)),0); capGeo.rotateZ(-Math.PI/2);
+  const cap=mesh(capGeo,MAT.polished); cap.position.set(23.55,-0.4,0); caseG.add(cap);
+}
+
+/* ---------- crystal & bezel ---------- */
+const crystalG=part('crystal',{baseY:4.9,dy:46,w0:0.04,w1:0.3});
+{
+  const cr=mesh(new THREE.CylinderGeometry(16.6,16.6,0.9,96),MAT.crystal); crystalG.add(cr);
+  const dome=mesh(new THREE.SphereGeometry(60,96,8,0,TAU,0,Math.asin(16.6/60)),MAT.crystal);
+  dome.position.y=0.45-60*Math.cos(Math.asin(16.6/60)); crystalG.add(dome);
+}
+const bezelG=part('bezel',{dy:36,w0:0.08,w1:0.34});
+{
+  const b=mesh(lathe([[16.3,2.9],[19.5,2.9],[19.65,3.3],[18.7,4.4],[16.7,4.7],[16.3,4.3],[16.3,2.9]]),MAT.polished);
+  b.material.side=THREE.DoubleSide; bezelG.add(b);
+}
+
+/* ---------- dial ---------- */
+const dialG=part('dial',{baseY:1.3,dy:14,w0:0.26,w1:0.52});
+{
+  const base=mesh(new THREE.CylinderGeometry(16.2,16.2,0.5,96),MAT.brushed); dialG.add(base);
+  const face=mesh(new THREE.CircleGeometry(16.15,128).rotateX(-Math.PI/2),MAT.dial); face.position.y=0.26; dialG.add(face);
+  const idx=new THREE.BoxGeometry(0.95,0.45,3.4), idxL=new THREE.BoxGeometry(0.42,0.12,2.4);
+  for(let i=0;i<12;i++){
+    const a=i/12*TAU;
+    const offs = i===0?[-0.75,0.75]:[0];
+    offs.forEach(o=>{
+      const grp=new THREE.Group();
+      const m=mesh(idx,MAT.polished); m.position.y=0.22; grp.add(m);
+      const l=mesh(idxL,MAT.lume); l.position.y=0.5; grp.add(l);
+      const r=i%3===0?12.6:12.9;
+      grp.position.set(Math.sin(a)*r+Math.cos(a)*o,0.26,-Math.cos(a)*r+Math.sin(a)*o);
+      grp.rotation.y=-a; dialG.add(grp);
+    });
+  }
+}
+
+/* ---------- hands ---------- */
+const handsG=part('hands',{baseY:2.05,dy:25,w0:0.2,w1:0.46});
+function sword(len,w,tail){
+  const s=new THREE.Shape();
+  s.moveTo(-w*0.35,-tail); s.lineTo(w*0.35,-tail); s.lineTo(w/2,len*0.55); s.lineTo(0,len); s.lineTo(-w/2,len*0.55); s.closePath();
+  return s;
+}
+const hourHand=new THREE.Group(), minHand=new THREE.Group(), secHand=new THREE.Group();
+{
+  const hh=mesh(flatShapeGeo(sword(8.6,1.6,1.6),0.22),MAT.blued); hourHand.add(hh);
+  const hl=mesh(flatShapeGeo(sword(5.2,0.6,-2.6),0.08),MAT.lume); hl.position.y=0.22; hourHand.add(hl);
+  const mh=mesh(flatShapeGeo(sword(12.6,1.2,1.9),0.22),MAT.blued); minHand.add(mh);
+  const ml=mesh(flatShapeGeo(sword(8.6,0.46,-3.2),0.08),MAT.lume); ml.position.y=0.22; minHand.add(ml);
+  const sShape=new THREE.Shape(); sShape.moveTo(-0.11,-4); sShape.lineTo(0.11,-4); sShape.lineTo(0.08,14.4); sShape.lineTo(-0.08,14.4); sShape.closePath();
+  const sh=mesh(flatShapeGeo(sShape,0.12),MAT.blued); secHand.add(sh);
+  const cw=new THREE.Shape(); cw.absarc(0,-3.4,0.75,0,TAU,false);
+  const cwm=mesh(flatShapeGeo(cw,0.12,20),MAT.blued); secHand.add(cwm);
+  hourHand.position.y=0; minHand.position.y=0.4; secHand.position.y=0.8;
+  handsG.add(hourHand,minHand,secHand);
+  const pin=mesh(new THREE.CylinderGeometry(0.75,0.75,1.4,24),MAT.blued); pin.position.y=0.55; handsG.add(pin);
+}
+
+/* ---------- caseback ---------- */
+const backG=part('caseback',{dy:-54,w0:0.62,w1:0.88});
+{
+  const ring=mesh(lathe([[12,-4],[19.2,-4],[19.2,-4.6],[18.4,-5.7],[12.7,-5.9],[12,-5.6],[12,-4]]),MAT.brushed);
+  ring.material.side=THREE.DoubleSide; backG.add(ring);
+  for(let k=0;k<6;k++){ // wrench notches
+    const a=k/6*TAU; const n=mesh(new THREE.BoxGeometry(1.6,0.6,1.2),MAT.steelDark);
+    n.position.set(Math.cos(a)*17.2,-5.75,Math.sin(a)*17.2); n.rotation.y=-a; backG.add(n);
+  }
+  const glass=mesh(new THREE.CylinderGeometry(12.2,12.2,0.6,72),MAT.glass); glass.position.y=-4.9; backG.add(glass);
+}
+
+/* ---------- strap ---------- */
+// Strap runs outward along +z from the lug, tapers 20 -> 16 mm and curls downward like a strap lying open.
+const STRAP_L=56;
+function strapXform(x,y,z){
+  const taper=1-0.2*(z/STRAP_L), ang=Math.atan(0.011*z);
+  return [x*taper, y*Math.cos(ang)-0.0055*z*z, z-y*Math.sin(ang)*0.6, ang];
+}
+function roundedRect(w,h,r,crown=0){
+  const s=new THREE.Shape(),x0=-w/2,x1=w/2,y0=-h/2,y1=h/2;
+  s.moveTo(x0+r,y0);s.lineTo(x1-r,y0);s.quadraticCurveTo(x1,y0,x1,y0+r);s.lineTo(x1,y1-r);
+  s.quadraticCurveTo(x1,y1,x1-r,y1);s.quadraticCurveTo(0,y1+crown,x0+r,y1);s.quadraticCurveTo(x0,y1,x0,y1-r);
+  s.lineTo(x0,y0+r);s.quadraticCurveTo(x0,y0,x0+r,y0);return s;
+}
+function strapGeo(dir){
+  const geo=new THREE.ExtrudeGeometry(roundedRect(19.4,1.7,0.75,0.55),{depth:STRAP_L,steps:64,bevelEnabled:false,curveSegments:6});
+  const p=geo.attributes.position;
+  for(let i=0;i<p.count;i++){
+    const [x,y,z]=strapXform(p.getX(i),p.getY(i),p.getZ(i));
+    p.setXYZ(i,x,y,dir*z);
+  }
+  if(dir<0){ // mirrored along z: flip winding so faces point outward
+    const idx=[];for(let i=0;i<p.count;i+=3){idx.push(i,i+2,i+1);}
+    const swap=(attr)=>{const src=attr.array.slice(),n=attr.itemSize;for(let i=0;i<idx.length;i++){for(let k=0;k<n;k++)attr.array[i*n+k]=src[idx[i]*n+k];}attr.needsUpdate=true;};
+    swap(p);swap(geo.attributes.uv);
+  }
+  return smoothNormals(geo);
+}
+function onStrap(obj,dir,z,yLocal){
+  const [ ,y,zz,ang]=strapXform(0,yLocal,z);
+  obj.position.set(0,y,dir*zz); obj.rotation.x=dir*ang; return obj;
+}
+const strapA=part('strap',{bz:-22.6,baseY:-1.1,dz:-42,dy:-4,w0:0.7,w1:0.96});
+strapA.add(mesh(strapGeo(-1),[MAT.edgePaint,MAT.leather]));
+const strapB=part('strap',{bz:22.6,baseY:-1.1,dz:42,dy:-4,w0:0.7,w1:0.96});
+strapB.add(mesh(strapGeo(1),[MAT.edgePaint,MAT.leather]));
+{
+  // keepers (leather loops) near the buckle end of strap A
+  [43.5,48.5].forEach(z=>{
+    const t=1-0.2*(z/STRAP_L), w=19.4*t+1.1;
+    const sh=roundedRect(w,3.0,1.1); sh.holes.push(roundedRect(w-1.1,1.9,0.6));
+    const g=smoothNormals(new THREE.ExtrudeGeometry(sh,{depth:2.4,bevelEnabled:false,curveSegments:6}));
+    g.translate(0,0.15,-1.2);
+    strapA.add(onStrap(mesh(g,[MAT.edgePaint,MAT.leatherPlain]),-1,z,0));
+  });
+  // pin buckle at the end of strap A
+  const buckle=new THREE.Group();
+  const pts=[];const bw=9.6,bl=9;
+  for(let i=0;i<=40;i++){const a=Math.PI*(i/40);pts.push(new THREE.Vector3(Math.cos(a)*bw,0,-Math.sin(a)*bl));}
+  const frame=mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),80,0.85,16,false),MAT.polished);
+  const barGeo=new THREE.CylinderGeometry(0.75,0.75,bw*2+1.2,20).rotateZ(Math.PI/2);
+  const bar=mesh(barGeo,MAT.polished);
+  [-1,1].forEach(s=>{const cap=mesh(new THREE.SphereGeometry(0.85,16,12),MAT.polished);cap.position.x=s*bw;buckle.add(cap);});
+  const tang=mesh(THREE.RoundedBoxGeometry?new THREE.RoundedBoxGeometry(1.2,0.7,bl+0.6,3,0.3):new THREE.BoxGeometry(1.2,0.7,bl+0.6),MAT.polished);
+  tang.position.set(0,0.55,-bl/2); tang.rotation.x=0.06;
+  buckle.add(frame,bar,tang);
+  strapA.add(onStrap(buckle,-1,STRAP_L-0.4,0.2));
+  // adjustment holes on strap B
+  for(let k=0;k<6;k++){
+    const h=mesh(new THREE.CylinderGeometry(0.62,0.62,0.4,20),MAT.edgePaint);
+    strapB.add(onStrap(h,1,26+k*5,1.08));
+  }
+}
+
+  /* ---------- time ---------- */
+  const easeBack=t=>{const c=2.2;return 1+(c+1)*Math.pow(t-1,3)+c*Math.pow(t-1,2);};
+  function setHands(){
+    const d=new Date(); const raw=d.getSeconds()+d.getMilliseconds()/1000;
+    let s;
+    if(TICK==='sweep'&&!REDUCED) s=raw;
+    else if(TICK==='quartz'||REDUCED){const f=raw%1;s=Math.floor(raw)-1+(REDUCED?1:easeBack(clamp(f/0.16)));}
+    else s=Math.floor(raw*8)/8;
+    const m=d.getMinutes()+raw/60, h=(d.getHours()%12)+m/60;
+    secHand.rotation.y=-s/60*TAU; minHand.rotation.y=-m/60*TAU; hourHand.rotation.y=-h/12*TAU;
+  }
+
+  /* ---------- drag to turn (springs back) ---------- */
+  let rx=0,ry=0,tx=0,ty=0,dragging=false,px=0,py=0;
+  if(DRAG){
+    canvas.addEventListener('pointerdown',e=>{dragging=true;px=e.clientX;py=e.clientY;canvas.style.cursor='grabbing';
+      if(e.pointerType==='mouse')canvas.setPointerCapture(e.pointerId);});
+    addEventListener('pointermove',e=>{if(!dragging)return;tx=clamp(tx+(e.clientX-px)*0.008,-1.4,1.4);ty=clamp(ty+(e.clientY-py)*0.006,-0.5,0.5);px=e.clientX;py=e.clientY;});
+    const up=()=>{dragging=false;canvas.style.cursor='grab';};
+    addEventListener('pointerup',up);addEventListener('pointercancel',up);
+  }
+
+  /* ---------- size, visibility, loop ---------- */
+  let W=1,H=1,visible=true,raf=0;
+  function resize(){
+    W=host.clientWidth||1;H=host.clientHeight||1;
+    renderer.setSize(W,H,false);camera.aspect=W/H;camera.updateProjectionMatrix();
+    const want=68, span=2*Math.tan(15*Math.PI/180);
+    const dist=want/(span*Math.min(1,camera.aspect));
+    camera.position.set(0,Math.sin(ELEV)*dist,Math.cos(ELEV)*dist);camera.lookAt(0,0,0);
+  }
+  new ResizeObserver(resize).observe(host); resize();
+  new IntersectionObserver(es=>{visible=es[0].isIntersecting;if(visible&&!raf)raf=requestAnimationFrame(frame);}).observe(host);
+  const clock=new THREE.Clock();
+  function frame(){
+    raf=0; if(!visible) return;
+    const t=clock.getElapsedTime();
+    if(!dragging){tx*=0.92;ty*=0.92;}
+    rx+=(tx-rx)*0.15;ry+=(ty-ry)*0.15;
+    root.rotation.y=rx+(SPIN?Math.sin(t*0.35)*0.22:0);
+    root.rotation.x=ry+(SPIN?Math.sin(t*0.27)*0.04:0);
+    setHands();
+    renderer.render(scene,camera);
+    raf=requestAnimationFrame(frame);
+  }
+  raf=requestAnimationFrame(frame);
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>dialTex.userData.redraw());
+}
+
+function boot(){document.querySelectorAll('[data-el01-watch]').forEach(mount);}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
+window.EL01Watch={mount};
+})();
+ }
+  if(window.THREE) start();
+  else load('https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js',function(){
+    load('https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/geometries/RoundedBoxGeometry.js',start);
+  });
+})();
+</script>

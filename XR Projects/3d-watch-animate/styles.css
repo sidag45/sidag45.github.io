@@ -1,0 +1,91 @@
+/* Base reset */
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+
+/* Layout: full-bleed WebGL stage pinned behind a scrolling story. Chapters ride on the left (bottom sheet on phones); scrolling drives the explode. */
+/* Single light look by choice: a watch presented on a pale studio sweep. */
+:root{
+  --ink:#e9ecef;
+  --ink-2:#fbfcfd;
+  --rhodium:#151a21;
+  --soft:#3f4752;
+  --muted:#66707c;
+  --accent:#9a5a3e;
+  --ruby:#d0234a;
+  --line:rgba(21,26,33,.14);
+  --glass:rgba(251,252,253,.8);
+  --f-display:"Bodoni Moda","Didot","Bodoni 72",Georgia,serif;
+  --f-body:"Hanken Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+html,body{background:var(--ink);color:var(--rhodium)}
+body{font-family:var(--f-body);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+
+#stage{position:fixed;inset:0;z-index:0;background:radial-gradient(120% 90% at 62% 40%,var(--ink-2) 0%,var(--ink) 62%)}
+#c{position:relative;display:block;width:100%;height:100%;touch-action:pan-y;cursor:grab}
+#labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.lbl{position:absolute;left:0;top:0;display:flex;align-items:center;gap:8px;white-space:nowrap;
+  font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--rhodium);
+  opacity:0;transition:opacity .35s ease;pointer-events:none}
+.lbl.on{opacity:1;pointer-events:auto;cursor:pointer}
+.lbl::before{content:"";width:34px;height:1px;background:linear-gradient(90deg,transparent,var(--muted))}
+.lbl:hover span,.lbl.sel span{color:var(--accent)}
+
+.topbar{position:fixed;top:0;left:0;right:0;z-index:3;display:flex;justify-content:space-between;align-items:baseline;gap:16px;
+  padding:calc(env(safe-area-inset-top,0px) + 18px) 24px 0;pointer-events:none}
+.mark{font-family:var(--f-display);font-size:17px;letter-spacing:.02em}
+.mark i{color:var(--muted);font-style:italic;font-size:14px;margin-left:8px}
+.chap{font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-variant-numeric:tabular-nums}
+.chap b{color:var(--rhodium);font-weight:500}
+
+#story{position:relative;z-index:1;pointer-events:none;padding-inline:24px}
+.ch{min-height:100vh;min-height:100svh;display:flex;align-items:center}
+.card{pointer-events:auto;max-width:380px;padding:22px 24px;background:var(--glass);
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:2px}
+.hero .card{background:transparent;border-color:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;padding-left:0}
+.eyebrow{font-family:var(--f-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+h1,h2{font-family:var(--f-display);font-weight:400;text-wrap:balance;margin:0 0 12px;line-height:1.05}
+h1{font-size:clamp(44px,7vw,76px);letter-spacing:-.01em}
+h1 em,h2 em{font-style:italic;color:var(--accent)}
+h2{font-size:clamp(28px,3.4vw,38px)}
+.card p{margin:0 0 10px;color:var(--soft);max-width:60ch}
+.card p:last-child{margin-bottom:0}
+.spec{display:grid;grid-template-columns:auto 1fr;gap:4px 16px;margin:14px 0 0;padding-top:12px;border-top:1px solid var(--line);
+  font-family:var(--f-mono);font-size:12px;font-variant-numeric:tabular-nums}
+.spec dt{color:var(--muted)}
+.spec dd{margin:0}
+.cue{font-family:var(--f-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:22px!important}
+.cue::after{content:"";display:inline-block;width:1px;height:22px;background:var(--muted);margin-left:12px;vertical-align:middle;animation:cue 2.2s ease-in-out infinite}
+@keyframes cue{0%,100%{transform:scaleY(.3);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}}
+
+button{font:500 12px/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--rhodium);
+  background:transparent;border:1px solid var(--line);border-radius:2px;padding:11px 14px;cursor:pointer}
+button:hover{border-color:var(--accent);color:var(--rhodium)}
+button:focus-visible,.lbl:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+
+#info{position:fixed;z-index:5;top:72px;right:24px;width:320px;max-width:calc(100% - 32px);padding:20px 22px;
+  background:var(--glass);border:1px solid var(--line);border-left:2px solid var(--accent);border-radius:2px;
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+#info h3{font-family:var(--f-display);font-weight:400;font-size:26px;line-height:1.1;margin:0 0 8px;text-wrap:balance}
+#info p{margin:10px 0 0;color:var(--soft);font-size:14px}
+#info .eyebrow{margin:0;color:var(--accent)}
+#infoClose{position:absolute;top:10px;right:10px;padding:6px 8px;border:none;font-size:16px;line-height:1;letter-spacing:0}
+
+@media (max-width:760px){
+  .topbar{padding-inline:16px}
+  .mark i{display:none}
+  #story{padding-inline:16px}
+  .ch{align-items:flex-end;padding-bottom:24px}
+  .hero{align-items:flex-end}
+  .card{max-width:none;width:100%;padding:18px}
+  .hero .card{background:var(--glass);border-color:var(--line);padding:18px}
+  h1{font-size:44px}
+  .hero .spec{display:none}
+  .cue{margin-top:14px!important}
+  #info{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);left:16px;right:16px;width:auto;max-width:none}
+}
+@media (prefers-reduced-motion:reduce){.cue::after{animation:none}.lbl{transition:none}}

@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Halden &amp; Vey HV-2</title>
+<meta name="description" content="Scroll-driven 3D teardown of the Halden &amp; Vey HV-2 Squelette, a fictional open-worked watch.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;1,6..96,400&family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="stage"><canvas id="c" aria-label="3D model of the Halden &amp; Vey HV-2 watch. Click a part to read about it."></canvas><div id="labels"></div></div>
+
+<div class="topbar">
+  <div class="mark">Halden &amp; Vey<i>concept study</i></div>
+  <div class="chap" id="chap"><b>00</b> / 07 · Assembled</div>
+</div>
+
+<main id="story">
+  <section class="ch hero" data-name="Assembled">
+    <div class="card">
+      <p class="eyebrow">Ref. HV-2 Squelette · 40 mm · Automatic</p>
+      <h1>Calibre <em>HV-2</em></h1>
+      <p>An open-worked automatic: the centre of the dial is cut away so you can watch the wheels and the balance run. The hands show your local time, and the balance beats at the real 4&nbsp;Hz.</p>
+      <dl class="spec">
+        <dt>Case</dt><dd>40 mm, 18k rose gold</dd>
+        <dt>Movement</dt><dd>Self-winding, 25 jewels</dd>
+        <dt>Frequency</dt><dd>28,800 vph</dd>
+        <dt>Reserve</dt><dd>42 hours</dd>
+      </dl>
+      <p class="cue">Scroll to take it apart</p>
+    </div>
+  </section>
+
+  <section class="ch" data-name="Crystal and bezel">
+    <div class="card">
+      <p class="eyebrow">01 · The lid</p>
+      <h2>Crystal and <em>bezel</em></h2>
+      <p>The sapphire crystal lifts away first. It is synthetic corundum, second only to diamond in hardness, so keys and desk edges leave no mark.</p>
+      <p>The polished bezel holds it in a gasket and frames the dial.</p>
+    </div>
+  </section>
+
+  <section class="ch" data-name="Dial and hands">
+    <div class="card">
+      <p class="eyebrow">02 · The face</p>
+      <h2>Dial and <em>hands</em></h2>
+      <p>The baton hands are skeletonised, cut open down their length so they never hide the movement beneath.</p>
+      <p>The cream dial has a matte finish stamped with a fine grid, and carries olive-green lacquered Roman numerals, with the watchmaker's IIII at four. Its centre is open, so the dial is a frame rather than a lid.</p>
+    </div>
+  </section>
+
+  <section class="ch" data-name="The movement">
+    <div class="card">
+      <p class="eyebrow">03 · The engine</p>
+      <h2>The <em>movement</em></h2>
+      <p>Under the dial sits an openworked mainplate, cut back to three spokes. Its gold gear train runs from the mainspring barrel through the centre, third and fourth wheels to the escapement.</p>
+      <p>Energy starts in the mainspring, coiled inside the barrel. At the far end, the balance wheel and its hair-thin spring swing eight times a second, and each swing lets the escape wheel advance one tooth.</p>
+    </div>
+  </section>
+
+  <section class="ch" data-name="Bridges and rotor">
+    <div class="card">
+      <p class="eyebrow">04 · The architecture</p>
+      <h2>Bridges and <em>rotor</em></h2>
+      <p>Bridges cap the wheel arbors. Each pivot turns in a synthetic ruby jewel to cut friction, and the plates carry Côtes de Genève striping and blued screws.</p>
+      <p>The rhodium-plated rotor pivots with your wrist and winds the mainspring, so the watch never needs a battery.</p>
+    </div>
+  </section>
+
+  <section class="ch" data-name="Caseback and strap">
+    <div class="card">
+      <p class="eyebrow">05 · The seal</p>
+      <h2>Caseback and <em>strap</em></h2>
+      <p>A solid, screw-down rose-gold caseback seals the case to 100 m. The movement only shows from the front, through the open dial.</p>
+      <p>The olive alligator strap is glazed to a high shine and saddle-stitched tone on tone. It tapers from 20 mm at the lugs to 16 mm at the buckle.</p>
+    </div>
+  </section>
+
+  <section class="ch" data-name="Every part">
+    <div class="card">
+      <p class="eyebrow">06 · Exploded</p>
+      <h2>Every part, <em>in its place</em></h2>
+      <p>Tap any component to read what it does. Keep scrolling to put the watch back together.</p>
+    </div>
+  </section>
+
+  <section class="ch" data-name="Front view">
+    <div class="card">
+      <p class="eyebrow">07 · Complete</p>
+      <h2>Face <em>to face</em></h2>
+      <p>Every part returns to its place. Seen straight on, the dial reads as it was drawn: the pegasus under XII, the aperture where VI would be, and the movement turning beneath it.</p>
+    </div>
+  </section>
+</main>
+
+<aside id="info" hidden aria-live="polite">
+  <button id="infoClose" type="button" aria-label="Close">×</button>
+  <p class="eyebrow" id="infoSpec"></p>
+  <h3 id="infoName"></h3>
+  <p id="infoBody"></p>
+</aside>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/geometries/RoundedBoxGeometry.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
