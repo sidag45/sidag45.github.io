@@ -180,9 +180,26 @@ function leatherCanvases(){
   const mk=(cv,srgb)=>{const t=new THREE.CanvasTexture(cv);t.wrapS=t.wrapT=THREE.RepeatWrapping;
     if(srgb)t.encoding=THREE.sRGBEncoding;t.anisotropy=renderer.capabilities.getMaxAnisotropy();
     t.repeat.set(1/20,1/56);t.offset.set(0.5,0.982);return t;};
-  return {map:mk(col,true),bump:mk(bmp,false),rough:mk(rgh,false)};
+  return {map:mk(col,true),bump:mk(bmp,false),rough:mk(rgh,false),canvas:col,mk};
 }
 const LEATHER=leatherCanvases();
+// Strap colourways: the olive map is re-toned by luminance, so scales, grooves, pores and stitching carry over.
+const STRAP_COLORS={
+  green:{name:'Olive green',map:LEATHER.map,edge:0x1a210a,plain:0x26301a,numeral:0x2c3712},
+  navy:{name:'Navy blue',tone:[[2,4,10],[26,38,78]],edge:0x080d1c,plain:0x16223f,numeral:0x1a2850},
+  red:{name:'Blood red',tone:[[9,2,2],[118,16,20]],edge:0x1c0405,plain:0x4a0b0d,numeral:0x5a0d10}
+};
+function toneLeather(dark,light){
+  const src=LEATHER.canvas, cv=document.createElement('canvas'); cv.width=src.width; cv.height=src.height;
+  const sd=src.getContext('2d').getImageData(0,0,src.width,src.height), g=cv.getContext('2d'), out=g.createImageData(src.width,src.height);
+  for(let i=0;i<sd.data.length;i+=4){
+    const L=Math.min(1,(0.3*sd.data[i]+0.59*sd.data[i+1]+0.11*sd.data[i+2])/72), k=Math.pow(L,0.9);
+    for(let c=0;c<3;c++) out.data[i+c]=dark[c]+(light[c]-dark[c])*k;
+    out.data[i+3]=255;
+  }
+  g.putImageData(out,0,0); return LEATHER.mk(cv,true);
+}
+function strapMap(key){const c=STRAP_COLORS[key]; if(!c.map) c.map=toneLeather(c.tone[0],c.tone[1]); return c.map;}
 // micro-surface: soft smudges and hairline scratches that break up perfect CG reflections
 const SMUDGE=(()=>{
   const cv=document.createElement('canvas');cv.width=cv.height=512;const g=cv.getContext('2d');const r=rng(23);
@@ -315,7 +332,7 @@ const MAT={
   roseBrushed:new THREE.MeshPhysicalMaterial({color:0xecb89c,metalness:1,roughness:0.5,roughnessMap:brushTex}), // satin-brushed 18k rose gold
   giltEdge:new THREE.MeshPhysicalMaterial({color:0xf5c977,metalness:1,roughness:0.05,clearcoat:0.3,clearcoatRoughness:0.03}), // polished gold bevels
   roseGold:new THREE.MeshPhysicalMaterial({color:0xf0bea4,metalness:1,roughness:0.15,roughnessMap:SMUDGE,clearcoat:0.2,clearcoatRoughness:0.06}), // 18k rose gold
-  numeral:new THREE.MeshPhysicalMaterial({color:0x2c3712,metalness:0.15,roughness:0.28,clearcoat:1,clearcoatRoughness:0.05}), // dark green lacquer, matched to the strap
+  numeral:new THREE.MeshPhysicalMaterial({color:0xd8957a,metalness:1,roughness:0.2,clearcoat:0.3,clearcoatRoughness:0.08}), // polished rose gold, matched to the case
   lacquer:new THREE.MeshPhysicalMaterial({color:0x121417,metalness:0.15,roughness:0.28,clearcoat:1,clearcoatRoughness:0.05}), // black lacquered numerals
   plate:new THREE.MeshStandardMaterial({color:0xd3d7dc,metalness:1,roughness:0.42,map:platePerlage}), // rhodium-plated, perlage
   springSteel:new THREE.MeshStandardMaterial({color:0xa4acb5,metalness:1,roughness:0.22}), // cobalt-nickel spring alloy
@@ -327,17 +344,18 @@ const MAT={
   glass:new THREE.MeshPhysicalMaterial({color:0xe6f0ff,metalness:0,roughness:0,transparent:true,opacity:0.1,clearcoat:1,depthWrite:false}),
   dial:new THREE.MeshStandardMaterial({color:0xffffff,map:dialTex,bumpMap:dialBump,bumpScale:0.025,metalness:0,roughness:0.88}), // matte grid
   lume:new THREE.MeshStandardMaterial({color:0xe8f0da,roughness:0.6,metalness:0,emissive:0x1d2a16}),
-  leather:new THREE.MeshPhysicalMaterial({color:0xb4b4b4,map:LEATHER.map,bumpMap:LEATHER.bump,bumpScale:0.32,roughness:0.75,roughnessMap:LEATHER.rough,metalness:0,clearcoat:0.6,clearcoatRoughness:0.3,clearcoatRoughnessMap:LEATHER.rough,clearcoatNormalMap:null}), // hand-glazed alligator: uneven gloss and relief
+  leather:new THREE.MeshPhysicalMaterial({userData:{strap:'leather'},color:0xb4b4b4,map:LEATHER.map,bumpMap:LEATHER.bump,bumpScale:0.32,roughness:0.75,roughnessMap:LEATHER.rough,metalness:0,clearcoat:0.6,clearcoatRoughness:0.3,clearcoatRoughnessMap:LEATHER.rough,clearcoatNormalMap:null}), // hand-glazed alligator: uneven gloss and relief
+
   rubber:new THREE.MeshStandardMaterial({color:0x1b1d20,map:RIBS,bumpMap:RIBS,bumpScale:0.22,roughness:0.72,metalness:0}),
   rubberPlain:new THREE.MeshStandardMaterial({color:0x141518,roughness:0.8,metalness:0}),
   rubberEdge:new THREE.MeshStandardMaterial({color:0x0d0e10,roughness:0.82,metalness:0}),
-  edgePaint:new THREE.MeshStandardMaterial({color:0x1a210a,roughness:0.35,metalness:0}), // glossy painted edge
-  leatherPlain:new THREE.MeshPhysicalMaterial({color:0x26301a,bumpMap:LEATHER.bump,bumpScale:0.06,roughness:0.42,clearcoat:1,clearcoatRoughness:0.14,metalness:0}),
+  edgePaint:new THREE.MeshStandardMaterial({color:0x1a210a,roughness:0.35,metalness:0,userData:{strap:'edge'}}), // glossy painted edge
+  leatherPlain:new THREE.MeshPhysicalMaterial({userData:{strap:'plain'},color:0x26301a,bumpMap:LEATHER.bump,bumpScale:0.06,roughness:0.42,clearcoat:1,clearcoatRoughness:0.14,metalness:0}),
   steelDark:new THREE.MeshStandardMaterial({color:0x7d838a,metalness:1,roughness:0.5,roughnessMap:SMUDGE}),
 };
 Object.values(MAT).forEach(m=>{m.color&&m.color.convertSRGBToLinear();m.sheenColor&&m.sheenColor.convertSRGBToLinear();m.emissive&&m.emissive.convertSRGBToLinear();m.envMapIntensity=1.15;});
 MAT.dial.envMapIntensity=0.35;
-MAT.gilt.envMapIntensity=1.35;MAT.giltEdge.envMapIntensity=1.5;MAT.ruby.envMapIntensity=1.6;MAT.roseGold.envMapIntensity=1.3;MAT.roseBrushed.envMapIntensity=1.25; // gold reads by what it reflects
+MAT.gilt.envMapIntensity=1.35;MAT.giltEdge.envMapIntensity=1.5;MAT.ruby.envMapIntensity=1.6;MAT.roseGold.envMapIntensity=1.3;MAT.numeral.envMapIntensity=1.0;MAT.roseBrushed.envMapIntensity=1.25; // gold reads by what it reflects
 MAT.rubber.envMapIntensity=0.4;MAT.rubberPlain.envMapIntensity=0.5;MAT.rubberEdge.envMapIntensity=0.5;
 MAT.leather.envMapIntensity=0.7;MAT.leatherPlain.envMapIntensity=0.9; // glazed leather reads by its reflections
 MAT.crystal.envMapIntensity=0.25; // anti-reflective coating: keep the dial readable through the glass
@@ -466,7 +484,7 @@ const dialG=part('dial',{baseY:2.74, /* face sits just under the crystal */dy:14
   const bar=(g,x0,y0,x1,y1,w)=>{ // a stroke between two 2D points; 2D y is outward, mapped to -z
     const len=Math.hypot(x1-x0,y1-y0), th=Math.atan2(y1-y0,x1-x0);
     const geo=THREE.RoundedBoxGeometry?new THREE.RoundedBoxGeometry(len+w*0.4,DEPTH,w,2,Math.min(0.12,w*0.3)):new THREE.BoxGeometry(len+w*0.4,DEPTH,w);
-    const m=mesh(geo,MAT.numeral); m.position.set((x0+x1)/2,DEPTH/2,-(y0+y1)/2); m.rotation.y=th; g.add(m);
+    const m=mesh(geo,MAT.numeral); m.position.set((x0+x1)/2,DEPTH/2,-(y0+y1)/2); m.rotation.y=th; g.add(m); // applied rose-gold numerals
   };
   const glyph=(g,ch,x)=>{ // returns advance width
     const t=H/2,b=-H/2;
@@ -586,15 +604,15 @@ const plateG=part('mainplate',{baseY:-0.2,dy:-12,w0:0.38,w1:0.64});
   // a hub and three spokes inside a rim: the windows let you see the wheels from the dial side
   const sh=new THREE.Shape(); sh.absarc(0,0,14.2,0,TAU,false);
   // spokes sit in the gaps between wheel centres so they never cut across an arbor
-  const SPOKES=[12,140,285];
+  const SPOKES=[30,150,330]; // the 161°-319° window opens over the balance, which sits under the dial aperture
   SPOKES.forEach((sp,i)=>{
     const next=SPOKES[(i+1)%3]+(i===2?360:0);
     const a0=(sp+11)*Math.PI/180, a1=(next-11)*Math.PI/180, w=new THREE.Path();
-    w.absarc(0,0,12.1,a0,a1,false); w.absarc(0,0,3.3,a1,a0,true); w.closePath(); sh.holes.push(w);
+    w.absarc(0,0,13.0,a0,a1,false); w.absarc(0,0,3.3,a1,a0,true); w.closePath(); sh.holes.push(w);
   });
   const m=mesh(bevelGeo(sh,0.75,0.06,48),[MAT.plate,MAT.polished]); m.position.y=-0.4; plateG.add(m);
   // jewels visible on the plate
-  [[0,0],[3.6,-3.05],[4.1,-6.95],[7.11,-5.08],[8.6,2.8]].forEach(([x,z])=>jewel(plateG,x,0.41,z));
+  [[0,0],[3.9,-1.3],[6.6,1.2],[6.2,3.67]].forEach(([x,z])=>jewel(plateG,x,0.41,z)); // the balance pivot shows through the window instead
 }
 
 /* ---------- gear train & escapement ---------- */
@@ -611,7 +629,7 @@ const spinners=[]; let MOVE=null, MS=null, HS=null;
 {
   // Layout: each wheel's teeth sit on the next wheel's pinion (centre distance = wheel pitch radius + pinion radius),
   // and wheels alternate levels so every pinion spans the plane of the wheel that drives it.
-  const P={barrel:[-4.2,4.3],centre:[0,0],third:[3.6,-3.05],fourth:[4.1,-6.95],escape:[7.11,-5.08],balance:[8.6,2.8]};
+  const P={barrel:[-5.4,-3.1],centre:[0,0],third:[3.9,-1.3],fourth:[6.6,1.2],escape:[6.2,3.67],balance:[0,HOLE_DY]}; // balance under the dial aperture
   MOVE=P;
   const barrel=sub(trainG,'barrel'); barrel.position.set(P.barrel[0],0,P.barrel[1]);
   const drum=mesh(new THREE.CylinderGeometry(5.0,5.0,1.6,64),[MAT.polished,MAT.snail,MAT.snail]); drum.position.y=-0.6; barrel.add(drum);
@@ -668,10 +686,10 @@ const bridgesG=part('bridges',{baseY:-3.9,dy:-40,w0:0.5,w1:0.76});
 
 {
   const defs=[
-    [-4.2,4.3,0,0,3.4,[[-4.2,4.3],[0,0]]],          // barrel bridge
-    [3.6,-3.05,4.1,-6.95,2.3,[[3.6,-3.05],[4.1,-6.95]]], // train bridge
-    [4.1,-6.95,7.11,-5.08,1.7,[[7.11,-5.08]]],        // escape bridge
-    [11.2,3.9,8.6,2.8,2.2,[[8.6,2.8]]],               // balance cock
+    [-5.4,-3.1,0,0,3.4,[[-5.4,-3.1],[0,0]]],        // barrel bridge
+    [3.9,-1.3,6.6,1.2,2.3,[[3.9,-1.3],[6.6,1.2]]],  // train bridge
+    [6.6,1.2,6.2,3.67,1.7,[[6.2,3.67]]],            // escape bridge
+    [-7.2,11.0,0,HOLE_DY,2.2,[[0,HOLE_DY]]],        // balance cock
     [-11.5,-4,-6,-9,1.9,[]],
   ];
   defs.forEach(([ax,az,bx,bz,r,jewels])=>{
@@ -853,7 +871,7 @@ const INFO={
   crystal:{name:'Sapphire crystal',spec:'Synthetic corundum · 9 Mohs',body:'Grown from aluminium oxide and second only to diamond in hardness. A double-domed profile with anti-reflective coating on the underside keeps the dial legible at an angle.'},
   bezel:{name:'Bezel',spec:'18k rose gold · mirror polish',body:'A slim mirror-polished rose-gold ring that catches light against the brushed case. It seats the crystal in its gasket and is polished by hand on a buffing wheel.'},
   hands:{name:'Hands',spec:'Skeletonised batons · 18k rose gold',body:'The hour and minute hands are cut open along their length so they never hide the wheels beneath, and match the rose-gold bezel. The slim centre seconds hand moves in eight small steps a second. All three show your local time.'},
-  dial:{name:'Dial',spec:'Grid-matte cream · olive Roman numerals',body:'A cream dial stamped with a 0.5 mm grid and left matte. The Roman numerals are applied stroke by stroke and lacquered olive green to match the strap, with IIII at four as watchmakers traditionally write it. Its centre is cut away so the movement stays in view.'},
+  dial:{name:'Dial',spec:'Grid-matte cream · rose-gold Roman numerals',body:'A cream dial stamped with a 0.5 mm grid and left matte. The Roman numerals are applied stroke by stroke in polished rose gold, matching the case, with IIII at four as watchmakers traditionally write it. Its centre is cut away so the movement stays in view.'},
   case:{name:'Case middle',spec:'40 mm · 18k rose gold',body:'The structural core in rose gold: satin-brushed flanks, polished lugs and spring bars for the strap. The crown at 3 o’clock winds the mainspring and sets the time, flanked by a pusher at 2 and at 4.'},
   mainplate:{name:'Mainplate',spec:'Openworked · hub and three spokes',body:'The foundation every other component mounts to, cut back to a rim, a hub and three spokes. Those windows are what let you watch the gear train from the dial side.'},
   train:{name:'Gear train',spec:'18k gold wheels · 25 jewels',body:'Solid gold wheels, circular-grained and polished at the edges. Energy flows from the barrel through the centre, third and fourth wheels. The escape wheel and pallet fork release it in equal pulses, which is what makes the second hand tick forward.'},
@@ -876,7 +894,7 @@ const LABEL_DEFS=[
   ['dial',dialG,new THREE.Vector3(0,0,0),17],
   ['case',caseG,new THREE.Vector3(0,-0.4,0),21],
   ['mainplate',plateG,new THREE.Vector3(0,0,0),14.8],
-  ['balance',trainG,new THREE.Vector3(8.6,1,2.8),4.2],
+  ['balance',trainG,new THREE.Vector3(0,1,HOLE_DY),4.2],
   ['mainspring',MS,new THREE.Vector3(0,0.6,0),5],
   ['hairspring',HS,new THREE.Vector3(0,0,0),3.2],
   ['bridges',bridgesG,new THREE.Vector3(0,0.5,0),14],
@@ -959,6 +977,40 @@ function onScroll(){
 }
 addEventListener('scroll',onScroll,{passive:true});
 addEventListener('keydown',e=>{if(e.key==='Escape'&&selected)select(null);});
+function setStrap(key){
+  const c=STRAP_COLORS[key], map=strapMap(key);
+  [strapA,strapB,dialG].forEach(g=>g.traverse(o=>{
+    if(!o.isMesh) return;
+    (Array.isArray(o.material)?o.material:[o.material]).forEach(m=>{
+      const role=m.userData.strap;
+      if(role==='leather'){m.map=map;m.needsUpdate=true;}
+      else if(role==='edge') m.color.set(c.edge).convertSRGBToLinear();
+      else if(role==='plain') m.color.set(c.plain).convertSRGBToLinear();
+    });
+  }));
+  document.querySelectorAll('.swatch').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.strap===key)));
+  INFO.strap.name='Strap'; INFO.strap.spec=c.name+' alligator · 20/16 mm';
+}
+// Swapping straps: the current pair slides out along the strap line, the new pair is fitted while off-frame,
+// then slides back in to the lugs. A click mid-swap just retargets which strap comes back in.
+let swap=null, strapOff=0, strapKey='green';
+function requestStrap(key){
+  if(key===strapKey&&!swap) return;
+  document.querySelectorAll('.swatch').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.strap===key)));
+  if(swap){swap.key=key;return;}
+  if(REDUCED){setStrap(key);strapKey=key;return;}
+  swap={key,t0:performance.now(),t:0,fitted:false};
+}
+function stepSwap(dt){
+  if(!swap) return;
+  swap.t=Math.min(1,(performance.now()-swap.t0)/1300);
+  const t=swap.t;
+  if(t<0.45) strapOff=ease(t/0.45);
+  else if(t<0.55){ strapOff=1; if(!swap.fitted){setStrap(swap.key);strapKey=swap.key;swap.fitted=true;} }
+  else { if(swap.key!==strapKey){setStrap(swap.key);strapKey=swap.key;} strapOff=1-ease((t-0.55)/0.45); }
+  if(t>=1){strapOff=0;swap=null;}
+}
+document.querySelectorAll('.swatch').forEach(b=>b.addEventListener('click',()=>requestStrap(b.dataset.strap)));
 
 /* ---------- layout ---------- */
 let W=1,H=1;
@@ -981,7 +1033,8 @@ function applyExplode(e){
   for(const g of parts){
     const u=g.userData, t=ease(clamp((e-u.w0)/(u.w1-u.w0)));
     u.t=t;
-    g.position.set(u.bx+u.dx*t,u.baseY+u.dy*t,u.bz+u.dz*t);
+    const so=(u.key==='strap'&&strapOff)?strapOff:0; // strap swap: slide out along the strap line and lift slightly
+    g.position.set(u.bx+u.dx*t,u.baseY+u.dy*t+so*6,u.bz+u.dz*t+Math.sign(u.bz)*so*150);
   }
   // the springs slide out of their housings as the train separates, so both are visible when exploded
   const tt=trainG.userData.t||0;
@@ -1003,6 +1056,7 @@ function frame(){
   explodeCur+= (explodeTarget-explodeCur)*(1-Math.exp(-dt*7));
   wrapCur+=(wrapTarget-wrapCur)*(1-Math.exp(-dt*5));
   if(Math.abs(wrapTarget-wrapCur)<1e-4) wrapCur=wrapTarget;
+  stepSwap(dt);
   const wc=ease(wrapCur);
   viewOffset();
   if(Math.abs(explodeTarget-explodeCur)<1e-4) explodeCur=explodeTarget;

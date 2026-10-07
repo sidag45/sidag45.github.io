@@ -53,6 +53,10 @@ h1 em,h2 em{font-style:italic;color:var(--accent)}
 h2{font-size:clamp(28px,3.4vw,38px)}
 .card p{margin:0 0 10px;color:var(--soft);max-width:60ch}
 .card p:last-child{margin-bottom:0}
+.swatches{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.swatch{display:flex;align-items:center;gap:8px;padding:8px 12px 8px 8px;text-transform:none;letter-spacing:.02em;font-family:var(--f-body);font-size:13px}
+.swatch i{width:18px;height:18px;border-radius:50%;border:1px solid var(--line);box-shadow:inset 0 1px 2px rgba(255,255,255,.25)}
+.swatch[aria-pressed="true"]{border-color:var(--rhodium)}
 .spec{display:grid;grid-template-columns:auto 1fr;gap:4px 16px;margin:14px 0 0;padding-top:12px;border-top:1px solid var(--line);
   font-family:var(--f-mono);font-size:12px;font-variant-numeric:tabular-nums}
 .spec dt{color:var(--muted)}
