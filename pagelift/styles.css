@@ -71,6 +71,10 @@ a:focus-visible, button:focus-visible, summary:focus-visible, .tablewrap:focus-v
 }
 .pill:hover { transform: translateY(-1px); filter: brightness(1.05); box-shadow: 0 14px 34px -10px rgba(251, 79, 41, 0.75); }
 .pill-sm { font-size: 0.92rem; padding: 11px 18px; box-shadow: none; }
+.pill-ghost { background: transparent; color: var(--on-ink); box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.35); }
+.pill-ghost:hover { box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.7); filter: none; }
+.pill-outline { background: transparent; color: var(--fg); box-shadow: inset 0 0 0 1.5px var(--line); }
+.pill-outline:hover { box-shadow: inset 0 0 0 1.5px var(--muted); filter: none; }
 
 /* ------------------------------------------------ hero */
 .hero { position: relative; background: var(--ink); color: var(--on-ink); overflow: hidden; padding-bottom: 0; isolation: isolate; }
@@ -97,7 +101,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible, .tablewrap:focus-v
 }
 .hero h1 span { display: block; }
 .lede { font-size: clamp(1.05rem, 1.6vw, 1.3rem); line-height: 1.55; color: var(--on-ink-muted); max-width: 46ch; }
-.hero .pill { margin-top: 10px; }
+.hero-ctas { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 10px; }
 .hero .fine { color: var(--on-ink-muted); }
 
 /* product window */
@@ -212,6 +216,8 @@ td p { color: var(--muted); font-size: 0.84rem; line-height: 1.45; }
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 26px; display: grid; gap: 14px; align-content: start; min-width: 0; }
 .card ol { margin: 0; padding-left: 20px; display: grid; gap: 9px; color: var(--muted); }
 .card ol b { color: var(--fg); font-weight: 600; }
+.card.store > p:not(.way-tag) { color: var(--muted); }
+.store-btn { justify-self: start; margin-top: 6px; font-size: 0.98rem; padding: 14px 22px; }
 .opt-tag { font: 500 0.7rem var(--font-mono); color: var(--muted); letter-spacing: 0.04em; margin-left: 6px; text-transform: uppercase; }
 .ctas { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
 

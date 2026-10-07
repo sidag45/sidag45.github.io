@@ -43,9 +43,11 @@
         "description": "A free Figma plugin and Chrome extension that converts any website, including pages behind a login, into editable Figma layers with auto layout, colour and text styles, hover states, dark mode and prototype links.",
         "applicationCategory": "DesignApplication",
         "applicationSubCategory": "Figma plugin",
-        "operatingSystem": "Figma desktop app (macOS, Windows), Chrome",
+        "operatingSystem": "Figma (browser and desktop app), Google Chrome",
         "url": "https://sidag45.github.io/pagelift/",
-        "downloadUrl": "https://sidag45.github.io/pagelift/assets/pagelift.zip",
+        "downloadUrl": "https://www.figma.com/community/plugin/1689048845549302265",
+        "installUrl": ["https://www.figma.com/community/plugin/1689048845549302265", "https://chromewebstore.google.com/detail/pagelift-%E2%80%94-capture/oilallhconlknnflmahieigbkjpinpol"],
+        "sameAs": ["https://www.figma.com/community/plugin/1689048845549302265", "https://chromewebstore.google.com/detail/pagelift-%E2%80%94-capture/oilallhconlknnflmahieigbkjpinpol"],
         "image": "https://sidag45.github.io/pagelift/assets/icon-512.png",
         "screenshot": "https://sidag45.github.io/pagelift/assets/plugin-ui.png",
         "softwareVersion": "1.1.0",
@@ -69,7 +71,7 @@
       {
         "@type": "FAQPage",
         "mainEntity": [
-          { "@type": "Question", "name": "How do I convert a website to Figma for free?", "acceptedAnswer": { "@type": "Answer", "text": "Install the Pagelift Figma plugin, paste the website's URL and click Import to Figma. You get editable frames, auto layout, text, images and styles, with no account and no limit on imports. For pages behind a login, capture them with the Pagelift Chrome extension and drop the file into the plugin." } },
+          { "@type": "Question", "name": "How do I convert a website to Figma for free?", "acceptedAnswer": { "@type": "Answer", "text": "Install the free Pagelift plugin from Figma Community, paste the website's URL and click Import to Figma. You get editable frames, auto layout, text, images and styles, with no account and no limit on imports. For pages behind a login, capture them with the Pagelift Chrome extension from the Chrome Web Store and drop the file into the plugin." } },
           { "@type": "Question", "name": "Is Pagelift a free alternative to html.to.design?", "acceptedAnswer": { "@type": "Answer", "text": "For many uses, yes. Both turn websites into editable Figma layers, import by URL, capture logged-in pages with a Chrome extension, and handle hover states, dark mode and multiple viewports. Pagelift is free with no import limit; html.to.design's free plan allows 10 imports every 30 days and offers more polish and support." } },
           { "@type": "Question", "name": "Can Pagelift import pages that need a login?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, with the Pagelift Chrome extension. It captures the page from your own signed-in tab, saves the capture as a file on your computer, and you drop that file into the Figma plugin." } }
         ]
@@ -90,15 +92,18 @@
       <a href="#install">Install</a>
       <a href="#faq">FAQ</a>
     </div>
-    <a class="pill pill-sm dl" href="assets/pagelift.zip" download>Download free</a>
+    <a class="pill pill-sm" href="https://www.figma.com/community/plugin/1689048845549302265" target="_blank" rel="noopener">Get the plugin</a>
   </nav>
 
   <div class="hero-copy wrap">
     <p class="kicker">Free website to Figma plugin</p>
     <h1><span>Lift any website</span> <span>into Figma.</span></h1>
     <p class="lede">Paste a URL and get editable frames with auto layout, text styles, hover states, dark mode and clickable prototype links. Pages behind a login work too, with the Chrome extension.</p>
-    <a class="pill dl" id="dl-hero" href="assets/pagelift.zip" download>Download Pagelift for free</a>
-    <p class="fine dl-status" id="dl-status" role="status" aria-live="polite">No account. No import limits. Made by Enclave Studios.</p>
+    <div class="hero-ctas">
+      <a class="pill" href="https://www.figma.com/community/plugin/1689048845549302265" target="_blank" rel="noopener">Get Pagelift for Figma</a>
+      <a class="pill pill-ghost" href="https://chromewebstore.google.com/detail/pagelift-%E2%80%94-capture/oilallhconlknnflmahieigbkjpinpol" target="_blank" rel="noopener">Add to Chrome</a>
+    </div>
+    <p class="fine">Free on Figma Community and the Chrome Web Store. No account, no import limits.</p>
   </div>
 
   <figure class="window wrap" aria-label="Pagelift in Figma: an imported website with its layers, frames and hover states next to the Pagelift plugin window">
@@ -272,12 +277,12 @@
             <td><span class="chip c-yes">Yes</span><p>Automatic linking, included free.</p></td>
             <td><span class="chip c-part">Not stated</span></td></tr>
           <tr><th scope="row">Installation</th>
-            <td class="us"><span class="chip c-part">Manual</span><p>From a zip, for now: load the extension in developer mode and import the plugin in Figma's desktop app.</p></td>
+            <td class="us"><span class="chip c-yes">One click</span><p>Figma Community and Chrome Web Store.</p></td>
             <td><span class="chip c-yes">One click</span><p>Figma Community and Chrome Web Store.</p></td>
             <td><span class="chip c-yes">One click</span><p>Figma Community and Chrome Web Store.</p></td>
             <td><span class="chip c-yes">One click</span><p>Chrome Web Store.</p></td></tr>
           <tr><th scope="row">Figma in the browser</th>
-            <td class="us"><span class="chip c-no">No</span><p>Desktop app only, for now.</p></td>
+            <td class="us"><span class="chip c-yes">Yes</span><p>Browser and desktop app.</p></td>
             <td><span class="chip c-yes">Yes</span></td>
             <td><span class="chip c-yes">Yes</span></td>
             <td><span class="chip c-yes">Yes</span></td></tr>
@@ -306,30 +311,34 @@
   <section class="block wrap" id="install" aria-labelledby="install-h">
     <div class="sec-head">
       <p class="eyebrow">Install</p>
-      <h2 id="install-h">Set up in about two minutes</h2>
-      <p>Download and unzip <code>pagelift.zip</code>. It has an <code>extension</code> folder and a <code>figma-plugin</code> folder.</p>
+      <h2 id="install-h">Install in one click</h2>
+      <p>Start with the Figma plugin. Add the Chrome extension when you need pages behind a login.</p>
     </div>
     <div class="install">
-      <div class="card">
-        <h3>Figma plugin</h3>
+      <div class="card store">
+        <p class="way-tag">Figma Community</p>
+        <h3>Pagelift for Figma</h3>
+        <p>Import websites by URL, or drop in captures from the Chrome extension. Works in Figma in the browser and the desktop app.</p>
         <ol>
-          <li>Open the Figma desktop app.</li>
-          <li>Go to <b>Plugins → Development → Import plugin from manifest…</b></li>
-          <li>Choose <code>figma-plugin/manifest.json</code>.</li>
-          <li>Run it from <b>Plugins → Development → Pagelift</b>.</li>
+          <li>Open Pagelift on Figma Community.</li>
+          <li>Click <b>Open in…</b> and choose a design file.</li>
+          <li>Next time, search for Pagelift in Figma's <b>Actions</b> menu.</li>
         </ol>
+        <a class="pill store-btn" href="https://www.figma.com/community/plugin/1689048845549302265" target="_blank" rel="noopener">Get Pagelift for Figma</a>
       </div>
-      <div class="card">
-        <h3>Chrome extension <span class="opt-tag">for logged-in pages</span></h3>
+      <div class="card store">
+        <p class="way-tag">Chrome Web Store</p>
+        <h3>Pagelift — Capture</h3>
+        <p>Capture any page you can open in Chrome, including dashboards, staging sites and localhost, then drop the file into the plugin.</p>
         <ol>
-          <li>Go to <code>chrome://extensions</code>.</li>
-          <li>Turn on <b>Developer mode</b> (top right).</li>
-          <li>Click <b>Load unpacked</b> and choose the <code>extension</code> folder.</li>
-          <li>Pin <b>Pagelift — Capture</b> to your toolbar.</li>
+          <li>Open Pagelift — Capture in the Chrome Web Store.</li>
+          <li>Click <b>Add to Chrome</b>.</li>
+          <li>Pin it from the puzzle-piece Extensions menu in your toolbar.</li>
         </ol>
+        <a class="pill pill-outline store-btn" href="https://chromewebstore.google.com/detail/pagelift-%E2%80%94-capture/oilallhconlknnflmahieigbkjpinpol" target="_blank" rel="noopener">Add to Chrome</a>
       </div>
     </div>
-    <div class="ctas"><a class="pill dl" id="dl-install" href="assets/pagelift.zip" download>Download Pagelift</a><span class="fine dl-status" role="status" aria-live="polite"></span></div>
+    <p class="fine">Developers can still <a class="dl" href="assets/pagelift.zip" download>download the source</a> (zip, includes the proxy for URL import). <span class="dl-status" role="status" aria-live="polite"></span></p>
   </section>
 
   <section class="block wrap" id="faq" aria-labelledby="faq-h">
@@ -340,11 +349,11 @@
     <div class="faq">
       <details>
         <summary>How do I convert a website to Figma for free?</summary>
-        <p>Install the Pagelift Figma plugin, paste the website's URL and click <b>Import to Figma</b>. You get editable frames, auto layout, text, images and styles, with no account and no limit on imports. For pages behind a login, capture them with the Pagelift Chrome extension and drop the file into the plugin.</p>
+        <p>Install the free <a href="https://www.figma.com/community/plugin/1689048845549302265" target="_blank" rel="noopener">Pagelift plugin from Figma Community</a>, paste the website's URL and click <b>Import to Figma</b>. You get editable frames, auto layout, text, images and styles, with no account and no limit on imports. For pages behind a login, capture them with the <a href="https://chromewebstore.google.com/detail/pagelift-%E2%80%94-capture/oilallhconlknnflmahieigbkjpinpol" target="_blank" rel="noopener">Pagelift Chrome extension</a> and drop the file into the plugin.</p>
       </details>
       <details>
         <summary>Is Pagelift a free alternative to html.to.design?</summary>
-        <p>For many uses, yes. Both turn websites into editable Figma layers, import by URL, capture logged-in pages with a Chrome extension, and handle hover states, dark mode and multiple screen sizes. Pagelift is free with no import limit. html.to.design's free plan allows 10 imports every 30 days, and it's more polished, with one-click install and dedicated support. The comparison table above has the details.</p>
+        <p>For many uses, yes. Both turn websites into editable Figma layers, import by URL, capture logged-in pages with a Chrome extension, and handle hover states, dark mode and multiple screen sizes. Pagelift is free with no import limit. html.to.design's free plan allows 10 imports every 30 days, and it's more established, with dedicated support. The comparison table above has the details.</p>
       </details>
       <details>
         <summary>Is it really free forever?</summary>
@@ -363,8 +372,8 @@
         <p>That's how the extension resizes the page to tablet and mobile widths, switches dark mode on and triggers hover states. The bar disappears when the capture finishes.</p>
       </details>
       <details>
-        <summary>Which plugin is Pagelift in my Figma menu?</summary>
-        <p>The one called Pagelift, tagged <b>Development</b>. A plugin called "Web to Figma" is unrelated.</p>
+        <summary>How do I find Pagelift in Figma?</summary>
+        <p>After you open it once from <a href="https://www.figma.com/community/plugin/1689048845549302265" target="_blank" rel="noopener">Figma Community</a>, search for Pagelift in Figma's Actions menu. A plugin called "Web to Figma" is unrelated.</p>
       </details>
       <details>
         <summary>Can I import someone else's website?</summary>
@@ -378,6 +387,9 @@
   <div class="row">
     <a class="brand small" href="./"><img src="assets/logo.svg" alt="" width="22" height="22">Pagelift</a>
     <span>Made by Enclave Studios · <span class="copy">hello@enclave-studios.com</span></span>
+  </div>
+  <div class="row">
+    <span><a href="https://www.figma.com/community/plugin/1689048845549302265" target="_blank" rel="noopener">Pagelift on Figma Community</a> · <a href="https://chromewebstore.google.com/detail/pagelift-%E2%80%94-capture/oilallhconlknnflmahieigbkjpinpol" target="_blank" rel="noopener">Pagelift — Capture on the Chrome Web Store</a></span>
   </div>
   <div class="row muted">
     <span><a href="privacy.html">Privacy policy</a> · Last updated 5 October 2026 · Not affiliated with Figma, html.to.design or Web to Figma.</span>
