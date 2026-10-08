@@ -989,6 +989,7 @@ function onScroll(){
   // all but the last chapter take the watch apart; the last one reassembles it and wraps it on the wrist
   const N=sections.length-1, pEx=(N-1)/N;
   explodeProg=Math.min(1,scrollP/pEx);
+  document.documentElement.classList.toggle('final',scrollP>pEx+(1-pEx)*0.6);
   if(scrollP<=pEx){explodeTarget=explodeProg;wrapTarget=0;}
   else{const k=(scrollP-pEx)/(1-pEx);explodeTarget=1-clamp(k/0.5);wrapTarget=clamp((k-0.3)/0.6);}
   const i=Math.min(N,Math.round(scrollP*N));
@@ -1013,7 +1014,9 @@ function setStrap(key){
 // Swapping straps: the current pair slides out along the strap line, the new pair is fitted while off-frame,
 // then slides back in to the lugs. A click mid-swap just retargets which strap comes back in.
 let swap=null, strapOff=0, strapKey='green';
+const EM_COLORS={green:'#4b5e22',navy:'#1f3166',red:'#8a161b'};
 function requestStrap(key){
+  document.documentElement.style.setProperty('--em',EM_COLORS[key]);
   if(key===strapKey&&!swap) return;
   document.querySelectorAll('.swatch').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.strap===key)));
   if(swap){swap.key=key;return;}
@@ -1034,14 +1037,14 @@ document.querySelectorAll('.swatch').forEach(b=>b.addEventListener('click',()=>r
 /* ---------- layout ---------- */
 let W=1,H=1;
 function viewOffset(){
-  camera.setViewOffset(W,H,W>760?-W*0.17:0,W>760?0:H*0.16,W,H); camera.updateProjectionMatrix();
+  camera.setViewOffset(W,H,W>760?-W*0.17:0,W>760?0:H*0.25,W,H); camera.updateProjectionMatrix(); // phones: watch centred in the top half
 }
 function resize(){
   W=innerWidth;H=innerHeight;
   renderer.setSize(W,H,false);
   camera.aspect=W/H;
   if(W>760) camera.setViewOffset(W,H,-W*0.17,0,W,H);
-  else camera.setViewOffset(W,H,0,H*0.16,W,H);
+  else camera.setViewOffset(W,H,0,H*0.25,W,H);
   camera.updateProjectionMatrix();
 }
 addEventListener('resize',resize);
@@ -1106,13 +1109,13 @@ function frame(){
     const sway=REDUCED?0:Math.sin(t*0.25)*0.05;
     const az=-0.72+explodeProg*1.9+sway;
     const el=lerp(0.66,0.3,e);
-    const fit=lerp(Math.max(1,0.95/a),Math.max(1,(W>760?0.62:0.78)/a),e);
-    const dist=lerp(275/1.3,300,e)*fit/WATCH_SCALE;
-    camTarget.set(0,lerp(-4,-5,e),lerp(30,0,e)); // assembled framing includes both curled straps
+    const fit=lerp(Math.max(1,0.95/a),Math.max(1,(W>760?0.62:0.78)/a),e)*(W>760?1:lerp(1,1.85,e)); // phones: the exploded stack must fit the top half
+    const dist=lerp(275/1.3,300,e)*fit/WATCH_SCALE*(W<=760?lerp(1.3,1,e):1); // phones: pull back so the buckle and tip both fit
+    camTarget.set(0,lerp(-4,-5,e),W<=760?0:lerp(30,0,e)); // phones: aim at the case so the watch sits dead centre // assembled framing includes both curled straps
     floor.position.y=lerp(-8,-92,e); apertureShade.material.opacity=1-clamp(e/0.2); apertureShade.visible=e<0.2; floor.material.opacity=lerp(0.16,0.07,e)*(1-clamp(userQ.angleTo(qId)/0.5)); // ground shadow fades once the watch is turned
     camera.position.set(camTarget.x+dist*Math.cos(el)*Math.sin(az),camTarget.y+dist*Math.sin(el),camTarget.z+dist*Math.cos(el)*Math.cos(az));
     if(wc>0){ // finale: straight-on front view of the dial, 12 at the top
-      const wd=150*Math.max(1,0.75/a)/WATCH_SCALE, wel=1.36, waz=0; // ~78°: face-on, just off the overhead softbox glare
+      const wd=150*Math.max(1,0.75/a)/WATCH_SCALE*(W<=760?1.6:1), wel=1.36, waz=0; // ~78°: face-on, just off the overhead softbox glare
       tmpT.set(0,2,0);
       tmpP.set(tmpT.x+wd*Math.cos(wel)*Math.sin(waz),tmpT.y+wd*Math.sin(wel),tmpT.z+wd*Math.cos(wel)*Math.cos(waz));
       camera.position.lerp(tmpP,wc); camTarget.lerp(tmpT,wc);

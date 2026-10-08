@@ -4,6 +4,10 @@ html,body{margin:0}
 img{max-width:100%}
 [hidden]{display:none!important}
 
+/* Bodera (Rantau Type) is a commercial font, not on Google Fonts. Drop the licensed web files into fonts/ next to this page
+   and they load automatically; until then headings fall back to Bodoni Moda. */
+@font-face{font-family:"Bodera";src:url("fonts/Bodera.woff2") format("woff2"),url("fonts/Bodera.woff") format("woff");font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:"Bodera";src:url("fonts/Bodera-Italic.woff2") format("woff2"),url("fonts/Bodera-Italic.woff") format("woff");font-weight:400;font-style:italic;font-display:swap}
 /* Layout: full-bleed WebGL stage pinned behind a scrolling story. Chapters ride on the left (bottom sheet on phones); scrolling drives the explode. */
 /* Single light look by choice: a watch presented on a pale studio sweep. */
 :root{
@@ -13,16 +17,17 @@ img{max-width:100%}
   --soft:#3f4752;
   --muted:#66707c;
   --accent:#9a5a3e;
+  --em:#4b5e22; /* italic headline words follow the selected strap: olive by default */
   --ruby:#d0234a;
   --line:rgba(21,26,33,.14);
   --glass:rgba(251,252,253,.8);
-  --f-display:"Bodoni Moda","Didot","Bodoni 72",Georgia,serif;
-  --f-body:"Hanken Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  --f-display:"Bodera","Bodoni Moda","Didot","Bodoni 72",Georgia,serif; /* Bodera is a licensed font: add fonts/Bodera.woff2 to use it */
+  --f-body:"Abyssinica SIL",Georgia,"Times New Roman",serif;
+  --f-mono:"Google Sans Flex","JetBrains Mono",system-ui,sans-serif; /* utility face for labels, eyebrows and buttons */
   color-scheme:light;
 }
 html,body{background:var(--ink);color:var(--rhodium)}
-body{font-family:var(--f-body);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+body{font-family:var(--f-body);font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
 
 #stage{position:fixed;inset:0;z-index:0;background:radial-gradient(120% 90% at 62% 40%,var(--ink-2) 0%,var(--ink) 62%)}
 #c{position:relative;display:block;width:100%;height:100%;touch-action:pan-y;cursor:default}
@@ -53,7 +58,7 @@ html.turning #c{cursor:grabbing}
 .eyebrow{font-family:var(--f-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
 h1,h2{font-family:var(--f-display);font-weight:400;text-wrap:balance;margin:0 0 12px;line-height:1.05}
 h1{font-size:clamp(44px,7vw,76px);letter-spacing:-.01em}
-h1 em,h2 em{font-style:italic;color:var(--accent)}
+h1 em,h2 em{font-style:normal;color:var(--em);transition:color .6s ease}
 h2{font-size:clamp(28px,3.4vw,38px)}
 .card p{margin:0 0 10px;color:var(--soft);max-width:60ch}
 .card p:last-child{margin-bottom:0}
@@ -95,5 +100,29 @@ button:focus-visible,.lbl:focus-visible{outline:2px solid var(--accent);outline-
   .hero .spec{display:none}
   .cue{margin-top:14px!important}
   #info{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);left:16px;right:16px;width:auto;max-width:none}
+  /* Phones: the screen splits in two. The watch is framed in the top half; each chapter's text block fills the
+     bottom half, and scrolling snaps one chapter at a time so the next block locks into place. */
+  html{scroll-snap-type:y mandatory}
+  .ch{scroll-snap-align:start;scroll-snap-stop:always;min-height:100svh;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 16px)}
+  .ch,.hero{align-items:flex-end;justify-content:flex-start}
+  #story{padding-inline:0!important}
+  .ch{padding-bottom:0!important}
+  #story .card{box-sizing:border-box;width:100%;max-width:none;height:50svh;overflow-y:auto;border-radius:0;border-width:1px 0 0;
+    padding:20px 20px calc(env(safe-area-inset-bottom,0px) + 16px);display:flex;flex-direction:column;justify-content:flex-start;padding:14px 16px;font-size:14px;line-height:1.5}
+  .card p{margin-bottom:6px}
+  h1{font-size:46px}
+  h2{font-size:34px}
+  .eyebrow{margin-bottom:6px}
+  .swatches{gap:8px;margin-top:10px}
+  .swatch{font-size:0;padding:4px;border-radius:50%}
+  .swatch i{width:26px;height:26px}
+  .swatch[aria-pressed="true"]{border-color:var(--rhodium);box-shadow:0 0 0 1px var(--rhodium)}
+  .turnhint{margin-top:10px;padding-top:8px}
+  .turnhint span{font-size:8px}
+  /* utility (mono) text, 2px smaller than desktop */
+  .eyebrow,.chap,.cue,.lbl{font-size:9px}
+  .spec,button{font-size:10px}
+  .turnhint button{padding:8px 10px}
+}
 }
 @media (prefers-reduced-motion:reduce){.cue::after{animation:none}.lbl{transition:none}}
