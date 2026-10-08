@@ -297,7 +297,7 @@ const dialTex=canvasTex(1536,(g,s)=>{
   if(LOGO.complete&&LOGO.naturalWidth){
     const lw=c*0.34, lh=lw*LOGO.naturalHeight/LOGO.naturalWidth, tc=document.createElement('canvas');
     tc.width=LOGO.naturalWidth;tc.height=LOGO.naturalHeight;const tg=tc.getContext('2d');
-    tg.drawImage(LOGO,0,0);tg.globalCompositeOperation='source-in';tg.fillStyle='#1b2210';tg.fillRect(0,0,tc.width,tc.height);
+    tg.drawImage(LOGO,0,0);tg.globalCompositeOperation='source-in';tg.fillStyle='#232427'; // charcoal blacktg.fillRect(0,0,tc.width,tc.height);
     const ly=-c*LOGO_DY/DIAL_R;g.drawImage(tc,-lw/2,ly-lh/2,lw,lh);g.drawImage(tc,-lw/2,ly-lh/2,lw,lh); // twice for a solid print
   }
   g.fillStyle=ink;g.font=`600 ${Math.round(s*0.024)}px "Bodoni Moda", Didot, Georgia, serif`;
@@ -939,7 +939,26 @@ document.getElementById('infoClose').addEventListener('click',()=>select(null));
 
 const ray=new THREE.Raycaster(), ndc=new THREE.Vector2();
 let down=null;
-canvas.addEventListener('pointerdown',e=>{down={x:e.clientX,y:e.clientY};});
+canvas.addEventListener('pointerdown',e=>{
+  down={x:e.clientX,y:e.clientY};
+  if(turnable){turning=true;lastX=e.clientX;lastY=e.clientY;spinX=spinY=0;canvas.setPointerCapture(e.pointerId);document.documentElement.classList.add('turning');}
+});
+// Free rotation in the final frame: drag turns the watch about the screen axes (trackball), so any face can be shown.
+const userQ=new THREE.Quaternion(), qTmp=new THREE.Quaternion(), qId=new THREE.Quaternion(), axU=new THREE.Vector3(), axR=new THREE.Vector3();
+let turnable=false, turning=false, lastX=0, lastY=0, spinX=0, spinY=0, resetView=false;
+function turnBy(dx,dy){
+  axR.setFromMatrixColumn(camera.matrixWorld,0).normalize(); axU.setFromMatrixColumn(camera.matrixWorld,1).normalize();
+  userQ.premultiply(qTmp.setFromAxisAngle(axU,dx*0.009)).premultiply(qTmp.setFromAxisAngle(axR,dy*0.009)).normalize();
+}
+addEventListener('pointermove',e=>{
+  if(!turning) return;
+  const dx=e.clientX-lastX, dy=e.clientY-lastY; lastX=e.clientX; lastY=e.clientY;
+  turnBy(dx,dy); spinX=dx; spinY=dy;
+});
+const endTurn=()=>{turning=false;document.documentElement.classList.remove('turning');};
+addEventListener('pointerup',endTurn); addEventListener('pointercancel',endTurn);
+canvas.addEventListener('dblclick',()=>{if(turnable)resetView=true;});
+document.getElementById('frontView').addEventListener('click',()=>{resetView=true;});
 canvas.addEventListener('pointerup',e=>{
   if(!down||Math.hypot(e.clientX-down.x,e.clientY-down.y)>6){down=null;return;}
   down=null;
@@ -1057,6 +1076,12 @@ function frame(){
   wrapCur+=(wrapTarget-wrapCur)*(1-Math.exp(-dt*5));
   if(Math.abs(wrapTarget-wrapCur)<1e-4) wrapCur=wrapTarget;
   stepSwap(dt);
+  {
+    const on=wrapCur>0.95; if(on!==turnable){turnable=on;document.documentElement.classList.toggle('turnable',on);}
+    if(!turning&&(Math.abs(spinX)+Math.abs(spinY))>0.05&&!REDUCED){turnBy(spinX,spinY);spinX*=0.92;spinY*=0.92;} // a little inertia after release
+    if(!turnable||resetView){userQ.slerp(qId,1-Math.exp(-dt*6)); spinX=spinY=0; if(userQ.angleTo(qId)<0.002){userQ.identity();resetView=false;}}
+    root.quaternion.copy(userQ);
+  }
   const wc=ease(wrapCur);
   viewOffset();
   if(Math.abs(explodeTarget-explodeCur)<1e-4) explodeCur=explodeTarget;
@@ -1084,7 +1109,7 @@ function frame(){
     const fit=lerp(Math.max(1,0.95/a),Math.max(1,(W>760?0.62:0.78)/a),e);
     const dist=lerp(275/1.3,300,e)*fit/WATCH_SCALE;
     camTarget.set(0,lerp(-4,-5,e),lerp(30,0,e)); // assembled framing includes both curled straps
-    floor.position.y=lerp(-8,-92,e); apertureShade.material.opacity=1-clamp(e/0.2); apertureShade.visible=e<0.2; floor.material.opacity=lerp(0.16,0.07,e);
+    floor.position.y=lerp(-8,-92,e); apertureShade.material.opacity=1-clamp(e/0.2); apertureShade.visible=e<0.2; floor.material.opacity=lerp(0.16,0.07,e)*(1-clamp(userQ.angleTo(qId)/0.5)); // ground shadow fades once the watch is turned
     camera.position.set(camTarget.x+dist*Math.cos(el)*Math.sin(az),camTarget.y+dist*Math.sin(el),camTarget.z+dist*Math.cos(el)*Math.cos(az));
     if(wc>0){ // finale: straight-on front view of the dial, 12 at the top
       const wd=150*Math.max(1,0.75/a)/WATCH_SCALE, wel=1.36, waz=0; // ~78°: face-on, just off the overhead softbox glare

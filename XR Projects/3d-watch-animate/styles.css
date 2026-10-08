@@ -25,7 +25,11 @@ html,body{background:var(--ink);color:var(--rhodium)}
 body{font-family:var(--f-body);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
 
 #stage{position:fixed;inset:0;z-index:0;background:radial-gradient(120% 90% at 62% 40%,var(--ink-2) 0%,var(--ink) 62%)}
-#c{position:relative;display:block;width:100%;height:100%;touch-action:pan-y;cursor:grab}
+#c{position:relative;display:block;width:100%;height:100%;touch-action:pan-y;cursor:default}
+html.turnable #c{touch-action:none;cursor:grab}
+html.turning #c{cursor:grabbing}
+.turnhint{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px;padding-top:12px;border-top:1px solid var(--line)}
+.turnhint span{font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
 #labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
 .lbl{position:absolute;left:0;top:0;display:flex;align-items:center;gap:8px;white-space:nowrap;
   font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--rhodium);
