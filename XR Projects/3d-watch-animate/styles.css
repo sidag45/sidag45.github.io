@@ -34,6 +34,9 @@ body{font-family:var(--f-body);font-size:16px;line-height:1.65;-webkit-font-smoo
 html.turnable #c{touch-action:none;cursor:grab}
 html.turning #c{cursor:grabbing}
 .turnhint{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px;padding-top:12px;border-top:1px solid var(--line)}
+.card p.credit{margin:18px 0 0;font:400 11px/1.4 var(--f-mono);letter-spacing:.06em;color:var(--muted)}
+.credit a{color:var(--rhodium);text-decoration:none;border-bottom:1px solid var(--em);padding-bottom:1px;transition:color .2s ease}
+.credit a:hover,.credit a:focus-visible{color:var(--em)}
 .turnhint span{font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
 #labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
 .lbl{position:absolute;left:0;top:0;display:flex;align-items:center;gap:8px;white-space:nowrap;
