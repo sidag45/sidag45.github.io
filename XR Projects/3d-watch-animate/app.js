@@ -1,4 +1,4 @@
-/* Halden & Vey HV-2 Squelette: scroll-driven exploded watch (fictional brand). Requires three.js r147 and RoundedBoxGeometry (loaded in index.html). */
+/* Halden & Vey Pegasus-1 Squelette: scroll-driven exploded watch (fictional brand). Requires three.js r147 and RoundedBoxGeometry (loaded in index.html). */
 (function(){
 "use strict";
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -7,6 +7,7 @@ const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
 const lerp=(a,b,t)=>a+(b-a)*t;
 const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
 
+const SPLIT_W=1180; // phones and tablets use the split layout: watch in the top half, text in the bottom half
 /* ---------- renderer ---------- */
 const canvas=document.getElementById('c');
 const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
@@ -241,7 +242,7 @@ const RIBS=(()=>{
   t.anisotropy=renderer.capabilities.getMaxAnisotropy();return t;
 })();
 
-// Halden & Vey HV-2 Squelette dial: an ivory chapter ring around an open centre.
+// Halden & Vey Pegasus-1 Squelette dial: an ivory chapter ring around an open centre.
 // Canvas up = 12 o'clock. The ring geometry cuts the centre away at DIAL_OPEN.
 // Aperture centre sits halfway between the dial centre and the inner edge (foot) of the VI numeral:
 // numerals are centred at r=13.7 with height 2.7 scaled 0.7, so the foot is at 13.7-0.945=12.755 and halfway is 6.38.
@@ -914,7 +915,11 @@ const labels=LABEL_DEFS.map(([k,g,v,r])=>{
 const infoEl=document.getElementById('info');
 let selected=null;
 function belongs(o,k){while(o){if(o.userData&&o.userData.key===k)return true;o=o.parent;}return false;}
+let hintDone=false, clickTarget='crystal';
+const clickEl=document.getElementById('clickme'), clickBtn=clickEl.querySelector('button'), clickPath=clickEl.querySelector('path');
+clickEl.querySelector('button').addEventListener('click',()=>select(clickTarget));
 function select(k){
+  if(k) hintDone=true;
   selected=k;
   root.traverse(o=>{
     if(!o.isMesh&&!o.isLine) return;
@@ -1037,13 +1042,14 @@ document.querySelectorAll('.swatch').forEach(b=>b.addEventListener('click',()=>r
 /* ---------- layout ---------- */
 let W=1,H=1;
 function viewOffset(){
-  camera.setViewOffset(W,H,W>760?-W*0.17:0,W>760?0:H*0.25,W,H); camera.updateProjectionMatrix(); // phones: watch centred in the top half
+  const k=clamp(explodeProg*5); // desktop opening shot sits a little further left, easing to the usual offset as you scroll
+  camera.setViewOffset(W,H,W>SPLIT_W?-W*lerp(0.10,0.17,k):0,W>SPLIT_W?0:H*0.25,W,H); camera.updateProjectionMatrix(); // phones: watch centred in the top half
 }
 function resize(){
   W=innerWidth;H=innerHeight;
   renderer.setSize(W,H,false);
   camera.aspect=W/H;
-  if(W>760) camera.setViewOffset(W,H,-W*0.17,0,W,H);
+  if(W>SPLIT_W) camera.setViewOffset(W,H,-W*0.17,0,W,H);
   else camera.setViewOffset(W,H,0,H*0.25,W,H);
   camera.updateProjectionMatrix();
 }
@@ -1070,6 +1076,8 @@ function setHands(now){
   const m=d.getMinutes()+s/60, h=(d.getHours()%12)+m/60;
   secHand.rotation.y=-s/60*TAU; minHand.rotation.y=-m/60*TAU; hourHand.rotation.y=-h/12*TAU;
 }
+// desktop opening shot: case large on the right, buckle top-centre, tail strap running off the bottom-right edge
+const OPEN_DIST=156, OPEN_Z=6, OPEN_AZ=-0.62;
 const tmp=new THREE.Vector3(), camRight=new THREE.Vector3(), tmpP=new THREE.Vector3(), tmpT=new THREE.Vector3();
 const clock=new THREE.Clock();
 let rotorV=0;
@@ -1080,7 +1088,8 @@ function frame(){
   if(Math.abs(wrapTarget-wrapCur)<1e-4) wrapCur=wrapTarget;
   stepSwap(dt);
   {
-    const on=wrapCur>0.95; if(on!==turnable){turnable=on;document.documentElement.classList.toggle('turnable',on);}
+    const on=wrapCur>0.95||(scrollP<0.015&&explodeCur<0.02); // final frame, and the opening view at the top of the page
+    if(on!==turnable){turnable=on;document.documentElement.classList.toggle('turnable',on);}
     if(!turning&&(Math.abs(spinX)+Math.abs(spinY))>0.05&&!REDUCED){turnBy(spinX,spinY);spinX*=0.92;spinY*=0.92;} // a little inertia after release
     if(!turnable||resetView){userQ.slerp(qId,1-Math.exp(-dt*6)); spinX=spinY=0; if(userQ.angleTo(qId)<0.002){userQ.identity();resetView=false;}}
     root.quaternion.copy(userQ);
@@ -1107,15 +1116,15 @@ function frame(){
   {
     const e=explodeCur, a=camera.aspect;
     const sway=REDUCED?0:Math.sin(t*0.25)*0.05;
-    const az=-0.72+explodeProg*1.9+sway;
+    const az=(W>SPLIT_W?OPEN_AZ:-0.72)+explodeProg*1.9+sway;
     const el=lerp(0.66,0.3,e);
-    const fit=lerp(Math.max(1,0.95/a),Math.max(1,(W>760?0.62:0.78)/a),e)*(W>760?1:lerp(1,1.85,e)); // phones: the exploded stack must fit the top half
-    const dist=lerp(275/1.3,300,e)*fit/WATCH_SCALE*(W<=760?lerp(1.3,1,e):1); // phones: pull back so the buckle and tip both fit
-    camTarget.set(0,lerp(-4,-5,e),W<=760?0:lerp(30,0,e)); // phones: aim at the case so the watch sits dead centre // assembled framing includes both curled straps
+    const fit=lerp(Math.max(1,0.95/a),Math.max(1,(W>SPLIT_W?0.62:0.78)/a),e)*(W>SPLIT_W?1:lerp(1,1.85,e)); // phones: the exploded stack must fit the top half
+    const dist=lerp(W>SPLIT_W?OPEN_DIST:275/1.3,300,e)*fit/WATCH_SCALE*(W<=SPLIT_W?lerp(1.3,1,e):1); // phones: pull back so the buckle and tip both fit
+    camTarget.set(0,W>SPLIT_W?lerp(-8.5,-5,clamp(explodeProg*5)):lerp(-4,-5,e),W<=SPLIT_W?0:lerp(OPEN_Z,0,e)); // phones: aim at the case so the watch sits dead centre // assembled framing includes both curled straps
     floor.position.y=lerp(-8,-92,e); apertureShade.material.opacity=1-clamp(e/0.2); apertureShade.visible=e<0.2; floor.material.opacity=lerp(0.16,0.07,e)*(1-clamp(userQ.angleTo(qId)/0.5)); // ground shadow fades once the watch is turned
     camera.position.set(camTarget.x+dist*Math.cos(el)*Math.sin(az),camTarget.y+dist*Math.sin(el),camTarget.z+dist*Math.cos(el)*Math.cos(az));
     if(wc>0){ // finale: straight-on front view of the dial, 12 at the top
-      const wd=150*Math.max(1,0.75/a)/WATCH_SCALE*(W<=760?1.6:1), wel=1.36, waz=0; // ~78°: face-on, just off the overhead softbox glare
+      const wd=150*Math.max(1,0.75/a)/WATCH_SCALE*(W<=SPLIT_W?1.6:1), wel=1.36, waz=0; // ~78°: face-on, just off the overhead softbox glare
       tmpT.set(0,2,0);
       tmpP.set(tmpT.x+wd*Math.cos(wel)*Math.sin(waz),tmpT.y+wd*Math.sin(wel),tmpT.z+wd*Math.cos(wel)*Math.cos(waz));
       camera.position.lerp(tmpP,wc); camTarget.lerp(tmpT,wc);
@@ -1127,7 +1136,7 @@ function frame(){
   }
 
   // labels
-  const showAll=(W>760||explodeProg>0.93)&&wrapCur<0.05;
+  const showAll=(W>SPLIT_W||explodeProg>0.93)&&wrapCur<0.05;
   root.updateMatrixWorld();
   camRight.setFromMatrixColumn(camera.matrixWorld,0).setY(0).normalize();
   const shown=[];
@@ -1144,6 +1153,20 @@ function frame(){
   shown.sort((a,b)=>a.y-b.y);
   for(let i=1;i<shown.length;i++){ if(shown[i].y-shown[i-1].y<18) shown[i].y=shown[i-1].y+18; }
   for(const l of labels) l.el.style.transform=`translate(${l.x.toFixed(1)}px,${(l.y-8).toFixed(1)}px)`;
+  { // the signifier sits up and to the right of the topmost visible label, arrow pointing at it
+    const first=shown[0], show=!!first&&!hintDone&&!selected;
+    clickEl.classList.toggle('on',show);
+    if(first){
+      clickTarget=first.k; const x=first.x+first.el.offsetWidth+8, y=first.y-52;
+      clickEl.style.transform=`translate(${x.toFixed(1)}px,${y.toFixed(1)}px)`;
+      // keep the tag on screen: slide it left when it would run off the right edge, and re-aim the leader
+      const bw=clickBtn.offsetWidth, bl=Math.min(46,W-20-x-bw);
+      const side=bl>=12, bh=clickBtn.offsetHeight; let bt=side?-4:-bh-6; const below=!side&&y+bt<64; if(below) bt=70; // clear of the top bar
+      clickBtn.style.left=bl+'px'; clickBtn.style.top=bt+'px';
+      const sx=side?bl:Math.max(bl+bw*0.6,14), sy=side?14:below?bt:bt+bh;
+      clickPath.setAttribute('d',`M${sx.toFixed(1)} ${sy} Q 3 ${sy}, 3 49`);
+    }
+  }
 
   renderer.render(scene,camera);
   requestAnimationFrame(frame);

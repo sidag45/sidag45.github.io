@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Halden &amp; Vey HV-2</title>
-<meta name="description" content="Scroll-driven 3D teardown of the Halden &amp; Vey HV-2 Squelette, a fictional open-worked watch.">
+<title>Halden &amp; Vey Pegasus-1</title>
+<meta name="description" content="Scroll-driven 3D teardown of the Halden &amp; Vey Pegasus-1 Squelette, a fictional open-worked watch.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;1,6..96,400&family=Abyssinica+SIL&family=JetBrains+Mono:wght@400;500&family=Google+Sans+Flex:wght@400;500&display=swap">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<div id="stage"><canvas id="c" aria-label="3D model of the Halden &amp; Vey HV-2 watch. Click a part to read about it."></canvas><div id="labels"></div></div>
+<div id="stage"><canvas id="c" aria-label="3D model of the Halden &amp; Vey Pegasus-1 watch. Click a part to read about it."></canvas><div id="labels"></div><div id="clickme" aria-hidden="true"><svg width="48" height="56" viewBox="0 0 48 56"><path d="M46 14 C 22 14, 6 26, 3 49"/><circle class="ring" cx="2" cy="52" r="3"/><circle class="dot" cx="2" cy="52" r="3"/></svg><button type="button" tabindex="-1"><b>Click me</b><small>Open any part to read about it</small></button></div></div>
 
 <div class="topbar">
   <div class="mark">Halden &amp; Vey<i>concept study</i></div>
@@ -21,8 +21,8 @@
 <main id="story">
   <section class="ch hero" data-name="Assembled">
     <div class="card">
-      <p class="eyebrow">Ref. HV-2 Squelette · 40 mm · Automatic</p>
-      <h1>Calibre <em>HV-2</em></h1>
+      <p class="eyebrow">Ref. Pegasus-1 Squelette · 40 mm · Automatic</p>
+      <h1><em>Pegasus-1</em></h1>
       <p>An open-worked automatic: the centre of the dial is cut away so you can watch the wheels and the balance run. The hands show your local time, and the balance beats at the real 4&nbsp;Hz.</p>
       <dl class="spec">
         <dt>Case</dt><dd>40 mm, 18k rose gold</dd>
@@ -30,7 +30,7 @@
         <dt>Frequency</dt><dd>28,800 vph</dd>
         <dt>Reserve</dt><dd>42 hours</dd>
       </dl>
-      <p class="cue">Scroll to take it apart</p>
+      <p class="cue">Drag to turn it · Scroll to take it apart</p>
     </div>
   </section>
 
@@ -109,7 +109,6 @@
   <h3 id="infoName"></h3>
   <p id="infoBody"></p>
 </aside>
-
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/geometries/RoundedBoxGeometry.js"></script>
 <script src="app.js"></script>
