@@ -1,0 +1,699 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Paper Toss</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Caveat:wght@600&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: full-bleed engineering-paper office; HUD pinned top, camera tile bottom-left, controls bottom-right */
+:root{
+  --bg:#e6ebee; --grid:#d5dde3; --grid-strong:#c4cfd7;
+  --ink:#1c2a35; --muted:#5a6c79;
+  --bin:#2d6b70; --bin-dark:#1d4a4e;
+  --accent:#e6ad1f; --accent-ink:#3a2c05;
+  --paper:#fbfcfd; --paper-shade:#b9c4cc; --rule:#9fc1dd;
+  --desk:#9aa9b4; --desk-dark:#6f808c;
+  --card:#f6f8f9; --line:#c3ced6;
+  --f-display:"Archivo","Arial Narrow",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --f-hand:"Caveat","Comic Sans MS",cursive;
+  color-scheme:light;
+}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-mono);overflow:hidden;-webkit-user-select:none;user-select:none}
+.app{position:relative;height:100%;width:100%}
+#stage{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:default}
+
+.hud{position:absolute;left:0;right:0;top:0;padding:calc(env(safe-area-inset-top,0px) + 14px) 16px 0;display:flex;gap:16px;align-items:flex-start;justify-content:space-between;pointer-events:none;flex-wrap:wrap}
+.brand h1{margin:0;font-family:var(--f-display);font-weight:900;font-stretch:72%;font-size:clamp(28px,4vw,40px);line-height:.9;letter-spacing:-.01em;text-transform:uppercase}
+.brand p{margin:6px 0 0;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+
+.steps{list-style:none;margin:0;padding:0;display:flex;gap:8px;flex-wrap:wrap}
+.steps li{display:flex;align-items:center;gap:8px;padding:7px 11px 7px 7px;border:1px solid var(--line);border-radius:999px;background:color-mix(in srgb,var(--card) 80%,transparent);font-size:12px;color:var(--muted);transition:background .2s,color .2s,border-color .2s}
+.steps .n{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;border:1px solid var(--line);font-weight:600;font-size:11px}
+.steps li.on{background:var(--ink);color:var(--card);border-color:var(--ink)}
+.steps li.on .n{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.steps li.done{color:var(--ink)}
+.steps li.done .n{background:var(--bin);border-color:var(--bin);color:var(--card)}
+.dots{display:inline-flex;gap:3px;margin-left:2px}
+.dots i{width:7px;height:7px;border-radius:50%;border:1px solid currentColor;opacity:.7}
+.dots i.f{background:var(--accent);border-color:var(--accent);opacity:1}
+
+.score{display:flex;gap:4px;margin:0}
+.score div{min-width:52px;padding:6px 10px;border-left:1px solid var(--line)}
+.score dt{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.score dd{margin:2px 0 0;font-family:var(--f-display);font-weight:800;font-stretch:80%;font-size:26px;line-height:1;font-variant-numeric:tabular-nums}
+
+.cam{position:absolute;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 64px);width:176px;aspect-ratio:4/3;max-width:40vw;border-radius:10px;overflow:hidden;background:var(--ink);border:1px solid var(--ink);box-shadow:0 6px 20px rgba(28,42,53,.18)}
+.cam video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);display:block;opacity:.92}
+.chip{position:absolute;left:6px;bottom:6px;right:6px;font-size:10.5px;letter-spacing:.04em;padding:4px 7px;border-radius:6px;background:rgba(28,42,53,.82);color:#eef2f4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip b{color:var(--accent);font-weight:600}
+
+.controls{position:absolute;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.btn{font:600 12px/1 var(--f-mono);padding:9px 12px;border-radius:8px;border:1px solid var(--ink);background:var(--card);color:var(--ink);cursor:pointer}
+.btn:hover{background:var(--ink);color:var(--card)}
+.btn:focus-visible,.power input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.power{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted);padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+.power input{width:90px;accent-color:var(--bin)}
+.power output{font-variant-numeric:tabular-nums;color:var(--ink);min-width:3.5ch;text-align:right}
+
+.toast{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);max-width:min(440px,calc(100% - 32px));padding:14px 16px;border-radius:10px;background:var(--ink);color:#eef2f4;font-size:13px;line-height:1.5;box-shadow:0 10px 30px rgba(28,42,53,.25);z-index:5}
+
+.intro{position:absolute;inset:0;display:grid;place-items:center;padding-inline:16px;background:color-mix(in srgb,var(--bg) 55%,transparent);backdrop-filter:blur(2px);z-index:4}
+.card{width:min(520px,100%);background:var(--card);border:1px solid var(--ink);border-radius:14px;padding:28px 26px 24px;box-shadow:0 18px 50px rgba(28,42,53,.2)}
+.card .eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.card h2{margin:8px 0 10px;font-family:var(--f-display);font-weight:900;font-stretch:68%;font-size:clamp(40px,8vw,58px);line-height:.88;text-transform:uppercase;text-wrap:balance}
+.card h2 span{color:var(--bin)}
+.card p{margin:0 0 18px;font-size:13.5px;line-height:1.6;color:var(--ink);max-width:60ch}
+.how{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0 0 20px;padding:0;list-style:none}
+.how li{border-top:2px solid var(--ink);padding-top:8px;font-size:12px;line-height:1.45;min-width:0}
+.how b{display:block;font-family:var(--f-display);font-stretch:80%;font-weight:800;font-size:17px;text-transform:uppercase;margin-bottom:2px}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+.primary{background:var(--ink);color:var(--card);padding:12px 16px;font-size:13px}
+.primary:hover{background:var(--bin);border-color:var(--bin)}
+.fine{margin:14px 0 0 !important;font-size:11.5px !important;color:var(--muted) !important}
+
+@media (max-width:720px){
+  .steps li:not(.on){display:none}
+  .score div{min-width:0;padding:4px 8px}
+  .score dd{font-size:20px}
+  .how{grid-template-columns:1fr}
+  .power{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="app">
+  <canvas id="stage" aria-label="Paper toss game area"></canvas>
+
+  <header class="hud">
+    <div class="brand">
+      <h1>Paper Toss</h1>
+      <p id="modeLabel">Choose how to play</p>
+    </div>
+    <ol class="steps" id="steps">
+      <li data-step="1"><span class="n">1</span><span class="t" id="t1">Pinch the sheet to pick it up</span></li>
+      <li data-step="2"><span class="n">2</span><span class="t" id="t2">Make a fist 3 times to crumple</span><span class="dots" id="dots"><i></i><i></i><i></i></span></li>
+      <li data-step="3"><span class="n">3</span><span class="t" id="t3">Swing at the bin and open your hand</span></li>
+    </ol>
+    <dl class="score">
+      <div><dt>In</dt><dd id="sMade">0</dd></div>
+      <div><dt>Tosses</dt><dd id="sTosses">0</dd></div>
+      <div><dt>Streak</dt><dd id="sStreak">0</dd></div>
+      <div><dt>Best</dt><dd id="sBest">0</dd></div>
+    </dl>
+  </header>
+
+  <aside class="cam" id="cam" hidden>
+    <video id="video" playsinline muted></video>
+    <span class="chip" id="camChip">Camera off</span>
+  </aside>
+
+  <div class="controls">
+    <label class="power" for="power">Throw power <input id="power" type="range" min="50" max="160" step="5" value="100"><output id="powerOut">100%</output></label>
+    <button class="btn" id="btnSound" type="button" aria-pressed="true">Sound on</button>
+    <button class="btn" id="btnMode" type="button" hidden>Use mouse</button>
+  </div>
+
+  <div class="toast" id="toast" hidden></div>
+
+  <div class="intro" id="intro">
+    <div class="card">
+      <div class="eyebrow">Office basketball, hands-free</div>
+      <h2>Crumple it.<br><span>Bin it.</span></h2>
+      <p>Pick up the sheet off your desk, scrunch it into a ball with your fist, then swing and let go. Every basket moves the bin a little farther away.</p>
+      <ol class="how">
+        <li><b>Pinch</b>Thumb and index together over the sheet</li>
+        <li><b>Squeeze ×3</b>Close and open your fist to crumple</li>
+        <li><b>Throw</b>Swing toward the bin, then open your hand</li>
+      </ol>
+      <div class="actions">
+        <button class="btn primary" id="btnCam" type="button">Play with your hands</button>
+        <button class="btn" id="btnMouse" type="button">Play with mouse or touch</button>
+      </div>
+      <p class="fine">Hand mode uses your webcam. Tracking runs in your browser and the video never leaves your device.</p>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+const MP = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14';
+const MODEL = 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task';
+
+const $ = s => document.querySelector(s);
+const cv = $('#stage'), ctx = cv.getContext('2d');
+const video = $('#video');
+const css = getComputedStyle(document.documentElement);
+const tok = n => css.getPropertyValue(n).trim();
+const col = {
+  bg:tok('--bg'), grid:tok('--grid'), gridStrong:tok('--grid-strong'), ink:tok('--ink'), muted:tok('--muted'),
+  bin:tok('--bin'), binDark:tok('--bin-dark'), accent:tok('--accent'), accentInk:tok('--accent-ink'),
+  paper:tok('--paper'), paperShade:tok('--paper-shade'), rule:tok('--rule'), desk:tok('--desk'), deskDark:tok('--desk-dark')
+};
+function rgba(hex, a){ const h=hex.replace('#',''); const n=parseInt(h.length===3?h.split('').map(c=>c+c).join(''):h,16); return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`; }
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+
+/* ---------- world ---------- */
+let W=0,H=0,DPR=1,S=1;
+const world={};
+const bin={t:0.35, d:0};
+const bg=document.createElement('canvas'), bgx=bg.getContext('2d');
+const sheetW=()=>84*S, sheetH=()=>108*S, ballR=()=>21*S;
+
+function resize(){
+  DPR=Math.min(2,window.devicePixelRatio||1);
+  W=cv.clientWidth; H=cv.clientHeight;
+  cv.width=Math.round(W*DPR); cv.height=Math.round(H*DPR);
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  S=clamp(Math.min(W/1150,H/780),0.55,1.35);
+  world.floor=H*0.86;
+  world.deskTop=H*0.6;
+  world.deskX0=W-Math.max(170*S, W*0.28);
+  world.g=2300*S;
+  world.rest={x:world.deskX0+(W-world.deskX0)*0.48, y:world.deskTop-sheetH()/2-8*S};
+  world.pxPerM=170*S;
+  layoutBin();
+  drawBackground();
+  if(paper.state==='sheet'){ paper.x=world.rest.x; paper.y=world.rest.y; }
+}
+function layoutBin(){
+  const near=Math.min(world.deskX0-170*S, W*0.52), far=80*S;
+  bin.cx=near-(near-far)*bin.t;
+  bin.w=(128-46*bin.d)*S; bin.h=150*S;
+  bin.y0=world.floor-bin.h; bin.y1=world.floor;
+  bin.xl0=bin.cx-bin.w/2; bin.xr0=bin.cx+bin.w/2;
+  const inset=bin.w*0.12;
+  bin.xl1=bin.xl0+inset; bin.xr1=bin.xr0-inset;
+}
+function placeBin(){
+  bin.d=Math.min(1, stats.streak/6);
+  const span=0.45;
+  bin.t=clamp(bin.d*(1-span)+Math.random()*span,0,1);
+  layoutBin();
+}
+function drawBackground(){
+  bg.width=cv.width; bg.height=cv.height;
+  bgx.setTransform(DPR,0,0,DPR,0,0);
+  bgx.fillStyle=col.bg; bgx.fillRect(0,0,W,H);
+  const step=Math.max(14,24*S);
+  for(let i=0,x=0;x<W;x+=step,i++){ bgx.strokeStyle=i%5===0?col.gridStrong:col.grid; bgx.lineWidth=1; bgx.beginPath(); bgx.moveTo(Math.round(x)+.5,0); bgx.lineTo(Math.round(x)+.5,world.floor); bgx.stroke(); }
+  for(let i=0,y=world.floor;y>0;y-=step,i++){ bgx.strokeStyle=i%5===0?col.gridStrong:col.grid; bgx.beginPath(); bgx.moveTo(0,Math.round(y)+.5); bgx.lineTo(W,Math.round(y)+.5); bgx.stroke(); }
+  bgx.fillStyle=rgba(col.desk,0.28); bgx.fillRect(0,world.floor,W,H-world.floor);
+  bgx.strokeStyle=col.ink; bgx.lineWidth=2; bgx.beginPath(); bgx.moveTo(0,world.floor+1); bgx.lineTo(W,world.floor+1); bgx.stroke();
+}
+
+/* ---------- paper ---------- */
+const NOTES=[["Q3 plan","v7 FINAL (real)"],["TPS report","cover sheet??"],["Ideas:","1. ???"],["Mtg notes 9:30","- circle back"],["Budget","(revised again)"],["To do:","fix it all"],["Draft #12","do not send"],["Reply-all","apology draft"]];
+let noteIdx=Math.floor(Math.random()*NOTES.length);
+function makeShape(){
+  const N=34, pts=[];
+  const per=[[-.5,-.5,.5,-.5],[.5,-.5,.5,.5],[.5,.5,-.5,.5],[-.5,.5,-.5,-.5]];
+  for(let i=0;i<N;i++){
+    const u=i/N*4, s=Math.floor(u), f=u-s, e=per[s];
+    const rx=lerp(e[0],e[2],f), ry=lerp(e[1],e[3],f);
+    pts.push({rx,ry,a:Math.atan2(ry*1.3,rx),rf:0.8+Math.random()*0.38,j:Math.random()*2-1});
+  }
+  const creases=[];
+  for(let i=0;i<18;i++){ const a=Math.random()*Math.PI*2, r=Math.random()*0.35, l=0.15+Math.random()*0.3, b=a+Math.PI/2+(Math.random()-.5);
+    const cx=Math.cos(a)*r, cy=Math.sin(a)*r; creases.push([cx-Math.cos(b)*l/2,cy-Math.sin(b)*l/2,cx+Math.cos(b)*l/2,cy+Math.sin(b)*l/2]); }
+  return {pts,creases};
+}
+const paper={state:'sheet',x:0,y:0,vx:0,vy:0,rot:-0.05,spin:0,c:0,target:0,squeezes:0,squash:0,shape:makeShape(),note:NOTES[noteIdx],ballAt:0,spawnAt:0,onFloor:false,touchedRim:false,flightAt:0,endAt:0};
+function resetPaper(){
+  noteIdx=(noteIdx+1)%NOTES.length;
+  Object.assign(paper,{state:'sheet',x:world.rest.x,y:world.rest.y,vx:0,vy:0,rot:-0.05,spin:0,c:0,target:0,squeezes:0,squash:0,shape:makeShape(),note:NOTES[noteIdx],spawnAt:performance.now(),onFloor:false,touchedRim:false});
+  ballArmed=false; pointerHolding=false;
+}
+
+/* ---------- stats ---------- */
+const stats={made:0,tosses:0,streak:0,best:0};
+try{ stats.best=+localStorage.getItem('paperToss.best')||0; }catch(e){}
+let result=null;
+
+/* ---------- input ---------- */
+let mode='idle';
+const hand={present:false,x:0,y:0,fist:false,pinch:false,lms:null,lastSeen:0,ratio:0};
+const hist=[];
+let prevGrip=false, prevFist=false, ballArmed=false, pointerHolding=false;
+let power=1;
+
+function pushHist(x,y){ const t=performance.now(); hist.push({t,x,y}); while(hist.length>24) hist.shift(); }
+function velocity(){
+  const now=performance.now(); const pts=hist.filter(p=>now-p.t<140);
+  if(pts.length<2) return {x:0,y:0};
+  const a=pts[0], b=pts[pts.length-1], dt=Math.max(0.016,(b.t-a.t)/1000);
+  return {x:(b.x-a.x)/dt, y:(b.y-a.y)/dt};
+}
+
+function tryPickup(reach){
+  if(paper.state!=='sheet') return false;
+  if(Math.hypot(hand.x-paper.x,hand.y-paper.y)>reach) return false;
+  paper.state='held'; sfx('pick'); return true;
+}
+function squeeze(){
+  if(paper.state!=='held') return;
+  paper.squeezes++; paper.target=Math.min(1,paper.squeezes/3); paper.squash=1; sfx('crunch');
+  if(paper.squeezes>=3){ paper.state='ball'; paper.ballAt=performance.now(); }
+}
+function release(){
+  if(paper.state!=='ball') return;
+  const v=velocity(), k=(inputSrc==='hand'?0.62:0.85)*power, max=2900*S;
+  let vx=v.x*k, vy=v.y*k; const m=Math.hypot(vx,vy); if(m>max){ vx*=max/m; vy*=max/m; }
+  Object.assign(paper,{state:'flying',vx,vy,spin:clamp(vx*0.006,-14,14),onFloor:false,touchedRim:false,flightAt:performance.now(),c:1});
+  stats.tosses++; sfx('whoosh', Math.min(1,m/max));
+}
+
+/* camera */
+let stream=null, landmarker=null, lastVT=-1, camState='off', stageText='';
+let vision=null, fileset=null, delegate='GPU', detectFails=0, rebuilding=false, startToken=0;
+const withTimeout=(p,ms,label)=>Promise.race([p,new Promise((_,rej)=>setTimeout(()=>rej(new Error(label+' timed out after '+Math.round(ms/1000)+'s')),ms))]);
+const errText=e=>String(e&&e.message||e||'unknown error').slice(0,160);
+const lmOpts=d=>({baseOptions:{modelAssetPath:MODEL,delegate:d},runningMode:'VIDEO',numHands:1,minHandDetectionConfidence:0.6,minHandPresenceConfidence:0.5,minTrackingConfidence:0.5});
+
+async function buildLandmarker(d){
+  if(!vision){ stage('Loading hand tracker (1/3)…'); vision=await withTimeout(import(MP+'/vision_bundle.mjs'),20000,'Tracker library'); }
+  if(!fileset){ stage('Loading hand tracker (2/3)…'); fileset=await withTimeout(vision.FilesetResolver.forVisionTasks(MP+'/wasm'),20000,'Tracker runtime'); }
+  stage('Loading hand model (3/3)…');
+  return await withTimeout(vision.HandLandmarker.createFromOptions(fileset,lmOpts(d)),20000,'Hand model ('+d+')');
+}
+async function loadTracker(){
+  if(landmarker) return;
+  try{ landmarker=await buildLandmarker('GPU'); delegate='GPU'; }
+  catch(e){ console.warn('GPU tracker failed, trying CPU:',e); landmarker=await buildLandmarker('CPU'); delegate='CPU'; }
+}
+async function startCamera(){
+  const token=++startToken;
+  mode='camera'; setModeUI(); camState='loading';
+  $('#cam').hidden=false; stage('Waiting for camera permission…');
+  const trackerP=loadTracker(); trackerP.catch(()=>{});
+  try{
+    if(!navigator.mediaDevices?.getUserMedia) throw new Error('This browser has no camera API');
+    stream=await withTimeout(navigator.mediaDevices.getUserMedia({video:{width:{ideal:640},height:{ideal:480},facingMode:'user'},audio:false}),60000,'Camera permission');
+  }catch(err){
+    if(token!==startToken) return;
+    fallbackToMouse('The camera could not start ('+errText(err)+'). Mouse mode is on. To play with your hands, open the downloaded file in Chrome and allow camera access.');
+    return;
+  }
+  if(token!==startToken){ stream.getTracks().forEach(t=>t.stop()); return; }
+  video.srcObject=stream;
+  try{ await withTimeout(video.play(),8000,'Video start'); }catch(e){ console.warn(e); }
+  if(!landmarker) stage(stageText.startsWith('Loading')?stageText:'Loading hand tracker…');
+  try{ await trackerP; if(!landmarker) await loadTracker(); }
+  catch(err){
+    if(token!==startToken) return;
+    fallbackToMouse('The hand tracker did not load ('+errText(err)+'). Mouse mode is on. Check your internet connection and reload to try again.');
+    return;
+  }
+  if(token!==startToken) return;
+  detectFails=0; camState='on'; stage(''); hand.present=false; hand.lms=null; pointerHolding=false; ballArmed=paper.state==='ball'; setChip('Raise your hand into view');
+}
+async function recoverDetector(err){
+  if(rebuilding) return; rebuilding=true;
+  console.warn('Hand detection failing on '+delegate+':',err);
+  try{
+    if(delegate==='GPU'){
+      camState='loading'; stage('Switching hand tracker to CPU…');
+      try{ landmarker&&landmarker.close(); }catch(e){}
+      landmarker=await buildLandmarker('CPU'); delegate='CPU'; detectFails=0; lastVT=-1;
+      camState='on'; stage(''); setChip('Raise your hand into view');
+    }else throw err;
+  }catch(e){
+    fallbackToMouse('Hand tracking stopped working ('+errText(e)+'). Mouse mode is on.');
+  }finally{ rebuilding=false; }
+}
+function stopCamera(){
+  startToken++;
+  if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; }
+  video.srcObject=null; $('#cam').hidden=true; camState='off'; hand.present=false; stage('');
+}
+function fallbackToMouse(msg){ stopCamera(); mode='mouse'; setModeUI(); toast(msg, 9000); }
+function setChip(html){ $('#camChip').innerHTML=html; }
+function stage(t){ stageText=t; if(t) setChip(t); }
+
+const CONN=[[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]];
+function processHand(lm, now){
+  if(!lm) return;
+  const vw=video.videoWidth||640, vh=video.videoHeight||480;
+  const P=i=>[lm[i].x*vw, lm[i].y*vh];
+  const d=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
+  const wrist=P(0), palm=Math.max(1,d(wrist,P(9)));
+  const ratio=[8,12,16,20].reduce((s,i)=>s+d(P(i),wrist),0)/4/palm;
+  const pinchR=d(P(4),P(8))/palm;
+  hand.ratio=ratio;
+  if(hand.fist){ if(ratio>1.45) hand.fist=false; } else if(ratio<1.25) hand.fist=true;
+  if(hand.pinch){ if(pinchR>0.45) hand.pinch=false; } else if(pinchR<0.3) hand.pinch=true;
+
+  let cx=0,cy=0; for(const i of [0,5,9,13,17]){ cx+=lm[i].x; cy+=lm[i].y; } cx/=5; cy/=5;
+  const tx=W*clamp(((1-cx)-0.12)/0.76,0,1), ty=H*clamp((cy-0.1)/0.72,0,1);
+  if(!hand.present){ hand.x=tx; hand.y=ty; } else { hand.x=lerp(hand.x,tx,0.6); hand.y=lerp(hand.y,ty,0.6); }
+  hand.lms=lm.map(p=>[((1-p.x)-(1-cx))*vw/palm,(p.y-cy)*vh/palm]);
+  hand.present=true; hand.lastSeen=now; inputSrc='hand';
+  pushHist(hand.x,hand.y);
+
+  const grip=hand.fist||hand.pinch;
+  let picked=false;
+  if(grip&&!prevGrip) picked=tryPickup(120*S);
+  if(hand.fist&&!prevFist&&!picked) squeeze();
+  if(!grip&&prevGrip&&paper.state==='ball'&&now-paper.ballAt>320) release();
+  prevGrip=grip; prevFist=hand.fist;
+
+  const g=hand.fist?'Fist':hand.pinch?'Pinch':'Open hand';
+  setChip(`Tracking · <b>${g}</b>`);
+}
+function onHandLost(){
+  hand.present=false; hand.fist=hand.pinch=false; prevGrip=prevFist=false;
+  setChip('Raise your hand into view');
+  if(paper.state==='ball'){ const v=velocity(); if(Math.hypot(v.x,v.y)>700*S) release(); }
+}
+
+/* mouse / touch */
+let inputSrc='pointer';
+const pointerActive=()=>mode==='mouse'||(mode==='camera'&&camState!=='on');
+function setPointer(e){ const r=cv.getBoundingClientRect(); hand.x=e.clientX-r.left; hand.y=e.clientY-r.top; hand.present=true; hand.lms=null; inputSrc='pointer'; pushHist(hand.x,hand.y); }
+cv.addEventListener('pointerdown',e=>{
+  if(!pointerActive()) return;
+  audioInit(); setPointer(e); try{cv.setPointerCapture(e.pointerId);}catch(_){}
+  if(paper.state==='sheet'){ tryPickup(Math.max(sheetW(),sheetH())*0.75); }
+  else if(paper.state==='held'){ squeeze(); }
+  else if(paper.state==='ball'&&ballArmed){ pointerHolding=true; hist.length=0; pushHist(hand.x,hand.y); }
+});
+cv.addEventListener('pointermove',e=>{ if(pointerActive()) setPointer(e); });
+cv.addEventListener('pointerup',e=>{
+  if(!pointerActive()) return;
+  setPointer(e);
+  if(paper.state==='ball'){ if(!ballArmed) ballArmed=true; else if(pointerHolding){ pointerHolding=false; release(); } }
+});
+cv.addEventListener('pointerleave',()=>{ if(pointerActive()&&!pointerHolding) hand.present=paper.state==='held'||paper.state==='ball'; });
+
+/* ---------- audio ---------- */
+let AC=null, soundOn=true;
+function audioInit(){ if(!AC){ try{ AC=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } if(AC&&AC.state==='suspended') AC.resume(); }
+function noise(dur, filterType, freq, q, gain, crackle){
+  const n=Math.floor(AC.sampleRate*dur), buf=AC.createBuffer(1,n,AC.sampleRate), d=buf.getChannelData(0);
+  for(let i=0;i<n;i++){ const env=Math.pow(1-i/n,1.6); const r=Math.random()*2-1; d[i]=(crackle&&Math.random()>0.9? r : r*(crackle?0.18:1))*env; }
+  const src=AC.createBufferSource(); src.buffer=buf;
+  const f=AC.createBiquadFilter(); f.type=filterType; f.frequency.value=freq; f.Q.value=q;
+  const g=AC.createGain(); g.gain.value=gain;
+  src.connect(f).connect(g).connect(AC.destination); src.start(); return f;
+}
+function tone(type,f0,f1,dur,gain){
+  const o=AC.createOscillator(), g=AC.createGain(), t=AC.currentTime;
+  o.type=type; o.frequency.setValueAtTime(f0,t); o.frequency.exponentialRampToValueAtTime(Math.max(20,f1),t+dur);
+  g.gain.setValueAtTime(gain,t); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.connect(g).connect(AC.destination); o.start(t); o.stop(t+dur+0.02);
+}
+function sfx(name, amt=1){
+  if(!soundOn||!AC) return;
+  try{
+    if(name==='crunch'){ noise(0.22,'bandpass',2600,0.7,0.9,true); noise(0.12,'highpass',4000,0.5,0.15,false); }
+    else if(name==='pick'){ noise(0.09,'highpass',3200,0.6,0.25,false); }
+    else if(name==='whoosh'){ const f=noise(0.28,'bandpass',600,1.2,0.12+0.25*amt,false); f.frequency.exponentialRampToValueAtTime(2200,AC.currentTime+0.25); }
+    else if(name==='rim'){ tone('triangle',1350,1250,0.35,0.12); tone('sine',2050,1980,0.25,0.06); }
+    else if(name==='in'){ tone('sine',170,70,0.22,0.35); noise(0.1,'lowpass',900,0.7,0.25,true); }
+    else if(name==='thud'){ tone('sine',110,60,0.12,0.25*amt); }
+  }catch(e){}
+}
+
+/* ---------- physics ---------- */
+function collideSeg(b,ax,ay,bx,by,r,e){
+  const dx=bx-ax, dy=by-ay, L2=dx*dx+dy*dy;
+  const t=clamp(((b.x-ax)*dx+(b.y-ay)*dy)/L2,0,1);
+  const px=ax+t*dx, py=ay+t*dy; let nx=b.x-px, ny=b.y-py; const dd=Math.hypot(nx,ny);
+  if(dd<r&&dd>0.0001){ nx/=dd; ny/=dd; b.x=px+nx*r; b.y=py+ny*r;
+    const vn=b.vx*nx+b.vy*ny; if(vn<0){ b.vx-=(1+e)*vn*nx; b.vy-=(1+e)*vn*ny; b.vx*=0.88; b.vy*=0.88; return {t,impact:-vn}; } return {t,impact:0}; }
+  return null;
+}
+let lastRimSfx=0;
+function stepPhysics(h, now){
+  const b=paper, r=ballR();
+  b.vy+=world.g*h; b.x+=b.vx*h; b.y+=b.vy*h; b.rot+=b.spin*h;
+  if(b.x<r){ b.x=r; b.vx=Math.abs(b.vx)*0.5; }
+  if(b.x>W-r){ b.x=W-r; b.vx=-Math.abs(b.vx)*0.5; }
+  // desk
+  const dk=collideSeg(b,world.deskX0,world.deskTop,W+50,world.deskTop,r,0.3);
+  collideSeg(b,world.deskX0,world.deskTop,world.deskX0,world.deskTop+14*S,r,0.3);
+  if(dk&&dk.impact>0){ b.spin*=0.6; }
+  // bin walls
+  const wr=r+2*S;
+  for(const seg of [[bin.xl0,bin.y0,bin.xl1,bin.y1],[bin.xr0,bin.y0,bin.xr1,bin.y1],[bin.xl1,bin.y1-1,bin.xr1,bin.y1-1]]){
+    const hit=collideSeg(b,seg[0],seg[1],seg[2],seg[3],wr,0.35);
+    if(hit&&hit.t<0.12&&hit.impact>80&&seg[1]===bin.y0){ b.touchedRim=true; if(now-lastRimSfx>120){ sfx('rim'); lastRimSfx=now; } }
+  }
+  // floor
+  if(b.y+r>world.floor){ b.y=world.floor-r;
+    if(b.vy>0){ if(b.vy>220) sfx('thud',Math.min(1,b.vy/1500)); b.vy=-b.vy*0.32; b.vx*=0.78; b.spin*=0.6; if(Math.abs(b.vy)<70) b.vy=0; }
+    b.vx*=Math.exp(-h*3); if(!b.inBin) b.onFloor=true; }
+  // inside bin?
+  if(b.state==='flying'&&b.y>bin.y0+r*0.5){
+    const f=(b.y-bin.y0)/(bin.y1-bin.y0);
+    if(b.x>lerp(bin.xl0,bin.xl1,f)&&b.x<lerp(bin.xr0,bin.xr1,f)){ score(now); }
+  }
+}
+function score(now){
+  paper.state='in'; paper.inBin=true; paper.endAt=now;
+  stats.made++; stats.streak++; if(stats.streak>stats.best){ stats.best=stats.streak; try{localStorage.setItem('paperToss.best',stats.best);}catch(e){} }
+  const clean=!paper.touchedRim;
+  result={text:clean?'Swish':'In',sub:clean?`Nothing but bin · ${dist().toFixed(1)} m`:`Off the rim · ${dist().toFixed(1)} m`,good:true,t:now};
+  sfx('in');
+}
+function miss(now){
+  paper.state='miss'; paper.endAt=now; stats.streak=0;
+  const x=paper.x; let sub='Rimmed out';
+  if(x>bin.xr0) sub='Short'; else if(x<bin.xl0) sub='Long';
+  result={text:'Miss',sub,good:false,t:now};
+}
+function dist(){ return Math.max(0,(world.deskX0-bin.cx)/world.pxPerM); }
+
+/* ---------- update ---------- */
+function update(dt, now){
+  if(mode==='camera'&&landmarker&&camState==='on'&&video.readyState>=2&&video.currentTime!==lastVT){
+    lastVT=video.currentTime;
+    let res=null;
+    try{ res=landmarker.detectForVideo(video, now); detectFails=0; }
+    catch(e){ if(++detectFails>=8) recoverDetector(e); }
+    if(res) processHand(res.landmarks&&res.landmarks[0], now);
+  }
+  if(mode==='camera'&&camState==='on'&&inputSrc==='hand'&&hand.present&&now-hand.lastSeen>160) onHandLost();
+
+  if(paper.state==='held'||paper.state==='ball'){
+    if(hand.present){ const k=Math.min(1,dt*24); paper.x=lerp(paper.x,hand.x,k); paper.y=lerp(paper.y,hand.y,k); }
+    paper.rot=lerp(paper.rot,Math.sin(now/320)*0.05,Math.min(1,dt*6));
+  }
+  paper.c=lerp(paper.c,paper.target,Math.min(1,dt*10));
+  paper.squash*=Math.exp(-dt*7);
+
+  if(paper.state==='flying'||paper.state==='in'||paper.state==='miss'){
+    const n=10, h=Math.min(dt,1/30)/n; for(let i=0;i<n;i++) stepPhysics(h,now);
+    if(paper.state==='flying'){
+      const sp=Math.hypot(paper.vx,paper.vy);
+      if((paper.onFloor&&sp<50)||now-paper.flightAt>4500) miss(now);
+      else if(!paper.onFloor&&paper.x>world.deskX0&&sp<30&&now-paper.flightAt>600) miss(now);
+    }else if(now-paper.endAt>(paper.state==='in'?1500:1200)){
+      if(paper.state==='in') placeBin();
+      resetPaper();
+    }
+  }
+}
+
+/* ---------- render ---------- */
+function drawDesk(){
+  const t=world.deskTop, x0=world.deskX0;
+  ctx.fillStyle=col.deskDark;
+  ctx.fillRect(W-32*S,t+12*S,10*S,world.floor-t-12*S);
+  ctx.fillRect(x0+20*S,t+12*S,10*S,world.floor-t-12*S);
+  ctx.fillStyle=col.desk; ctx.fillRect(x0+36*S,t+12*S,92*S,86*S);
+  ctx.strokeStyle=col.deskDark; ctx.lineWidth=1; ctx.strokeRect(x0+36*S+.5,t+12*S+.5,92*S,86*S);
+  ctx.fillStyle=col.deskDark; ctx.fillRect(x0+72*S,t+52*S,18*S,4*S);
+  ctx.fillStyle=col.ink; ctx.fillRect(x0,t,W-x0+2,12*S);
+  ctx.fillStyle=rgba(col.paper,0.35); ctx.fillRect(x0,t,W-x0+2,2*S);
+  // paper tray + stack
+  const r=world.rest;
+  ctx.fillStyle=col.deskDark; ctx.fillRect(r.x-sheetW()/2-10*S,t-9*S,sheetW()+20*S,9*S);
+  for(let i=2;i>=1;i--){
+    ctx.save(); ctx.translate(r.x-i*4*S,r.y+i*1.5*S); ctx.rotate(0.05-i*0.035);
+    ctx.fillStyle=col.paper; ctx.fillRect(-sheetW()/2,-sheetH()/2,sheetW(),sheetH());
+    ctx.strokeStyle=rgba(col.ink,0.22); ctx.strokeRect(-sheetW()/2,-sheetH()/2,sheetW(),sheetH()); ctx.restore();
+  }
+}
+function drawTape(){
+  const x0=world.deskX0, x1=bin.cx, y=world.floor+10*S, h=15*S;
+  if(x0-x1<20) return;
+  ctx.fillStyle=col.accent; ctx.fillRect(x1,y,x0-x1,h);
+  ctx.strokeStyle=col.accentInk; ctx.lineWidth=1;
+  const ppm=world.pxPerM;
+  ctx.textAlign='right';
+  for(let i=0;x0-i*ppm/10>=x1;i++){
+    const x=Math.round(x0-i*ppm/10)+.5, len=i%10===0?h:i%5===0?h*0.6:h*0.35;
+    ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x,y+len); ctx.stroke();
+    if(i%10===0&&i>0){ ctx.fillStyle=col.accentInk; ctx.font=`600 ${9*S}px "IBM Plex Mono",monospace`; ctx.fillText(String(i/10),x-2,y+h-3*S); }
+  }
+  ctx.fillStyle=col.ink; ctx.font=`600 ${12*S}px "IBM Plex Mono",monospace`; ctx.textAlign='left';
+  ctx.fillText(`${dist().toFixed(1)} m`, x1+4*S, y+h+16*S);
+}
+function binPath(){ ctx.beginPath(); ctx.moveTo(bin.xl0,bin.y0); ctx.lineTo(bin.xr0,bin.y0); ctx.lineTo(bin.xr1,bin.y1); ctx.lineTo(bin.xl1,bin.y1); ctx.closePath(); }
+function drawBinBack(){
+  binPath(); ctx.fillStyle=rgba(col.binDark,0.55); ctx.fill();
+  ctx.fillStyle=rgba(col.ink,0.12); ctx.beginPath(); ctx.ellipse(bin.cx,world.floor+2*S,bin.w*0.55,5*S,0,0,Math.PI*2); ctx.fill();
+}
+function drawBinFront(){
+  ctx.save(); binPath(); ctx.fillStyle=rgba(col.bin,0.55); ctx.fill(); ctx.clip();
+  ctx.strokeStyle=rgba(col.binDark,0.75); ctx.lineWidth=1.2;
+  const sp=10*S;
+  for(let x=bin.xl0-bin.h;x<bin.xr0+bin.h;x+=sp){ ctx.beginPath(); ctx.moveTo(x,bin.y0); ctx.lineTo(x+bin.h,bin.y1); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x,bin.y0); ctx.lineTo(x-bin.h,bin.y1); ctx.stroke(); }
+  ctx.restore();
+  binPath(); ctx.strokeStyle=col.binDark; ctx.lineWidth=2*S; ctx.stroke();
+  ctx.fillStyle=col.binDark; ctx.fillRect(bin.xl0-5*S,bin.y0-4*S,bin.w+10*S,7*S);
+  ctx.fillRect(bin.xl1-2*S,bin.y1-6*S,bin.xr1-bin.xl1+4*S,6*S);
+}
+function paperPath(p){
+  const e=ease(p.c), sw=sheetW(), sh=sheetH(), sq=p.squash;
+  const br=ballR()*(1-0.1*sq), k=1-0.12*sq*(p.state==='held'?1:0);
+  ctx.beginPath();
+  p.shape.pts.forEach((q,i)=>{
+    const sx=q.rx*sw*k, sy=q.ry*sh*k, bx=Math.cos(q.a)*br*q.rf, by=Math.sin(q.a)*br*q.rf;
+    const w=Math.sin(Math.PI*p.c)*q.j*10*S;
+    const x=lerp(sx,bx,e)+Math.cos(q.a)*w, y=lerp(sy,by,e)+Math.sin(q.a)*w;
+    i?ctx.lineTo(x,y):ctx.moveTo(x,y);
+  });
+  ctx.closePath();
+}
+function drawPaper(p, now){
+  const e=ease(p.c), sw=sheetW(), sh=sheetH(), br=ballR();
+  let a=1, dy=0;
+  if(p.state==='sheet'){ const s=clamp((now-p.spawnAt)/320,0,1); a=s; dy=(1-ease(s))*18*S; }
+  ctx.save(); ctx.globalAlpha=a; ctx.translate(p.x,p.y+dy); ctx.rotate(p.rot);
+  paperPath(p);
+  ctx.shadowColor=rgba(col.ink,0.2); ctx.shadowBlur=12*S; ctx.shadowOffsetY=5*S;
+  ctx.fillStyle=col.paper; ctx.fill(); ctx.shadowColor='transparent';
+  ctx.save(); ctx.clip();
+  const fade=Math.max(0,1-p.c*1.8);
+  if(fade>0){
+    ctx.globalAlpha=a*fade;
+    ctx.strokeStyle=col.rule; ctx.lineWidth=1;
+    for(let y=-sh/2+26*S;y<sh/2-4*S;y+=10*S){ ctx.beginPath(); ctx.moveTo(-sw/2,y); ctx.lineTo(sw/2,y); ctx.stroke(); }
+    ctx.strokeStyle=rgba(col.bin,0.55); ctx.beginPath(); ctx.moveTo(-sw/2+13*S,-sh/2); ctx.lineTo(-sw/2+13*S,sh/2); ctx.stroke();
+    ctx.fillStyle=col.ink; ctx.font=`600 ${15*S}px Caveat, cursive`;
+    ctx.fillText(p.note[0],-sw/2+17*S,-sh/2+23*S);
+    ctx.fillText(p.note[1],-sw/2+17*S,-sh/2+43*S);
+    ctx.globalAlpha=a;
+  }
+  if(p.c>0.03){
+    const R=lerp(Math.max(sw,sh)*0.7,br*1.25,e);
+    const g=ctx.createRadialGradient(-br*0.35,-br*0.45,1,0,0,R);
+    g.addColorStop(0,rgba(col.paper,0)); g.addColorStop(1,rgba(col.paperShade,0.95*p.c));
+    ctx.fillStyle=g; ctx.fillRect(-sw,-sh,sw*2,sh*2);
+    const n=Math.floor(p.c*p.shape.creases.length), sc=lerp(sw,br*2.1,e);
+    for(let i=0;i<n;i++){ const c=p.shape.creases[i];
+      ctx.strokeStyle=rgba(col.ink,0.28); ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(c[0]*sc,c[1]*sc); ctx.lineTo(c[2]*sc,c[3]*sc); ctx.stroke();
+      ctx.strokeStyle=rgba(col.paper,0.9); ctx.beginPath(); ctx.moveTo(c[0]*sc+1,c[1]*sc+1); ctx.lineTo(c[2]*sc+1,c[3]*sc+1); ctx.stroke(); }
+  }
+  ctx.restore();
+  paperPath(p); ctx.strokeStyle=rgba(col.ink,0.3); ctx.lineWidth=1; ctx.stroke();
+  ctx.restore();
+}
+function drawHand(now){
+  if(!hand.present) return;
+  if(mode==='camera'&&hand.lms){
+    const sc=58*S, L=hand.lms;
+    ctx.save(); ctx.translate(hand.x,hand.y);
+    ctx.lineCap='round'; ctx.lineWidth=5*S; ctx.strokeStyle=rgba(col.ink,0.32);
+    for(const [a,b] of CONN){ ctx.beginPath(); ctx.moveTo(L[a][0]*sc,L[a][1]*sc); ctx.lineTo(L[b][0]*sc,L[b][1]*sc); ctx.stroke(); }
+    const tipCol=hand.fist?col.accent:hand.pinch?col.bin:col.paper;
+    for(const i of [4,8,12,16,20]){ ctx.beginPath(); ctx.arc(L[i][0]*sc,L[i][1]*sc,5*S,0,Math.PI*2); ctx.fillStyle=tipCol; ctx.fill(); ctx.strokeStyle=col.ink; ctx.lineWidth=1.5; ctx.stroke(); }
+    ctx.restore();
+  }else if(inputSrc==='pointer'&&paper.state==='sheet'){
+    const near=Math.hypot(hand.x-paper.x,hand.y-paper.y)<Math.max(sheetW(),sheetH())*0.75;
+    cv.style.cursor=near?'grab':'default';
+  }
+  if(inputSrc==='pointer') cv.style.cursor=paper.state==='held'?'pointer':paper.state==='ball'?'grabbing':cv.style.cursor;
+}
+function drawResult(now){
+  if(!result) return;
+  const t=(now-result.t)/1000; if(t>1.5){ result=null; return; }
+  const a=t<1.1?1:1-(t-1.1)/0.4, pop=1+0.25*Math.max(0,1-t*6);
+  ctx.save(); ctx.globalAlpha=a; ctx.translate(W/2,H*0.36); ctx.scale(pop,pop);
+  ctx.textAlign='center';
+  try{ ctx.fontStretch='condensed'; }catch(e){}
+  ctx.font=`900 ${Math.round(84*S)}px Archivo, "Arial Narrow", sans-serif`;
+  ctx.fillStyle=result.good?col.bin:col.muted;
+  ctx.fillText(result.text.toUpperCase(),0,0);
+  try{ ctx.fontStretch='normal'; }catch(e){}
+  ctx.font=`600 ${14*S}px "IBM Plex Mono", monospace`; ctx.fillStyle=col.ink;
+  ctx.fillText(result.sub,0,26*S);
+  ctx.restore();
+}
+function drawPrompt(now){
+  if(mode!=='camera') return;
+  let msg=null, sub=null;
+  if(camState==='loading'&&stageText){ msg=stageText; sub='You can play with the mouse while this loads'; }
+  else if(camState==='on'&&!hand.present){ msg='Raise one hand into the camera view'; }
+  if(!msg) return;
+  ctx.save(); ctx.textAlign='center';
+  ctx.font=`600 ${15*S}px "IBM Plex Mono", monospace`; ctx.fillStyle=col.ink;
+  if(camState==='loading'){ const r=9*S, a=now/180; ctx.strokeStyle=col.bin; ctx.lineWidth=2.5*S; ctx.beginPath(); ctx.arc(W/2,H*0.42-30*S,r,a,a+Math.PI*1.4); ctx.stroke(); }
+  ctx.fillText(msg,W/2,H*0.42);
+  if(sub){ ctx.font=`400 ${12*S}px "IBM Plex Mono", monospace`; ctx.fillStyle=col.muted; ctx.fillText(sub,W/2,H*0.42+20*S); }
+  ctx.restore();
+}
+function render(now){
+  ctx.drawImage(bg,0,0,W,H);
+  drawTape();
+  drawBinBack();
+  drawDesk();
+  if(paper.state==='in') drawPaper(paper,now);
+  drawBinFront();
+  if(paper.state!=='in') drawPaper(paper,now);
+  drawHand(now);
+  drawResult(now);
+  drawPrompt(now);
+}
+
+/* ---------- HUD ---------- */
+const TEXT={
+  camera:['Pinch the sheet to pick it up','Make a fist 3 times to crumple','Swing at the bin and open your hand'],
+  mouse:['Click the sheet to pick it up','Click 3 times to crumple','Press, flick toward the bin, release']
+};
+let hudKey='';
+function updateHud(){
+  const step=paper.state==='sheet'?1:paper.state==='held'?2:paper.state==='ball'?3:0;
+  let t3=null;
+  if(step===3&&mode==='camera'&&hand.present&&!(hand.fist||hand.pinch)&&performance.now()-paper.ballAt>320) t3='Close your hand on the ball, then throw';
+  const key=[mode,camState,step,paper.squeezes,t3,stats.made,stats.tosses,stats.streak,stats.best].join('|');
+  if(key===hudKey) return; hudKey=key;
+  const T=TEXT[mode==='camera'&&camState==='on'?'camera':'mouse'];
+  $('#t1').textContent=T[0]; $('#t2').textContent=T[1]; $('#t3').textContent=t3||T[2];
+  document.querySelectorAll('#steps li').forEach(li=>{ const s=+li.dataset.step; li.classList.toggle('on',s===step); li.classList.toggle('done',step===0?true:s<step); });
+  document.querySelectorAll('#dots i').forEach((d,i)=>d.classList.toggle('f',i<paper.squeezes));
+  $('#sMade').textContent=stats.made; $('#sTosses').textContent=stats.tosses; $('#sStreak').textContent=stats.streak; $('#sBest').textContent=stats.best;
+}
+function setModeUI(){
+  $('#modeLabel').textContent=mode==='camera'?'Hand tracking':mode==='mouse'?'Mouse & touch':'Choose how to play';
+  const b=$('#btnMode'); b.hidden=mode==='idle'; b.textContent=mode==='camera'?'Use mouse':'Use camera';
+  hudKey='';
+}
+let toastTimer=0;
+function toast(msg,ms=4000){ const t=$('#toast'); t.textContent=msg; t.hidden=false; clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.hidden=true,ms); }
+$('#toast').addEventListener('click',()=>$('#toast').hidden=true);
+
+$('#btnCam').addEventListener('click',()=>{ audioInit(); $('#intro').hidden=true; startCamera(); });
+$('#btnMouse').addEventListener('click',()=>{ audioInit(); $('#intro').hidden=true; mode='mouse'; setModeUI(); });
+$('#btnMode').addEventListener('click',()=>{ audioInit(); if(mode==='camera'){ stopCamera(); mode='mouse'; setModeUI(); } else { startCamera(); } });
+$('#btnSound').addEventListener('click',e=>{ soundOn=!soundOn; e.currentTarget.textContent=soundOn?'Sound on':'Sound off'; e.currentTarget.setAttribute('aria-pressed',String(soundOn)); audioInit(); });
+$('#power').addEventListener('input',e=>{ power=+e.target.value/100; $('#powerOut').textContent=e.target.value+'%'; });
+
+/* ---------- loop ---------- */
+new ResizeObserver(resize).observe(cv);
+resize();
+paper.x=world.rest.x; paper.y=world.rest.y; paper.spawnAt=performance.now()-1000;
+let last=performance.now();
+function frame(now){
+  const dt=Math.min(0.05,(now-last)/1000); last=now;
+  update(dt,now); render(now); updateHud();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+document.fonts&&document.fonts.ready.then(()=>{ hudKey=''; });
+</script>
