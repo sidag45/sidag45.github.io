@@ -250,6 +250,15 @@ button{font:inherit;color:inherit}
 .intel-links a{font-weight:700;font-size:14px;color:var(--phos)}
 .intel-links .k{overflow-wrap:anywhere}
 .intel-empty{display:flex;flex-direction:column;gap:4px;padding:14px;border:1px dashed var(--rule);font-size:14px;color:var(--body)}
+[hidden]{display:none!important}
+.brief{position:fixed;inset:0;z-index:55;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(2,4,3,.6)}
+.brief-win{width:min(460px,100%);max-height:calc(100vh - 32px);display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.7);animation:briefIn .22s ease-out}
+@keyframes briefIn{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+.brief-body{overflow:auto;padding:12px 14px 16px;font-family:var(--f-crt);font-size:18px;line-height:1.2;color:var(--phos);white-space:pre-wrap}
+.brief-body .dim{color:var(--rule)}
+.brief-body .warn{color:#f0c35b}
+.brief-body b{font-family:var(--f-head,inherit);font-size:22px;color:var(--text,#e8efe9)}
+@media (prefers-reduced-motion:reduce){.brief-win{animation:none}}
 .lightbox{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(2,4,3,.88)}
 .lightbox[hidden]{display:none}
 .lb-win{margin:0;width:min(1200px,100%);max-height:100%;display:flex;flex-direction:column}
@@ -329,6 +338,58 @@ button{font:inherit;color:inherit}
 #dock input:focus{outline:none}
 #dock.min .out,#dock.min form{display:none}
 @media (max-width:600px){#dock .out{height:100px}}
+
+/* ---------- menubar utilities ---------- */
+.menu{order:1}.util{order:2;display:flex;gap:4px}.status{order:3}
+.util .bevel{font-size:11px;padding:5px 8px;text-decoration:none}
+@media (max-width:600px){.util{order:1;margin-left:auto}.menu{order:2}.util .bevel{padding:4px 6px;font-size:10px}}
+.sr-skip{position:absolute;left:-9999px;top:0;z-index:100}
+.sr-skip:focus{left:16px;top:8px;background:var(--phos);color:#000;padding:6px 10px}
+#plainBoot{position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);right:110px;z-index:51;border:1px solid var(--crt-dim);color:var(--crt-dim);font-family:var(--f-crt);font-size:18px;line-height:1.15;padding:4px 10px;text-decoration:none}
+#plainBoot:hover{color:var(--crt);border-color:var(--crt)}
+#boot[hidden] ~ #plainBoot,.returning #plainBoot{display:none}
+.returning #boot,.returning #skip,.plain #boot,.plain #skip{display:none!important}
+
+/* ---------- plain-text edition ---------- */
+html.plain body{background:#f4f3ee;color:#141814;padding:0}
+html.plain body::after{display:none}
+html.plain body > :not(#plain):not(script){display:none!important}
+.plain-doc{max-width:760px;margin:0 auto;padding:40px 20px 80px;font-family:var(--f-ui);font-size:16px;line-height:1.6;color:#141814}
+.plain-doc a{color:#0b5d2a}
+.plain-doc :focus-visible{outline-color:#0b5d2a}
+.plain-doc h1{font-size:34px;margin:4px 0 8px;line-height:1.1;outline:none}
+.plain-doc h2{font-size:22px;margin:40px 0 12px;padding-top:12px;border-top:2px solid #141814}
+.plain-doc h3{font-size:18px;margin:26px 0 6px}
+.plain-doc h4{font-size:13px;letter-spacing:.06em;text-transform:uppercase;margin:16px 0 4px;color:#3d463f}
+.plain-doc p{margin:0 0 10px}
+.p-kicker{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#4a544c}
+.p-lede{font-size:18px}
+.p-btn{font:inherit;font-size:14px;padding:6px 12px;border:1px solid #141814;background:#fff;color:#141814;cursor:pointer;margin:0 6px 6px 0}
+.p-btn:hover{background:#141814;color:#fff}
+.p-dl{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:4px 16px;margin:8px 0 12px}
+.p-dl dt{font-weight:700}.p-dl dd{margin:0}
+@media (max-width:520px){.p-dl{grid-template-columns:1fr;gap:0}.p-dl dd{margin-bottom:8px}}
+.p-code{font-weight:400;font-size:13px;color:#4a544c;margin-left:6px}
+.p-sum{font-style:italic}
+.p-op{padding-bottom:14px;border-bottom:1px solid #c9ccc4}
+.p-media{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin:6px 0 12px}
+.p-media figure{margin:0;break-inside:avoid}
+.p-media img{display:block;width:100%;height:auto;border:1px solid #c9ccc4}
+.p-media figcaption{font-size:13px;line-height:1.4;color:#3d463f;margin-top:4px}
+.p-url{color:#4a544c;font-size:13px;overflow-wrap:anywhere}
+.p-time,.p-pr{padding-left:20px}.p-time li,.p-pr li{margin-bottom:4px}
+.p-foot{margin-top:40px;font-size:13px;color:#4a544c}
+@media print{
+  html body{background:#fff!important;color:#000;padding:0}
+  body::after{display:none!important}
+  body > :not(#plain):not(script){display:none!important}
+  #plain{display:block!important;max-width:none;padding:0}
+  .p-tools,.p-toc{display:none}
+  .plain-doc a{color:#000}
+  .plain-doc h2,.plain-doc h3{break-after:avoid}
+  .p-media{grid-template-columns:repeat(3,1fr)}
+  @page{margin:16mm}
+}
 
 /* ---------- boot terminal (from the original dossier) ---------- */
 /* ============ BOOT TERMINAL ============ */

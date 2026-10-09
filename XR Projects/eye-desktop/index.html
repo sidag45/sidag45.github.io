@@ -308,20 +308,20 @@ body{background:var(--desk);color:var(--glass-fg);overflow:hidden}
 .cbtns button.sec::after{background:#ff3b30}
 .cbtns button.dwell::after{width:100%;transition:width 1.2s linear}
 /* gaze calibration: a full-screen field with one dot to follow */
-#gcal{position:absolute;inset:0;z-index:9350;background:var(--glass-strong);backdrop-filter:blur(40px) saturate(1.3);-webkit-backdrop-filter:blur(40px) saturate(1.3)}
-#gdot{--p:0;position:absolute;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;
+#gcal{position:absolute;inset:0;z-index:9350;pointer-events:none}
+#gdot{--p:0;position:absolute;width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;
   background:conic-gradient(#ff3b30 calc(var(--p) * 360deg),rgba(255,59,48,.22) 0);box-shadow:0 0 0 3px #fff,0 4px 14px rgba(0,0,0,.25)}
-#gdot::after{content:"";position:absolute;inset:12px;border-radius:50%;background:#fff}
+#gdot::after{content:"";position:absolute;inset:14px;border-radius:50%;background:#fff}
 #gdot.wait{animation:gwait 1.4s ease-in-out infinite}
 @keyframes gwait{50%{box-shadow:0 0 0 3px #fff,0 0 0 12px rgba(255,59,48,.18),0 4px 14px rgba(0,0,0,.25)}}
-#gmsg{position:absolute;left:50%;top:58%;transform:translateX(-50%);width:min(560px,calc(100% - 32px));margin:0;text-align:center;font-size:15px;font-weight:600;color:var(--glass-fg)}
 /* blink scale: eye illustration whose lid shows the chosen firmness */
 .eyev{display:grid;place-items:center}
 .eyev .eye{position:relative;width:60px;height:30px;border-radius:50%;background:#fff;box-shadow:inset 0 0 0 2px #2b2824;overflow:hidden}
 .eyev .iris{position:absolute;left:50%;top:50%;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:#57a8ba;box-shadow:inset 0 0 0 5px #2b2824}
 .eyev .lid{position:absolute;left:0;right:0;top:0;height:var(--c,55%);background:#e8b49a;border-bottom:2px solid #2b2824;transition:height .12s}
-/* step 1: sweep track */
-.ctrack{position:relative;height:64px;border-radius:12px;background:var(--win-side);box-shadow:inset 0 0 0 1px var(--line);overflow:hidden}
+/* across / up and down: live strip and inline reach slider */
+.creach{margin-top:4px}
+.ctrack{position:relative;height:56px;border-radius:12px;background:var(--win-side);box-shadow:inset 0 0 0 1px var(--line);overflow:hidden}
 .crange{position:absolute;top:0;bottom:0;left:0;width:0;background:rgba(255,59,48,.18);box-shadow:inset 2px 0 0 #ff3b30,inset -2px 0 0 #ff3b30}
 .chand{position:absolute;top:50%;left:50%;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:#ff3b30;box-shadow:0 0 0 3px #fff}
 .ctrack .ce{position:absolute;bottom:6px;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--glass-muted)}
@@ -410,6 +410,10 @@ body{background:var(--desk);color:var(--glass-fg);overflow:hidden}
       <input type="range" id="bmin" min="120" max="400" step="10" value="200"></div>
     <div class="camgain"><label for="smooth">Pointer</label><output id="smoothout">Balanced</output>
       <input type="range" id="smooth" min="0.3" max="2.5" step="0.1" value="1"></div>
+    <div class="camgain"><label for="reachx">Reach across</label><output id="reachxout">×1.00</output>
+      <input type="range" id="reachx" min="0.6" max="1.8" step="0.02" value="1"></div>
+    <div class="camgain"><label for="reachy">Reach up and down</label><output id="reachyout">×1.00</output>
+      <input type="range" id="reachy" min="0.6" max="1.8" step="0.02" value="1"></div>
     <label class="camsnap"><input type="checkbox" id="snap" checked> Pull pointer toward buttons and files</label>
     <label class="camsnap"><input type="checkbox" id="sound" checked> Sound cues</label>
     <div class="camrow"><button id="camtoggle">Use camera</button><button id="recal" class="camsec">Calibrate</button></div>
@@ -417,7 +421,7 @@ body{background:var(--desk);color:var(--glass-fg);overflow:hidden}
   </aside>
   <div id="calib" hidden>
     <section class="ccard" role="dialog" aria-modal="true" aria-labelledby="ctitle">
-      <div class="cdots" aria-hidden="true"><i id="cd1"></i><i id="cd2"></i></div>
+      <div class="cdots" aria-hidden="true"><i id="cd1"></i><i id="cd2"></i><i id="cd3"></i></div>
       <p class="cstep" id="cstep"></p>
       <h2 id="ctitle"></h2>
       <p class="cdesc" id="cdesc"></p>
@@ -426,7 +430,7 @@ body{background:var(--desk);color:var(--glass-fg);overflow:hidden}
       <div class="cbtns" id="cbtns"></div>
     </section>
   </div>
-  <div id="gcal" hidden><div id="gdot"></div><p id="gmsg"></p></div>
+  <div id="gcal" hidden><div id="gdot"></div></div>
   <div id="cursor" hidden></div>
   <div id="cursor2" hidden></div>
   <div id="cchip" hidden></div>
@@ -910,15 +914,20 @@ const BMIN=.3,BMAX=.85;                // blink firmness scale: right = light cl
 const cam={on:false,stream:null,lmk:null,x:innerWidth/2,y:innerHeight/2,pinch:null,lastSeen:0,lastVT:-1,native:null,hov:null,
   hist:[],frozen:null,freezeUntil:0,stillUntil:0,closing:false,both:false,closedT:0,holdFired:false,held:false,
   wink:null,winkFired:false,hotT:0,mcCool:0,scrollT:0,scrolling:0,lastTarget:null,lastBlink:'',dipMax:0,relT:0,rx:0,ry:0};
+if(S.gaze&&S.gaze.ver!==6){S.gaze=null;S.calibrated=false}
+S.reachX=S.reachX||1;S.reachY=S.reachY||1;S.gazeOff=S.gazeOff||{x:0,y:0};
 S.blinkT=S.blinkT||.55;S.blinkMin=S.blinkMin||200;S.smooth=S.smooth||1;S.sound=S.sound!==false;
 const bT=$('#bthr'),bMin=$('#bmin'),smIn=$('#smooth'),snd=$('#sound');
 const firmLabel=v=>v>=.7?'Squeeze shut':v>=.5?'Fully closed':'Light close';
 function syncPanel(){bT.value=S.blinkT;$('#bthrout').textContent=firmLabel(S.blinkT);bMin.value=S.blinkMin;$('#bminout').textContent=S.blinkMin+' ms';
+  $('#reachx').value=S.reachX;$('#reachxout').textContent='×'+(+S.reachX).toFixed(2);$('#reachy').value=S.reachY;$('#reachyout').textContent='×'+(+S.reachY).toFixed(2);
   smIn.value=S.smooth;$('#smoothout').textContent=S.smooth<.7?'Steady':S.smooth<1.5?'Balanced':'Quick';snd.checked=S.sound}
 syncPanel();
 bT.addEventListener('input',()=>{S.blinkT=+bT.value;syncPanel();save();paintBlink()});
 bMin.addEventListener('input',()=>{S.blinkMin=+bMin.value;syncPanel();save()});
 smIn.addEventListener('input',()=>{S.smooth=+smIn.value;syncPanel();save()});
+$('#reachx').addEventListener('input',e=>{S.reachX=+e.target.value;syncPanel();save()});
+$('#reachy').addEventListener('input',e=>{S.reachY=+e.target.value;syncPanel();save()});
 snd.addEventListener('change',()=>{S.sound=snd.checked;save()});
 
 /* Sound cues: you can't see the screen while your eyes are shut, so a long blink is confirmed by ear */
@@ -938,12 +947,12 @@ async function startCamInner(){
   vid.srcObject=cam.stream;try{await vid.play()}catch(e){}
   if(!cam.lmk){camStatus('Loading the eye model…');
     try{const V=await import(TV+'/vision_bundle.mjs');const fs=await V.FilesetResolver.forVisionTasks(TV+'/wasm');
-      const opts=d=>({baseOptions:{modelAssetPath:MODEL,delegate:d},runningMode:'VIDEO',numFaces:1,outputFaceBlendshapes:true,
+      const opts=d=>({baseOptions:{modelAssetPath:MODEL,delegate:d},runningMode:'VIDEO',numFaces:1,outputFaceBlendshapes:true,outputFacialTransformationMatrixes:true,
         minFaceDetectionConfidence:.5,minFacePresenceConfidence:.5,minTrackingConfidence:.5});
       try{cam.lmk=await V.FaceLandmarker.createFromOptions(fs,opts('GPU'))}catch(e){cam.lmk=await V.FaceLandmarker.createFromOptions(fs,opts('CPU'))}}
     catch(err){stopCam();camStatus('The eye model didn’t load. Check your internet connection and try again.');return}}
   cam.on=true;$('#camtoggle').textContent='Stop camera';camStatus(S.gaze?'Look at the screen':'Calibrate to start');
-  cam.x=innerWidth/2;cam.y=innerHeight/2;cur.hidden=!S.gaze;placeCursor();requestAnimationFrame(camLoop)}
+  cam.x=innerWidth/2;cam.y=innerHeight/2;cur.hidden=!(S.gaze&&S.gaze.h);placeCursor();requestAnimationFrame(camLoop)}
 function stopCam(){cam.on=false;if(cam.stream)cam.stream.getTracks().forEach(t=>t.stop());cam.stream=null;vid.srcObject=null;
   cam.held=false;endPinch(true);cur.hidden=true;cur2.hidden=true;showChip('');camEl.classList.remove('live');$('#camtoggle').textContent='Use camera';camStatus('Camera off');cx.clearRect(0,0,cv.width,cv.height)}
 $('#camtoggle').addEventListener('click',()=>cam.on||cam.stream?stopCam():startCam());
@@ -951,12 +960,12 @@ function placeCursor(){cur.style.transform=`translate(${cam.x}px,${cam.y}px)`}
 function camLoop(){if(!cam.on)return;
   if(vid.readyState>=2&&vid.currentTime!==cam.lastVT){cam.lastVT=vid.currentTime;
     let res=null;try{res=cam.lmk.detectForVideo(vid,performance.now())}catch(e){}
-    const L=res&&res.faceLandmarks&&res.faceLandmarks[0];
+    const L=res&&res.faceLandmarks&&res.faceLandmarks[0],MX=res&&res.facialTransformationMatrixes&&res.facialTransformationMatrixes[0];
     const cats=res&&res.faceBlendshapes&&res.faceBlendshapes[0]&&res.faceBlendshapes[0].categories||[];
     const sc=n=>{const c=cats.find(c=>c.categoryName===n);return c?c.score:0};
     const bL=sc('eyeBlinkLeft'),bR=sc('eyeBlinkRight');
     drawEyes(L,bL>S.blinkT&&bR>S.blinkT);
-    if(L&&L.length>=478){cam.lastSeen=performance.now();cur.classList.remove('lost');onFace(L,bL,bR)}
+    if(L&&L.length>=478){cam.lastSeen=performance.now();cur.classList.remove('lost');onFace(L,bL,bR,MX&&MX.data)}
     else if(performance.now()-cam.lastSeen>400){cur.classList.add('lost');camStatus('I can’t see your face. Face the camera.');
       if(cam.held&&performance.now()-cam.lastSeen>4000){cam.held=false;endPinch(true);showChip('')}}}
   requestAnimationFrame(camLoop)}
@@ -973,26 +982,58 @@ function drawEyes(L,closed){const w=cv.width=Math.round(cv.clientWidth*devicePix
     cx.beginPath();cx.arc(p[0],p[1],r,0,7);cx.strokeStyle='#ff3b30';cx.stroke();cx.beginPath();cx.arc(p[0],p[1],2*devicePixelRatio,0,7);cx.fillStyle='#ff3b30';cx.fill()})}
 
 /* ---- gaze features and the per-user mapping learned during calibration ---- */
-function feats(L){const vw=vid.videoWidth||640,vh=vid.videoHeight||480,P=i=>[L[i].x*vw,L[i].y*vh];
+function feats(L,M){const vw=vid.videoWidth||640,vh=vid.videoHeight||480,P=i=>[L[i].x*vw,L[i].y*vh],D=(a,b)=>{const A=P(a),B=P(b);return Math.hypot(A[0]-B[0],A[1]-B[1])};
   // iris position along each eye (0 = image-left corner, 1 = image-right) and across it, in eye widths
   const eye=(a,b,ir)=>{const A=P(a),B=P(b),I=P(ir),vx=B[0]-A[0],vy=B[1]-A[1],l2=vx*vx+vy*vy||1;
     return [((I[0]-A[0])*vx+(I[1]-A[1])*vy)/l2,((I[0]-A[0])*-vy+(I[1]-A[1])*vx)/l2]};
   const r=eye(33,133,468),l=eye(362,263,473);
-  // head turn and tilt (nose against the eye line) plus where the face sits in the frame, so small head moves are allowed for
-  const A=P(33),B=P(263),N=P(1),M=[(A[0]+B[0])/2,(A[1]+B[1])/2],iod=Math.hypot(B[0]-A[0],B[1]-A[1])||1;
-  return [(r[0]+l[0])/2,(r[1]+l[1])/2,(N[0]-M[0])/iod,(N[1]-M[1])/iod,M[0]/vw,M[1]/vh,iod/vw]}
-function fitGaze(samples){const n=samples.length,k=samples[0].f.length,mu=Array(k).fill(0),sd=Array(k).fill(0);
-  samples.forEach(s=>s.f.forEach((v,j)=>mu[j]+=v/n));samples.forEach(s=>s.f.forEach((v,j)=>sd[j]+=(v-mu[j])**2/n));
-  for(let j=0;j<k;j++)sd[j]=Math.sqrt(sd[j])||1;
-  const X=samples.map(s=>[1,...s.f.map((v,j)=>(v-mu[j])/sd[j])]),m=k+1;
-  const solve=ys=>{const A=Array.from({length:m},()=>Array(m+1).fill(0));
-    X.forEach((r,i)=>{for(let a=0;a<m;a++){for(let b=0;b<m;b++)A[a][b]+=r[a]*r[b];A[a][m]+=r[a]*ys[i]}});
-    for(let a=1;a<m;a++)A[a][a]+=n*.02;   // light ridge so correlated features stay stable
-    for(let c=0;c<m;c++){let p=c;for(let r=c+1;r<m;r++)if(Math.abs(A[r][c])>Math.abs(A[p][c]))p=r;const t=A[c];A[c]=A[p];A[p]=t;
-      const d=A[c][c]||1e-9;for(let r=0;r<m;r++){if(r===c)continue;const fct=A[r][c]/d;for(let q=c;q<=m;q++)A[r][q]-=fct*A[c][q]}}
-    return A.map((r,i)=>r[m]/(r[i]||1e-9))};
-  return {mu,sd,bx:solve(samples.map(s=>s.x)),by:solve(samples.map(s=>s.y))}}
-function predict(m,f){let x=0,y=0;[1,...f.map((v,j)=>(v-m.mu[j])/m.sd[j])].forEach((v,j)=>{x+=v*m.bx[j];y+=v*m.by[j]});return [x,y]}
+  // how open the eyelids are: the upper lid lifts when you look up and drops when you look down
+  const ap=(D(159,145)/(D(33,133)||1)+D(386,374)/(D(362,263)||1))/2;
+  // head turn and tilt: the nose tip against the eye line, and the face model's own pose when it has one
+  const A=P(33),B=P(263),N=P(1),C=[(A[0]+B[0])/2,(A[1]+B[1])/2],iod=Math.hypot(B[0]-A[0],B[1]-A[1])||1,nX=(N[0]-C[0])/iod,nY=(N[1]-C[1])/iod;
+  let yaw=nX,pitch=nY;if(M&&M.length>=16){yaw=Math.atan2(M[8],M[10]);pitch=Math.atan2(-M[9],Math.hypot(M[8],M[10]))}
+  return [(r[0]+l[0])/2,(r[1]+l[1])/2,ap,yaw,pitch,nX,nY]}
+const GAZE_V=6;
+// Gaze = head direction + eye direction. When you turn your head while looking at one spot, your eyes counter-rotate:
+// the iris slides one way in the eye while the nose tip swings the other way in the picture. Adding the two in the
+// right proportion (iris shift ≈ 0.4 × eye angle in eye widths; nose swing ≈ 0.33 × head angle in eye-corner spans)
+// gives a reading that moves only when your gaze moves, not when your head drifts.
+// The exact proportion depends on your face (how far your nose sits in front of your eyes), so each axis learns it from
+// the small head movements you make while holding your gaze on a marker; 1.2 is the typical value when there are none.
+const HEAD_K={h:[1.2],v:[1.2,0]};
+function axisFeat(ax,f,k){k=k||HEAD_K[ax];return ax==='h'?[f[0]+k[0]*f[5]]:[f[1]+k[0]*f[6],f[2]+k[1]*f[6]]}   // up and down also uses the eyelids
+// within each held look your gaze is fixed, so any eye movement that tracks head movement is your eyes counter-rotating
+function learnHeadK(ax,holds){const hj=ax==='h'?5:6,ej=ax==='h'?[0]:[1,2],k=[...HEAD_K[ax]];
+  const rows=[];holds.forEach(h=>{if(!h||h.length<5)return;const m=avg(h);h.forEach(f=>rows.push(f.map((v,j)=>v-m[j])))});
+  if(rows.length<40)return k;
+  ej.forEach((e,i)=>{let ch=0,vh=0,ve=0;rows.forEach(r=>{ch+=r[e]*r[hj];vh+=r[hj]*r[hj];ve+=r[e]*r[e]});
+    const corr=ch/Math.sqrt(vh*ve||1e-12);
+    if(Math.abs(corr)>.5&&vh>1e-9){const kk=-ch/vh;k[i]=i===0?Math.max(.4,Math.min(3,kk)):Math.max(-3,Math.min(3,kk))}});
+  return k}
+function solveLin(A,b){const m=b.length,M=A.map((r,i)=>[...r,b[i]]);
+  for(let c=0;c<m;c++){let p=c;for(let r=c+1;r<m;r++)if(Math.abs(M[r][c])>Math.abs(M[p][c]))p=r;const t=M[c];M[c]=M[p];M[p]=t;
+    const d=M[c][c]||1e-12;for(let r=0;r<m;r++){if(r===c)continue;const k=M[r][c]/d;if(k)for(let q=c;q<=m;q++)M[r][q]-=k*M[c][q]}}
+  return M.map((r,i)=>r[m]/(r[i]||1e-12))}
+const dot=(r,b)=>r.reduce((t,v,j)=>t+v*b[j],0);
+const avg=a=>a.reduce((s,f)=>s.map((v,j)=>v+f[j]/a.length),Array(a[0].length).fill(0));
+/* one axis from two held looks (left and right edge, or top and bottom): find the blend of eye and head readings that
+   best separates the two looks, then map it in a straight line so the two looks land exactly on the two markers */
+function fitAxis(A,B,ax,pa,pb,Cm,pc){const hk=learnHeadK(ax,[A,B,Cm]),pick=f=>axisFeat(ax,f,hk),a=A.map(pick),b=B.map(pick),k=a[0].length,n=a.length+b.length;
+  const ma=avg(a),mb=avg(b),Sw=Array.from({length:k},()=>Array(k).fill(0));
+  [[a,ma],[b,mb]].forEach(([g,m])=>g.forEach(f=>{for(let i=0;i<k;i++)for(let j=0;j<k;j++)Sw[i][j]+=(f[i]-m[i])*(f[j]-m[j])/(n-2)}));
+  const tr=Sw.reduce((t,r,i)=>t+r[i],0)/k;for(let i=0;i<k;i++)Sw[i][i]+=tr*.2+1e-12;   // some shrinkage: only a second of frames per look
+  const w=solveLin(Sw,mb.map((v,j)=>v-ma[j])),sa=dot(w,ma),sb=dot(w,mb);
+  let sd=0;[[a,sa],[b,sb]].forEach(([g,s0])=>g.forEach(f=>sd+=(dot(w,f)-s0)**2));sd=Math.sqrt(sd/(n-2))||1e-9;
+  const m={ax,hk,w,sa,sb,pa,pb,sep:Math.abs(sb-sa)/sd};
+  // the middle look bends the line, so each half of the screen gets its own scale; only kept if it sits between the edges
+  if(Cm&&Cm.length){const sc=dot(w,avg(Cm.map(pick)));if((sc-sa)*(sb-sc)>0){m.sc=sc;m.pc=pc}}
+  return m}
+function axisPos(m,f){const t=(dot(m.w,axisFeat(m.ax,f,m.hk))-m.sa)/(m.sb-m.sa);
+  if(m.sc===undefined)return m.pa+t*(m.pb-m.pa);
+  const tc=(m.sc-m.sa)/(m.sb-m.sa);return t<=tc?m.pa+t/tc*(m.pc-m.pa):m.pc+(t-tc)/(1-tc)*(m.pb-m.pc)}
+// run-time mapping per axis, then your reach sliders and the drift learned from clicks; null for an axis not calibrated yet
+function gazePoint(f){const g=S.gaze;let x=g&&g.h?axisPos(g.h,f):null,y=g&&g.vt?axisPos(g.vt,f):null;
+  if(x!==null)x=.5+(x-.5)*S.reachX+S.gazeOff.x;if(y!==null)y=.5+(y-.5)*S.reachY+S.gazeOff.y;return [x,y]}
 /* One Euro filter: steady while you fixate, quick when your eyes jump */
 function OneEuro(){let xp=null,dxp=0,tp=0;return (x,t,minc,beta)=>{if(xp===null){xp=x;tp=t;return x}
   const dt=Math.max(.001,(t-tp)/1000);tp=t;const al=c=>{const r=2*Math.PI*c*dt;return r/(r+1)};
@@ -1010,9 +1051,13 @@ function endPinch(cancel){if(!cam.pinch)return;cam.relT=performance.now();const 
 
 /* ---- blink actions ---- */
 function pinPointer(){const p=cam.frozen||{x:cam.x,y:cam.y};cam.x=p.x;cam.y=p.y;cam.frozen={x:p.x,y:p.y};placeCursor()}
-function click(){pinPointer();cam.stillUntil=performance.now()+800;if(renaming!==null)commitRename();
+function click(){learnDrift();pinPointer();cam.stillUntil=performance.now()+800;if(renaming!==null)commitRename();
   cam.pinch='i';cur.classList.add('down');beep(1150,.05);startPinch();
   setTimeout(()=>{if(cam.pinch==='i'&&!cam.held)endPinch(false)},110)}
+// each blink-click on a small target tells us where you were really looking: nudge the mapping a little toward it
+function learnDrift(){const t=cam.lastTarget,r0=cam.frozenRaw;if(!t||!r0||!S.gaze)return;const r=t.getBoundingClientRect();if(r.width>220||r.height>160)return;
+  const ex=r.left+r.width/2-r0.x,ey=r.top+r.height/2-r0.y;if(Math.hypot(ex,ey)>160)return;
+  const cl=v=>Math.max(-.15,Math.min(.15,v));S.gazeOff={x:cl(S.gazeOff.x+.2*ex/innerWidth),y:cl(S.gazeOff.y+.2*ey/innerHeight)};save()}
 function hold(){pinPointer();if(renaming!==null)commitRename();
   cam.pinch='i';cam.held=true;cur.classList.add('down');beep(660,.08);setTimeout(()=>beep(990,.12),90);startPinch();
   if(g&&g.type==='cam'&&g.mode==='pending'){clearTimeout(lpTimer);g.lifted=true;
@@ -1022,7 +1067,7 @@ function rightClick(){pinPointer();if(renaming!==null)commitRename();beep(900,.0
   cur2.hidden=false;cur2.classList.add('down');cur2.style.transform=`translate(${cam.x+16}px,${cam.y-6}px)`;setTimeout(()=>{cur2.hidden=true;cur2.classList.remove('down')},600);
   openContext(cam.x,cam.y,document.elementFromPoint(cam.x,cam.y))}
 function blinkLogic(now,bL,bR){
-  const T=S.blinkT,lo=Math.max(.15,T-.12),active=calib.step!=='gaze'&&!!S.gaze;
+  const T=S.blinkT,lo=Math.max(.15,T-.12),active=!!(S.gaze&&S.gaze.h)&&calib.phase!=='hold';
   const both=cam.both?(bL>lo&&bR>lo):(bL>T&&bR>T);
   const openL=bL<T*.55,openR=bR<T*.55,winkNow=!both&&!cam.both&&((bL>T&&openR)||(bR>T&&openL));
   // one eye shut for 0.3 s: right-click
@@ -1066,39 +1111,45 @@ function assist(x,y){
     if(dragIds){const ic=el.closest('.icon');if(ic){const it=byId(+ic.dataset.id);if(!it||it.kind!=='folder'||dragIds.includes(it.id))continue}}
     const r=el.getBoundingClientRect();if(!r.width||!r.height)continue;
     let d=Math.hypot(Math.max(r.left-x,0,x-r.right),Math.max(r.top-y,0,y-r.bottom));
-    if(el===cam.lastTarget)d=Math.max(0,d-45);   // stickiness: the current target holds on through small wobbles
-    if(d<R)list.push({el,r,d,c:Math.hypot(x-(r.left+r.width/2),y-(r.top+r.height/2))});
+    let score=d;
+    if(el===cam.lastTarget)score-=25;                 // stickiness: the current target holds on through small wobbles
+    if(r.width*r.height<1600)score-=18;              // small targets (window buttons) get a little priority over big cards
+    if(d<R)list.push({el,r,d,score,c:Math.hypot(x-(r.left+r.width/2),y-(r.top+r.height/2))});
   }
-  list.sort((a,b)=>a.d-b.d||a.c-b.c);
+  list.sort((a,b)=>a.score-b.score||a.c-b.c);
   for(const t of list.slice(0,4)){
     const r=t.r,ccx=r.left+r.width/2,ccy=r.top+r.height/2,top=document.elementFromPoint(ccx,ccy);
     if(!top||!(t.el.contains(top)||top.contains(t.el)||(top.closest('.icon')&&top.closest('.icon')===t.el.closest('.icon'))))continue;
     const tx=Math.max(ccx-r.width*.15,Math.min(ccx+r.width*.15,x)),ty=Math.max(ccy-r.height*.15,Math.min(ccy+r.height*.15,y));
-    const w=t.d===0?.8:.7*Math.pow(1-t.d/R,1.5);cam.lastTarget=t.el;
+    // close to a target: commit to it fully (small ones like window buttons from further out); further away: a gentle pull
+    const small=r.width*r.height<1600,w=t.d===0||t.d<(small?50:35)?.9:.7*Math.pow(1-t.d/R,1.5);cam.lastTarget=t.el;
     return {x:x+(tx-x)*w,y:y+(ty-y)*w,inside:t.d===0};
   }
   cam.lastTarget=null;return none}
 function hoverAt(){const el=document.elementFromPoint(cam.x,cam.y),b=el&&(el.closest('#calib button,#menu button,#dock button,#menubar button,#ql button,#hint button,#cam button,.win .l,.win .tool')||el.closest('.icon:not(.ghost)'));
-  if(b!==cam.hov){if(cam.hov)cam.hov.classList.remove('chov','dwell');cam.hov=b;cam.hovT=performance.now();cam.dwelt=false;if(b){b.classList.add('chov');if(b.closest('#calib')&&!b.disabled)b.classList.add('dwell')}}
-  else if(b&&!cam.dwelt&&!cam.pinch&&!cam.both&&b.closest('#calib')&&!b.disabled&&performance.now()-cam.hovT>1500){cam.dwelt=true;b.classList.remove('dwell');b.click()}
+  if(b!==cam.hov){if(cam.hov)cam.hov.classList.remove('chov','dwell');cam.hov=b;cam.hovT=performance.now();cam.dwelt=false;if(b){b.classList.add('chov');if(b.closest('#calib')&&!b.disabled&&!b.classList.contains('sec'))b.classList.add('dwell')}}
+  else if(b&&!cam.dwelt&&!cam.pinch&&!cam.both&&b.closest('#calib')&&!b.disabled&&!b.classList.contains('sec')&&performance.now()-cam.hovT>1500){cam.dwelt=true;b.classList.remove('dwell');b.click()}
   cur.classList.toggle('mag',!!b)}
 
-function onFace(L,bL,bR){
-  const now=performance.now(),f=feats(L),c=Math.max(bL,bR);
-  if(calib.step==='gaze'){gazeFrame(f,c);blinkLogic(now,bL,bR);return}
-  if(!S.gaze){camStatus('Calibrate to start');return}
-  let [gx,gy]=predict(S.gaze,f);gx=Math.max(0,Math.min(1,gx))*innerWidth;gy=Math.max(0,Math.min(1,gy))*innerHeight;
+function onFace(L,bL,bR,M){
+  const now=performance.now(),f=feats(L,M),c=Math.max(bL,bR);
+  if(calib.phase==='hold')calibFrame(f,c);
+  // the pointer shows as soon as the across axis is calibrated, even mid-setup
+  const live=!!(S.gaze&&S.gaze.h);cur.hidden=!live;
+  if(!live){camStatus(calib.step?'Calibrating':'Calibrate to start');return}
+  let [gx,gy]=gazePoint(f);if(gy===null)gy=fixedY();
+  gx=Math.max(0,Math.min(1,gx))*innerWidth;gy=Math.max(0,Math.min(1,gy))*innerHeight;
   const sx=fX(gx,now,S.smooth,.002),sy=fY(gy,now,S.smooth,.002);
   // while either eyelid drops the iris reading goes wrong, so the pointer freezes where you were looking just before
   const closing=c>S.blinkT*.7;
-  if(closing&&!cam.closing){const h=cam.hist.find(p=>p.t>=now-150)||{x:cam.x,y:cam.y};cam.frozen={x:h.x,y:h.y}}
+  if(closing&&!cam.closing){const h=cam.hist.find(p=>p.t>=now-150)||{x:cam.x,y:cam.y,rx:sx,ry:sy};cam.frozen={x:h.x,y:h.y};cam.frozenRaw={x:h.rx,y:h.ry}}
   if(!closing&&cam.closing)cam.freezeUntil=now+200;
   cam.closing=closing;
   // after a click the pointer stays put briefly, so a second blink lands on the same thing
   if(cam.frozen&&!closing&&now>cam.freezeUntil&&(now>cam.stillUntil||Math.hypot(sx-cam.frozen.x,sy-cam.frozen.y)>140))cam.frozen=null;
   if(cam.frozen){cam.x=cam.frozen.x;cam.y=cam.frozen.y}
   else{const a=assist(sx,sy);cam.x+=(a.x-cam.x)*.5;cam.y+=(a.y-cam.y)*.5}
-  cam.hist.push({t:now,x:cam.x,y:cam.y});while(cam.hist.length&&cam.hist[0].t<now-700)cam.hist.shift();
+  cam.hist.push({t:now,x:cam.x,y:cam.y,rx:sx,ry:sy});while(cam.hist.length&&cam.hist[0].t<now-700)cam.hist.shift();
   placeCursor();
   blinkLogic(now,bL,bR);
   if(cam.pinch==='i'&&!cam.native&&!cam.frozen)pMove(camEvt());
@@ -1108,97 +1159,88 @@ function onFace(L,bL,bR){
   if(calib.step==='blink')blinkFrame(c);
   hoverAt()}
 
-/* ---------- First-run calibration ---------- */
-const calib={step:null,pts:[],samples:[],i:0,phase:'',t0:0};
-const cEl=$('#calib'),gcal=$('#gcal'),gdot=$('#gdot'),gmsg=$('#gmsg');
+/* ---------- First-run calibration: across, then up and down, then blink ---------- */
+const calib={step:null,phase:null};
+const NEED=30;   // frames of steady looking at a marker (about 1 s)
+const MARK={h:[[.035,.5],[.965,.5],[.5,.5]],v:[[.5,.05],[.5,.93],[.5,.5]]};   // two edges, then the middle
+const cEl=$('#calib'),gcal=$('#gcal'),gdot=$('#gdot');
 function cSet(step,title,desc,body,btns){$('#cstep').textContent=step;$('#ctitle').textContent=title;$('#cdesc').textContent=desc;
   $('#cbody').innerHTML=body;$('#cmsg').textContent='';const bb=$('#cbtns');bb.innerHTML='';
   btns.forEach(([label,fn,sec,id])=>{const b=document.createElement('button');b.textContent=label;if(sec)b.className='sec';if(id)b.id=id;b.addEventListener('click',fn);bb.appendChild(b)})}
-function cDots(n){$('#cd1').className=n>=1?'on':'';$('#cd2').className=n>=2?'on':''}
-function openCalib(){closeMenu();hintEl.hidden=true;cEl.hidden=false;if(cam.on)calibGaze();else calibIntro()}
-function closeCalib(){cEl.hidden=true;gcal.hidden=true;calib.step=null;S.calibrated=true;save();if(S.hint)showHint()}
-function calibIntro(){calib.step=null;cDots(0);
+function cDots(n){['#cd1','#cd2','#cd3'].forEach((s,i)=>$(s).className=n>=i+1?'on':'')}
+function openCalib(){closeMenu();hintEl.hidden=true;cEl.hidden=false;if(cam.on)calibAxis('h');else calibIntro()}
+function closeCalib(){cEl.hidden=true;gcal.hidden=true;calib.step=null;calib.phase=null;S.calibrated=true;save();if(S.hint)showHint()}
+function calibIntro(){calib.step=null;calib.phase=null;cDots(0);
   cSet('Set up eye control','Control the desktop with your eyes',
-    'The camera watches your eyes and moves the red pointer to where you look. Sit about an arm’s length from the screen with your face evenly lit. Two steps tune it to you: first where you look, then how firmly you blink.',
-    '',[['Skip for now',closeCalib,true],['Start camera',async()=>{$('#cmsg').textContent='Starting the camera…';const ok=await startCam();if(ok)calibGaze();else $('#cmsg').textContent=camStat.textContent}]])}
-const NEED=30;   // frames of steady, on-target looking needed to fill a dot (about 1 s)
-function calibGaze(){calib.step='gaze';cDots(1);cEl.hidden=true;gcal.hidden=false;cur.hidden=true;showChip('');
-  const m=.07,top=.12,bot=.8,mid=.46;   // stay clear of the menu bar and the dock
-  // centre, then the sides, then top and bottom, then corners: each pair teaches a direction before it is relied on
-  calib.pts=[[.5,mid],[m,mid],[1-m,mid],[.5,top],[.5,bot],[m,top],[1-m,top],[1-m,bot],[m,bot]];
-  calib.samples=[];calib.means=[];calib.i=0;newPoint(performance.now());
-  placeDot(calib.pts[0][0],calib.pts[0][1],false);gdot.style.setProperty('--p',0);requestAnimationFrame(gazeTick)}
-function newPoint(now){calib.phase='move';calib.t0=now;calib.pt=[];calib.buf=[];calib.moved=calib.i===0;calib.state='move';calib.lookT=0}
+    'The camera watches your eyes and moves the red pointer to where you look. Sit about an arm’s length from the screen with your face evenly lit. Three short steps tune it to you: how far you look across, how far you look up and down, and how firmly you blink. Moving your head a little is fine.',
+    '',[['Skip for now',closeCalib,true],['Start camera',async()=>{$('#cmsg').textContent='Starting the camera…';const ok=await startCam();if(ok)calibAxis('h');else $('#cmsg').textContent=camStat.textContent}]])}
+function calibAxis(ax){calib.ax=ax;calib.step=ax==='h'?'across':'updown';calib.holds=[];calib.prev=null;calib.lo=null;calib.hi=null;cDots(ax==='h'?1:2);
+  if(ax==='h')S.gaze={ver:GAZE_V,h:null,vt:null};else if(S.gaze)S.gaze.vt=null;
+  if(ax==='h'){S.reachX=1;S.reachY=1;S.gazeOff={x:0,y:0};syncPanel()}
+  holdStart(0)}
+function holdStart(k){calib.phase='hold';calib.k=k;calib.pt=[];calib.buf=[];calib.moved=false;calib.base=null;calib.baseBuf=[];calib.state='wait';calib.lookT=performance.now();
+  const ax=calib.ax,[x,y]=MARK[ax][k],names=ax==='h'?['left edge','right edge','middle']:['top edge','bottom edge','middle'],ends=ax==='h'?['Left','Right']:['Up','Down'];
+  gcal.hidden=false;placeDot(x,y,k>0);gdot.style.setProperty('--p',0);
+  cSet(`Step ${ax==='h'?1:2} of 3 · ${ax==='h'?'Across':'Up and down'}`,k<2?`Look at the marker on the ${names[k]}`:'Now look at the marker in the middle',
+    `Rest your eyes on the red marker ${k<2?'at the '+names[k].replace(' edge','')+' of the screen':'in the middle of the screen'} and hold them there. It fills only while you are looking at it. Turning your head a little toward it is fine.`,
+    `<div class="ctrack"><div class="crange" id="crange"></div><div class="chand" id="chand"></div><span class="ce" style="left:10px">${ends[0]}</span><span class="ce" style="right:10px">${ends[1]}</span></div><p class="cres"><span id="cnote">Your eyes, live</span><span>Marker <b>${k+1} of 3</b></span></p>`,
+    [['Start this step again',()=>calibAxis(ax),true]]);
+  requestAnimationFrame(holdTick)}
 function placeDot(x,y,anim){gdot.style.transition=anim?'left .45s cubic-bezier(.4,0,.2,1),top .45s cubic-bezier(.4,0,.2,1)':'none';gdot.style.left=(x*100)+'%';gdot.style.top=(y*100)+'%'}
-const avg=a=>a.reduce((s,f)=>s.map((v,j)=>v+f[j]/a.length),Array(a[0].length).fill(0));
-/* a rough two-feature fit from the dots done so far, used to check the next dots are really being looked at */
-function roughFit(){const M=calib.means,fit=(ys,a,b)=>{const X=M.map(m=>[1,m.f[a],m.f[b]]),n=X.length,A=[[0,0,0,0],[0,0,0,0],[0,0,0,0]];
-    X.forEach((r,i)=>{for(let p=0;p<3;p++){for(let q=0;q<3;q++)A[p][q]+=r[p]*r[q];A[p][3]+=r[p]*ys[i]}});
-    A[1][1]+=n*1e-3;A[2][2]+=n*1e-3;   // tiny ridge
-    for(let c=0;c<3;c++){let pv=c;for(let r=c+1;r<3;r++)if(Math.abs(A[r][c])>Math.abs(A[pv][c]))pv=r;const t=A[c];A[c]=A[pv];A[pv]=t;
-      const d=A[c][c]||1e-12;for(let r=0;r<3;r++){if(r===c)continue;const k=A[r][c]/d;for(let q=c;q<4;q++)A[r][q]-=k*A[c][q]}}
-    return A.map((r,i)=>r[3]/(r[i]||1e-12))};
-  return {x:M.length>=3?fit(M.map(m=>m.x),0,2):null,y:M.length>=5?fit(M.map(m=>m.y),1,3):null}}
-function onTarget(f,p){if(!calib.rough)return true;const r=calib.rough;
-  if(r.x&&Math.abs(r.x[0]+r.x[1]*f[0]+r.x[2]*f[2]-p[0])>.2)return false;
-  if(r.y&&Math.abs(r.y[0]+r.y[1]*f[1]+r.y[2]*f[3]-p[1])>.22)return false;
-  return true}
-function gazeTick(){if(calib.step!=='gaze')return;const now=performance.now(),p=calib.pts[calib.i];
-  if(now-cam.lastSeen>350){gmsg.textContent='I can’t see your face. Face the camera.';gdot.className='wait';requestAnimationFrame(gazeTick);return}
-  if(calib.phase==='move'){placeDot(p[0],p[1],calib.i>0);gdot.style.setProperty('--p',0);gdot.className='';
-    if(now-calib.t0>(calib.i?500:900)){calib.phase='look';calib.lookT=now}}
-  else{const n=calib.pt.length;gdot.style.setProperty('--p',(n/NEED).toFixed(3));gdot.className=calib.state==='ok'?'':'wait';
-    if(n>=NEED){finishPoint(now);if(calib.step!=='gaze')return}}
-  const step=` · ${calib.i+1} of ${calib.pts.length}`;
-  gmsg.textContent=(calib.phase==='move'?'Follow the red dot with your eyes':calib.state==='ok'?'Good, keep looking at the dot':
-    calib.state==='closed'?'Keep your eyes open':calib.state==='nojump'||calib.state==='off'?'Look directly at the dot':'Hold your eyes still on the dot')+step+
-    (calib.phase==='look'&&now-calib.lookT>8000&&calib.state!=='ok'?'. Keep your head still and face the screen.':'');
-  requestAnimationFrame(gazeTick)}
-function finishPoint(now){const p=calib.pts[calib.i],mean=avg(calib.pt);
-  calib.pt.forEach(f=>calib.samples.push({f,x:p[0],y:p[1],i:calib.i}));calib.means.push({f:mean,x:p[0],y:p[1]});
-  // sanity checks once a direction has been sampled both ways
-  const M=calib.means;
-  if(calib.i===2&&Math.abs(M[1].f[0]-M[2].f[0])+Math.abs(M[1].f[2]-M[2].f[2])<.03){calib.means.length=1;calib.samples=calib.samples.filter(s=>s.i===0);calib.i=1;
-    gmsg.textContent='Your eyes didn’t seem to follow the dot. Let’s try the sides again.';newPoint(now);calib.t0=now+1200;return}
-  if(calib.i===4&&Math.abs(M[3].f[1]-M[4].f[1])+Math.abs(M[3].f[3]-M[4].f[3])<.012){calib.means.length=3;calib.samples=calib.samples.filter(s=>s.i<3);calib.i=3;
-    gmsg.textContent='Your eyes didn’t seem to follow the dot. Let’s try top and bottom again.';newPoint(now);calib.t0=now+1200;return}
-  calib.rough=calib.means.length>=3?roughFit():null;
-  calib.i++;beep(1000+calib.i*40,.05);
-  if(calib.i>=calib.pts.length){finishGaze();return}
-  newPoint(now)}
-function gazeFrame(f,c){if(calib.phase!=='look')return;const now=performance.now(),p=calib.pts[calib.i];
+function holdTick(){if(calib.phase!=='hold')return;const n=calib.pt.length,now=performance.now();
+  gdot.style.setProperty('--p',(n/NEED).toFixed(3));gdot.className=calib.state==='ok'?'':'wait';
+  const note=$('#cnote');if(note)note.textContent=now-cam.lastSeen>350?'I can’t see your face':calib.state==='ok'?'Good, keep looking':calib.state==='closed'?'Keep your eyes open':
+    calib.state==='nojump'?'Move your eyes to the marker':calib.state==='unsteady'?'Hold your eyes still on the marker':'Your eyes, live';
+  if(n>=NEED){finishHold();return}
+  requestAnimationFrame(holdTick)}
+// frames while a marker is showing: it fills only during a steady look that has moved there from the previous marker
+function calibFrame(f,c){const now=performance.now(),ax=calib.ax,g=axisFeat(ax,f);
+  // live strip: where your eyes and head point along this axis right now
+  const raw=ax==='h'?-g[0]:g[0];calib.lo=calib.lo===null?raw:Math.min(calib.lo,raw);calib.hi=calib.hi===null?raw:Math.max(calib.hi,raw);
+  const span=Math.max(calib.hi-calib.lo,.03),ch=$('#chand'),cr=$('#crange');
+  if(ch){ch.style.left=((raw-calib.lo)/span*100)+'%';cr.style.left='0%';cr.style.width=Math.min(100,(calib.hi-calib.lo)/span*100)+'%'}
   if(c>.35){calib.state='closed';calib.buf=[];return}
-  calib.buf.push({t:now,f});while(calib.buf.length&&calib.buf[0].t<now-300)calib.buf.shift();
-  // 1. the eyes (or head) must have jumped away from where they rested on the previous dot
-  if(!calib.moved&&calib.means.length){const q=calib.means[calib.means.length-1].f;
-    if(Math.abs(f[0]-q[0])>.03||Math.abs(f[1]-q[1])>.015||Math.abs(f[2]-q[2])>.04||Math.abs(f[3]-q[3])>.03)calib.moved=true}
-  // 2. they must be holding still: a fixation, not a glance
-  const rng=j=>{let lo=1e9,hi=-1e9;calib.buf.forEach(b=>{lo=Math.min(lo,b.f[j]);hi=Math.max(hi,b.f[j])});return hi-lo};
-  const steady=calib.buf.length>=5&&rng(0)<.04&&rng(1)<.03&&rng(2)<.05&&rng(3)<.04;
-  // 3. once a few dots are known, where they point must roughly match this dot (relaxed after 8 s so nobody gets stuck)
-  const aimed=now-calib.lookT>8000||onTarget(f,p);
-  if(!calib.moved)calib.state='nojump';else if(!aimed)calib.state='off';else if(!steady)calib.state='unsteady';else calib.state='ok';
-  if(calib.state==='ok'){
-    // a steady look somewhere clearly different from what was collected so far means they moved on: start this dot again
-    if(calib.pt.length>4){const m=avg(calib.pt);if(Math.abs(f[0]-m[0])>.045||Math.abs(f[1]-m[1])>.03)calib.pt=[]}
-    calib.pt.push(f)}
-  else if(calib.pt.length)calib.pt.splice(0,calib.state==='unsteady'?1:2)}   // not looking: the ring drains
-function finishGaze(){gcal.hidden=true;cEl.hidden=false;
-  const per={};calib.samples.forEach(s=>per[s.i]=(per[s.i]||0)+1);
-  if(Object.values(per).filter(n=>n>=8).length<7){calib.step='gazeFail';cDots(1);
-    cSet('Step 1 of 2 · Where you look','That didn’t work','There were too few clear readings of your eyes. Check the lighting, face the camera, keep your head still and try again.','',[['Skip for now',closeCalib,true],['Try again',calibGaze]]);return}
-  S.gaze=fitGaze(calib.samples);save();
-  let se=0;calib.samples.forEach(s=>{const [x,y]=predict(S.gaze,s.f);se+=((x-s.x)*innerWidth)**2+((y-s.y)*innerHeight)**2});
-  const rms=Math.sqrt(se/calib.samples.length),q=rms<70?'good':rms<130?'fair':'rough';
-  calib.step='check';cDots(1);cur.hidden=false;cam.frozen=null;
-  cSet('Step 1 of 2 · Where you look','The pointer now follows your eyes',
-    `Look around the screen and into the corners to check it. Accuracy is ${q}, about ${Math.round(rms)} px. Small head movements are fine; leaning closer or further away will throw it off, so redo this if the pointer drifts. Blink or rest your eyes on a button to press it.`,
-    '',[['Do it again',calibGaze,true],['Next',calibBlink]])}
-function calibBlink(){calib.step='blink';cDots(2);cam.dipMax=0;cam.lastBlink='';
-  cSet('Step 2 of 2 · Blink','Find your blink',
+  // where the eyes were when this marker appeared: the look only counts after they jump away from there
+  if(!calib.base){calib.baseBuf.push(f);if(now-calib.lookT<300){calib.state='nojump';return}
+    calib.base=avg(calib.baseBuf);if(calib.k===0)calib.start=calib.base}
+  calib.buf.push({t:now,g});while(calib.buf.length&&calib.buf[0].t<now-300)calib.buf.shift();
+  // thresholds per reading: across, up-and-down iris, eyelids
+  const TH=ax==='h'?[.035]:[.02,.025],JUMP=ax==='h'?[.03]:[.015,.02];
+  if(!calib.moved){const q=axisFeat(ax,calib.k===0?calib.base:calib.prev);if(g.some((v,j)=>Math.abs(v-q[j])>JUMP[j]))calib.moved=true}
+  const rng=j=>{let lo=1e9,hi=-1e9;calib.buf.forEach(b=>{lo=Math.min(lo,b.g[j]);hi=Math.max(hi,b.g[j])});return hi-lo};
+  const steady=calib.buf.length>=5&&g.every((_,j)=>rng(j)<TH[j]);
+  calib.state=!calib.moved?'nojump':!steady?'unsteady':'ok';
+  if(calib.state==='ok'){if(calib.pt.length>4){const m=axisFeat(ax,avg(calib.pt));if(g.some((v,j)=>Math.abs(v-m[j])>TH[j]*1.2))calib.pt=[]}calib.pt.push(f)}
+  else if(calib.pt.length)calib.pt.splice(0,calib.state==='unsteady'?1:2)}
+function finishHold(){const ax=calib.ax,k=calib.k;calib.holds[k]=calib.pt.slice();calib.prev=avg(calib.pt);beep(1000+k*120,.06);
+  if(k<2){holdStart(k+1);return}
+  // the two looks must sit on opposite sides of where the eyes started, or one of them wasn't at its marker
+  const pr=f=>axisFeat(ax,f)[0],p0=pr(avg(calib.holds[0])),p1=pr(avg(calib.holds[1])),pc=pr(calib.start);
+  if((p0-pc)*(p1-pc)>=0){calib.phase=null;gcal.hidden=true;
+    cSet(`Step ${ax==='h'?1:2} of 3 · ${ax==='h'?'Across':'Up and down'}`,'Let’s try that again',
+      'One of the looks didn’t seem to land on its marker. Start from the middle of the screen, then look right at each marker when it appears.','',[['Try again',()=>calibAxis(ax)]]);return}
+  const c=ax==='h'?0:1,m=fitAxis(calib.holds[0],calib.holds[1],ax,MARK[ax][0][c],MARK[ax][1][c],calib.holds[2],MARK[ax][2][c]);
+  if(m.sep<3){calib.phase=null;gcal.hidden=true;
+    cSet(`Step ${ax==='h'?1:2} of 3 · ${ax==='h'?'Across':'Up and down'}`,'Those two looks were too alike',
+      `Your eyes looked almost the same on both markers, so the pointer couldn’t tell them apart. Look right at each marker, face the screen, and check the lighting on your face.`,'',[['Try again',()=>calibAxis(ax)]]);return}
+  if(ax==='h')S.gaze.h=m;else S.gaze.vt=m;save();axisCheck()}
+// the pointer is live for the calibrated axis: try it, adjust the reach, then go on
+function axisCheck(){const ax=calib.ax;calib.phase='check';gcal.hidden=true;cam.frozen=null;
+  const key=ax==='h'?'reachX':'reachY';
+  cSet(`Step ${ax==='h'?1:2} of 3 · ${ax==='h'?'Across':'Up and down'}`,ax==='h'?'The pointer now follows your eyes across':'The pointer now follows your eyes everywhere',
+    ax==='h'?'Look from side to side: the red pointer should reach both edges of the screen. If it stops short or overshoots, adjust the reach. Up and down comes next.':
+             'Look around the screen and into the corners. If the pointer stops short of the top and bottom or overshoots, adjust the reach. Rest your eyes on a button or blink to press it.',
+    `<div class="camgain creach"><label for="creach">${ax==='h'?'Reach across':'Reach up and down'}</label><output id="creachout">×${(+S[key]).toFixed(2)}</output><input type="range" id="creach" min="0.6" max="1.8" step="0.02" value="${S[key]}"></div>`,
+    [['Do it again',()=>calibAxis(ax),true],['Next',ax==='h'?()=>calibAxis('v'):calibBlink]]);
+  $('#creach').addEventListener('input',e=>{S[key]=+e.target.value;$('#creachout').textContent='×'+S[key].toFixed(2);syncPanel();save()})}
+// before up and down is calibrated, the pointer moves along one line: the buttons' row while checking, the marker's row while holding
+function fixedY(){if(calib.phase==='hold'&&calib.ax==='v')return MARK.v[calib.k][1];
+  const b=$('#cbtns');if(!cEl.hidden&&b){const r=b.getBoundingClientRect();return (r.top+r.height/2)/innerHeight}return .5}
+function calibBlink(){calib.step='blink';calib.phase=null;cDots(3);cam.dipMax=0;cam.lastBlink='';
+  cSet('Step 3 of 3 · Blink','Find your blink',
     'Look along the scale to set how firmly you need to close your eyes for a blink to count. Further left means squeezing them shut; further right registers a lighter close. Quick, natural blinks are always ignored. Blink deliberately to test: the pointer fills when a blink counts, and the white dot shows how far your last blink closed.',
     '<div class="pwrap"><div class="pviz eyev" id="pviz"><div class="eye"><span class="iris"></span><span class="lid"></span></div></div><div><div class="pscale" id="pscale"><div class="pzone" id="pzone"></div><div class="pthr" id="pthr"></div><div class="pgap" id="pgap" style="opacity:0"></div></div><div class="plabels"><span>Squeeze shut</span><span>Fully closed</span><span>Light close</span></div></div></div><div class="pstate"><span>Last blink: <b id="pnow">none yet</b></span><span>Setting: <b id="pset"></b></span></div>',
-    [['Redo step 1',calibGaze,true],['Finish',closeCalib]]);
+    [['Back',()=>calibAxis('v'),true],['Finish',closeCalib]]);
   paintBlink()}
 function paintBlink(){const thr=$('#pthr');if(!thr)return;const pct=Math.max(0,Math.min(1,(BMAX-S.blinkT)/(BMAX-BMIN)))*100;
   thr.style.left=pct+'%';$('#pzone').style.width=pct+'%';$('#pviz').style.setProperty('--c',Math.round(S.blinkT*100)+'%');$('#pset').textContent=firmLabel(S.blinkT)}

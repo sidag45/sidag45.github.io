@@ -6,11 +6,13 @@
   <title>SA-26 Records</title>
   <meta name="description" content="Siddharth Agarwal's portfolio: a 1990s records terminal with a live subject feed, a station globe, nine operations, a subject profile and a secure uplink.">
   <meta name="theme-color" content="#070a08">
+  <script>try{var d=document.documentElement;if(/[?&]plain\b/.test(location.search)||location.hash==='#plain')d.classList.add('plain');else if(localStorage.getItem('sa26.agent'))d.classList.add('returning')}catch(e){}</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Arimo:wght@400;700&family=VT323&family=Architects+Daughter&family=Reenie+Beanie&display=swap">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<a class="sr-skip" href="#plain" data-plain>Skip to the plain-text version of this portfolio</a>
 <!-- ============ BOOT ============ -->
 <div id="boot" role="dialog" aria-label="Alpha 5 terminal">
   <div class="log" id="bootlog" aria-live="polite"></div>
@@ -23,6 +25,7 @@
   </div>
 </div>
 <button id="skip" type="button">SKIP ›</button>
+<a id="plainBoot" href="#plain" data-plain>PLAIN TEXT</a>
 
 <header class="menubar">
   <a class="brand" href="#record"><span class="brand-mark" aria-hidden="true">SA</span><span>DII RECORDS <span class="dim">v5.0</span></span></a>
@@ -32,6 +35,10 @@
     <a class="bevel" href="#profile">PROFILE</a>
     <a class="bevel" href="#uplink">UPLINK</a>
   </nav>
+  <div class="util">
+    <button type="button" class="bevel" id="sndBtn" aria-pressed="true" title="Terminal sound">SOUND ON</button>
+    <a class="bevel" href="#plain" data-plain title="Printable, no-animation version">PLAIN TEXT</a>
+  </div>
   <div class="status crt"><span id="clr">AGENT —</span><span class="sep" aria-hidden="true">|</span><span>EST <span id="clock">--:--</span></span></div>
 </header>
 
@@ -148,12 +155,12 @@ NEURAL_OVERLAY=2036.r4
         </ul>
         <h3>MOVEMENTS</h3>
         <ol class="timeline">
-          <li><time class="fyear">1999</time><span>Subject born. This file is opened the same day.</span></li>
-          <li><time>2022</time><span>Graduates, University of Hong Kong.</span></li>
-          <li><time>PRIOR</time><span>Lead Front-end Engineer, ParallelChain Lab. Builds explorer, wallet and developer tools.</span></li>
-          <li><time>PRIOR</time><span>Mobile and CMS work for ROJU, an online jump rope platform.</span></li>
-          <li><time>ACTIVE</time><span>Runs Enclave Labs. Clients include a luxury watch boutique, a Hong Kong gym and a real estate firm.</span></li>
           <li class="now"><time>2026</time><span>Enters a master's programme at UMD, with a focus on HCI research.</span></li>
+          <li><time>ACTIVE</time><span>Runs Enclave Labs. Clients include a luxury watch boutique, a Hong Kong gym and a real estate firm.</span></li>
+          <li><time>PRIOR</time><span>Mobile and CMS work for ROJU, an online jump rope platform.</span></li>
+          <li><time>PRIOR</time><span>Lead Front-end Engineer, ParallelChain Lab. Builds explorer, wallet and developer tools.</span></li>
+          <li><time>2022</time><span>Graduates, University of Hong Kong.</span></li>
+          <li><time class="fyear">1999</time><span>Subject born. This file is opened the same day.</span></li>
         </ol>
       </div>
     </div>
@@ -191,11 +198,21 @@ NEURAL_OVERLAY=2036.r4
   <footer class="foot-note"><span>DECLASSIFIED FOR PUBLIC VIEWING BY ORDER OF THE SUBJECT</span><span>ALPHA 5 TERMINAL · PRESS "/" TO ADDRESS</span></footer>
 </main>
 
+<article class="plain-doc" id="plain" hidden aria-label="Plain-text portfolio"></article>
+
 <!-- file viewer -->
 <div class="viewer" id="viewer" hidden>
   <div class="window viewer-win" role="dialog" aria-modal="true" aria-labelledby="vxTitle">
     <div class="titlebar"><b id="vxBar">FILE</b><button type="button" class="bevel sm close" id="closeVx" aria-label="Close file">✕</button></div>
     <article class="vx" id="vx"></article>
+  </div>
+</div>
+
+<!-- station mission brief -->
+<div class="brief" id="brief" hidden role="dialog" aria-modal="true" aria-labelledby="briefBar">
+  <div class="window brief-win">
+    <div class="titlebar"><b id="briefBar">MISSION BRIEF</b><button type="button" class="bevel sm close" id="briefClose" aria-label="Close brief">✕</button></div>
+    <div class="brief-body crt" id="briefBody"></div>
   </div>
 </div>
 

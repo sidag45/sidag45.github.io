@@ -19,7 +19,7 @@
         ['ASSIGNMENT', "Master's programme, Univ. of Maryland"],
         ['FOCUS', 'HCI research: wearables and physical interfaces'],
         ['COVER', 'Founder, Enclave Labs studio'],
-        ['RECENT OPS', 'Pagelift · Pegasus-1 · Gesture Desktop · Paper Toss'],
+        ['RECENT OPS', 'Pagelift · Pegasus-1 · Gesture Desktop · Glance Desktop · Paper Toss'],
       ],
     },
     hk: {
@@ -202,6 +202,32 @@
   function redrawIfStatic() { if (reduce && state.view === 'location') drawGlobe(0); }
 
   /* ---------- stations ---------- */
+  const brief = $('brief'), briefBar = $('briefBar'), briefBody = $('briefBody');
+  let briefReturn = null;
+  function briefHTML(id) {
+    const s = STATIONS[id];
+    let html = '<b>' + esc(s.name) + '</b>\n<span class="dim">' + esc(s.coords) + '</span>\n';
+    html += (s.pending ? '<span class="warn">' : '') + 'STATUS  ' + esc(s.status) + (s.pending ? '</span>' : '') + '\n';
+    if (id === 'cp') html += 'LOCAL   ' + esc(localTime()) + '\n';
+    html += '\n' + s.brief.map(([k, v]) => '<span class="dim">' + esc(k) + '</span>\n' + (s.pending ? '<span class="warn">' + esc(v) + '</span>' : esc(v))).join('\n\n');
+    return html;
+  }
+  function openBrief(id) {
+    briefReturn = document.activeElement;
+    briefBar.textContent = 'MISSION BRIEF ▪ ' + STATIONS[id].code;
+    briefBody.innerHTML = briefHTML(id);
+    brief.hidden = false;
+    $('briefClose').focus({ preventScroll: true });
+  }
+  function closeBrief() {
+    if (brief.hidden) return;
+    brief.hidden = true;
+    if (briefReturn && briefReturn.focus) briefReturn.focus({ preventScroll: true });
+  }
+  $('briefClose').addEventListener('click', closeBrief);
+  brief.addEventListener('click', (e) => { if (e.target === brief) closeBrief(); });
+  window.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeBrief(); });
+
   function selectStation(id, fly) {
     state.sel = id;
     stationBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.station === id)));
@@ -209,8 +235,9 @@
       const s = STATIONS[id];
       state.touched = true; state.tlon = s.lon; state.tlat = Math.max(-60, Math.min(60, s.lat));
     }
-    try { history.replaceState(null, '', '#' + id); } catch (e) {}
+    if (!document.documentElement.classList.contains('plain')) try { history.replaceState(null, '', '#' + id); } catch (e) {}
     updatePanel(); redrawIfStatic();
+    if (fly) openBrief(id);
   }
   stationBtns.forEach((b) => b.addEventListener('click', () => selectStation(b.dataset.station, true)));
 
@@ -263,7 +290,7 @@
     camLabel.textContent = map ? 'SAT LINK 07' : 'REC CAM 02';
     cancelAnimationFrame(raf);
     if (map) { sizeCanvas(); raf = requestAnimationFrame(drawGlobe); }
-    try { history.replaceState(null, '', map ? '#' + state.sel : '#subject'); } catch (e) {}
+    if (!document.documentElement.classList.contains('plain')) try { history.replaceState(null, '', map ? '#' + state.sel : '#subject'); } catch (e) {}
     updatePanel();
   }
   btnSubject.addEventListener('click', () => setView('subject'));
@@ -279,14 +306,11 @@
   function updatePanel() {
     if (state.view === 'location') {
       const s = STATIONS[state.sel];
-      panelTitle.textContent = 'MISSION BRIEF · ' + s.code;
-      let html = '<b>' + esc(s.name) + '</b>\n<span class="dim">' + esc(s.coords) + '</span>\n';
-      html += (s.pending ? '<span class="warn">' : '') + 'STATUS  ' + esc(s.status) + (s.pending ? '</span>' : '') + '\n';
-      if (state.sel === 'cp') html += 'LOCAL   ' + esc(localTime()) + '\n';
-      html += '\n' + s.brief.map(([k, v]) => '<span class="dim">' + esc(k) + '</span>\n' + (s.pending ? '<span class="warn">' + esc(v) + '</span>' : esc(v))).join('\n');
-      panelText.innerHTML = html;
+      panelTitle.textContent = 'GEOLOCATION';
+      panelText.innerHTML = 'CURRENT POST  ' + esc(HOME.short) + '\nLOCAL TIME    ' + esc(localTime()) +
+        '\nSTATIONS      ' + ORDER.length + ' ON FILE\nSELECTED      ' + esc(s.short);
       readout.textContent = state.dragging ? 'ROTATING · RELEASE TO HOLD' : 'DRAG TO ROTATE · SELECT A STATION';
-      logLine.textContent = s.pending ? 'BRIEF FOR ' + s.short + ' NOT ON FILE_' : 'BRIEF ' + s.code + ' DECRYPTED_';
+      logLine.textContent = s.pending ? 'BRIEF FOR ' + s.short + ' NOT ON FILE_' : 'BRIEF ' + s.code + ' ON FILE_';
     } else {
       const f = F[state.k];
       panelTitle.textContent = 'TRACKING';
@@ -296,7 +320,7 @@
       logLine.textContent = state.active ? 'SUBJECT TRACKING_' : 'AWAITING POINTER_';
     }
   }
-  setInterval(() => { if (state.view === 'location' && state.sel === 'cp') updatePanel(); }, 30000);
+  setInterval(() => { if (state.view === 'location') updatePanel(); }, 30000);
 
   /* ---------- subject tracking: mouse anywhere, touch-drag on the feed ---------- */
   function aim(clientX, clientY) {
@@ -341,8 +365,103 @@
      PORTFOLIO: operations, file viewer, profile, uplink, Alpha 5, boot
      ===================================================================== */
   let agent = 'VISITOR';
+  const root = document.documentElement;
+  const store = {
+    get: (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} },
+    del: (k) => { try { localStorage.removeItem(k); } catch (e) {} },
+  };
+  const isPlain = () => root.classList.contains('plain');
+
+  /* ---------- sound: synthesised in the browser, no audio files ---------- */
+  // Mouse-click sample (trimmed from the supplied recording): a press followed by a release.
+  const CLICK_MP3 = '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';
+  const SFX = (() => {
+    let ctx = null, master = null, noise = null, last = 0, sample = null, segDown = null, segUp = null;
+    // decode up front with an offline context, so the very first click already has its sound
+    try {
+      const OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+      const bin = atob(CLICK_MP3), bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      new OAC(1, 1, 44100).decodeAudioData(bytes.buffer).then((buf) => {
+        const d = buf.getChannelData(0), sr = buf.sampleRate, th = 0.08;
+        let a = 0; while (a < d.length && Math.abs(d[a]) < th) a++;
+        let b = a + Math.round(0.06 * sr); while (b < d.length && Math.abs(d[b]) < th) b++;
+        const pre = Math.round(0.002 * sr);
+        const t = (i) => Math.max(0, i - pre) / sr;
+        segDown = { at: t(a), dur: Math.min(0.06, (b - a) / sr) };
+        segUp = b < d.length ? { at: t(b), dur: 0.05 } : null;
+        sample = buf;
+      }).catch(() => {});
+    } catch (e) {}
+    let on = store.get('sa26.sound') !== 'off';
+    const btn = $('sndBtn');
+    const paint = () => { if (btn) { btn.textContent = on ? 'SOUND ON' : 'SOUND OFF'; btn.setAttribute('aria-pressed', String(on)); } };
+    function ensure() {
+      if (!ctx) {
+        const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null;
+        ctx = new AC(); master = ctx.createGain(); master.gain.value = 0.55; master.connect(ctx.destination);
+        noise = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
+        const d = noise.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      }
+      if (ctx.state === 'suspended') ctx.resume();
+      return ctx;
+    }
+    const unlock = () => { if (on) ensure(); };
+    ['pointerdown', 'keydown', 'touchstart'].forEach((ev) => window.addEventListener(ev, unlock, { passive: true }));
+    const ready = () => on && ctx && ctx.state !== 'closed' && !isPlain();
+    function play(seg, vol, rate) {
+      if (!sample || !seg) return;
+      const src = ctx.createBufferSource(), g = ctx.createGain();
+      src.buffer = sample; src.playbackRate.value = rate || 1; g.gain.value = vol;
+      src.connect(g); g.connect(master); src.start(ctx.currentTime, seg.at, seg.dur / (rate || 1) * (rate || 1));
+    }
+    // the visitor's own clicks: press on pointer down, release on pointer up
+    window.addEventListener('pointerdown', (e) => { if (e.button === 0 && on) { ensure(); if (ready()) play(segDown, 1, 1); } }, { passive: true });
+    window.addEventListener('pointerup', (e) => { if (e.button === 0 && ready()) play(segUp, 0.75, 1); }, { passive: true });
+    function burst(t, dur, type, freq, q, peak) {
+      const src = ctx.createBufferSource(); src.buffer = noise;
+      const f = ctx.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = q;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + 0.002); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      src.connect(f); f.connect(g); g.connect(master); src.start(t, Math.random() * 0.8, dur + 0.02);
+    }
+    function tone(t, dur, f0, f1, peak, type) {
+      const o = ctx.createOscillator(), g = ctx.createGain(); o.type = type || 'sine';
+      o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(master); o.start(t); o.stop(t + dur + 0.02);
+    }
+    return {
+      // one terminal key: a short filtered tick with a soft body, throttled so fast typing stays a patter
+      click(vol = 1) {
+        if (!ready()) return; const t = ctx.currentTime; if (t - last < 0.035) return; last = t;
+        play(segDown, 0.3 * vol, 1.25 + Math.random() * 0.35);
+      },
+      // rubber stamp: a low thump and a papery slap, then a small second contact
+      stamp() {
+        if (!ready()) return; const t = ctx.currentTime + 0.01;
+        tone(t, 0.16, 120, 42, 0.75); burst(t, 0.09, 'lowpass', 1400, 0.8, 0.5);
+        burst(t + 0.05, 0.05, 'bandpass', 900, 1.5, 0.18);
+      },
+      get on() { return on; },
+      toggle() { on = !on; store.set('sa26.sound', on ? 'on' : 'off'); paint(); if (on) { ensure(); this.click(); } return on; },
+      paint,
+    };
+  })();
+  SFX.paint();
+  if ($('sndBtn')) $('sndBtn').addEventListener('click', () => { const on = SFX.toggle(); say('Audio ' + (on ? 'restored.' : 'muted.')); });
+
+  /* ---------- section jumps ---------- */
+  function jump(id) {
+    const el = document.getElementById(id); if (!el) return;
+    el.scrollIntoView({ behavior: reduce || isPlain() ? 'auto' : 'smooth' });
+  }
+  document.querySelectorAll('.menu a[href^="#"], .brand[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+    e.preventDefault(); jump(a.getAttribute('href').slice(1));
+  }));
   /* ---------- FILE DATE: the subject's date of birth ---------- */
-  const FILE_DATE = new Date(1999, 9, 8); // year, month (0 = Jan), day
+  const FILE_DATE = new Date(1999, 7, 26); // year, month (0 = Jan), day
   const MONTHS = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
   const FD = {
     roman: `${String(FILE_DATE.getDate()).padStart(2,'0')}.${['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'][FILE_DATE.getMonth()]}.${FILE_DATE.getFullYear()}`,
@@ -359,52 +478,59 @@
       secret:'Originally filed under the codename "Web to Figma" before it was renamed.',
       tags:['Figma Plugin API','Chrome Extension','TypeScript','DOM capture'],
       link:{href:'https://sidag45.github.io/pagelift/', label:'Visit site'} },
-    { id:'PEGASUS', code:'OP-02', name:'Pegasus-1', status:'In progress', clr:'Secret',
+    { id:'PEGASUS', code:'OP-02', name:'Pegasus-1', status:'Completed', clr:'Public',
       op:'Scroll-driven 3D exploded view of a mechanical watch for a fictional maison.',
       role:'Concept, 3D direction, three.js build.',
       body:'An interactive exploded-watch experience for Halden & Vey, a brand invented for the exercise. As the visitor scrolls, the Pegasus-1 separates layer by layer so each part can be studied, with a path toward XR viewing.',
       secret:'The brand does not exist. The watch does not exist. The movement is real enough to fool a collector.',
       tags:['three.js','Scroll animation','WebXR','Product storytelling'],
       link:{href:'https://sidag45.github.io/XR%20Projects/3d-watch-animate/', label:'View the watch'} },
-    { id:'DESKTOP', code:'OP-03', name:'Gesture Desktop', status:'In progress', clr:'Secret',
+    { id:'DESKTOP', code:'OP-03', name:'Gesture Desktop', status:'In progress', clr:'Public',
       op:'A MacBook-style desktop in the browser, operated by hand in front of a webcam.',
       role:'Interaction design and engineering.',
       body:'Files and folders can be picked up, dragged and dropped with fingers. A two-finger tap opens the context menu, and the usual trackpad controls still work. With the camera on, hand tracking drives a red pointer, mapped from finger movement to screen distance.',
       secret:'Built as a study in how far direct-manipulation habits transfer to mid-air input.',
       tags:['Hand tracking','Computer vision','Gesture UX','JavaScript'],
       link:{href:'https://sidag45.github.io/XR%20Projects/virtual-desktop/', label:'Try the desktop'} },
-    { id:'PAPERTOSS', code:'OP-04', name:'Paper Toss', status:'Playable', clr:'Secret',
+    { id:'GLANCE', code:'OP-04', name:'Glance Desktop', status:'Prototype', clr:'Public',
+      op:'A MacBook-style desktop in the browser, operated with the eyes through a webcam.',
+      role:'Interaction design and engineering.',
+      body:'A red pointer follows the visitor\'s gaze and settles on the nearest button or file. One deliberate blink clicks, two blinks open, a long blink picks something up and the next blink drops it, and a wink right-clicks. Looking at the top or bottom edge of a window scrolls it, and the top-right corner opens Mission Control. A short calibration learns each person\'s eyes and blink, and the video never leaves the device.',
+      secret:'The hands-free sequel to Gesture Desktop: can a desktop be run when the eyes have to both read the screen and act on it?',
+      tags:['Eye tracking','Face landmarks (MediaPipe)','Gaze interaction','Accessibility','JavaScript'],
+      link:{href:'https://sidag45.github.io/XR%20Projects/eye-desktop/', label:'Try it with your eyes'} },
+    { id:'PAPERTOSS', code:'OP-05', name:'Paper Toss', status:'Playable', clr:'Public',
       op:'Office basketball played hands-free: crumple a sheet and throw it in the bin, using only your hand in front of a webcam.',
       role:'Game design, gesture design and build.',
       body:'Pinch thumb and index finger to pick up the sheet from the desk, make a fist three times to crumple it into a ball, then swing toward the bin and open your hand to let go. A power meter shows the strength of the throw, and every basket moves the bin farther away. The game tracks baskets, tosses, streak and best streak. Hand tracking runs in the browser and the video never leaves the device; mouse and touch work too.',
       secret:'Every gesture maps to something a real hand does with real paper. Nobody needs a tutorial to throw.',
       tags:['Hand tracking','Gesture input','Game design','JavaScript'],
       link:{href:'https://sidag45.github.io/XR%20Projects/paper-toss/paper-toss.html', label:'Play Paper Toss'} },
-    { id:'SRK', code:'OP-05', name:'SRK Haute Horlogerie', status:'Delivered', clr:'Confidential',
+    { id:'SRK', code:'OP-06', name:'SRK Haute Horlogerie', status:'Delivered', clr:'Confidential',
       op:'A private viewing room for a luxury watch boutique.',
       role:'Web design and Webflow development, via Enclave Labs.',
       body:'Designed and improved the boutique\'s Webflow site to feel like an appointment, not a checkout. Built the CMS structure, SEO-friendly imports, collection filtering, dynamic content and custom JavaScript interactions, plus automations for publishing new pieces.',
       secret:'The brief: nobody should feel they are shopping. They should feel invited.',
       tags:['Webflow','CMS architecture','Custom JS','Automation'] },
-    { id:'MOVEMENT', code:'OP-06', name:'Movement Lab', status:'Active', clr:'Confidential',
+    { id:'MOVEMENT', code:'OP-07', name:'Movement Lab', status:'Active', clr:'Confidential',
       op:'A coaching app for a Hong Kong gym, built to grow into a global subscription.',
       role:'Product and engineering lead, via Enclave Labs.',
       body:'Stage one equips Movement Fitness\'s personal trainers to coach their in-gym clients through the app. Stage two opens the same codebase to self-serve subscribers worldwide, covering training programmes and nutrition.',
       secret:'Two products, one codebase. Planned that way from day one.',
       tags:['Next.js','Mobile','Product strategy','Scalability'] },
-    { id:'PARALLEL', code:'OP-07', name:'ParallelChain Lab', status:'Concluded', clr:'Secret',
+    { id:'PARALLEL', code:'OP-08', name:'ParallelChain Lab', status:'Concluded', clr:'Confidential',
       op:'Front-end lead on a Layer 1 blockchain platform.',
       role:'Lead Front-end Engineer. Unit of 5+.',
       body:'Led the front-end team and set its architecture. Shipped the block explorer and a native wallet, built developer tools and documentation, and helped tighten engineering processes across the lab.',
       secret:'Leadership of the unit included process reform, not only code.',
       tags:['React','TypeScript','Team lead','Developer tools'] },
-    { id:'ROJU', code:'OP-08', name:'ROJU', status:'Concluded', clr:'Confidential',
+    { id:'ROJU', code:'OP-09', name:'ROJU', status:'Concluded', clr:'Confidential',
       op:'Mobile app and CMS for an online jump rope learning platform.',
       role:'Mobile and full-stack engineer.',
       body:'Built ROJU\'s React Native app and published it to the App Store and Google Play. Contributed backend features in Java Spring Boot and built a React content management system for the coaching content.',
       secret:'Shipped on both stores, which is its own kind of fieldcraft.',
       tags:['React Native','Spring Boot','React CMS'] },
-    { id:'FAATEH', code:'OP-09', name:'Faateh Real Estate', status:'Handed over', clr:'Confidential',
+    { id:'FAATEH', code:'OP-10', name:'Faateh Real Estate', status:'Handed over', clr:'Confidential',
       op:'A Webflow site for a real estate firm, plus a full handover kit.',
       role:'Design, build and client training, via Enclave Labs.',
       body:'Built the site in Webflow, then prepared the client to own it: a handover document and a tutorial video script covering sign-up, site transfer and day-to-day editing.',
@@ -449,6 +575,18 @@
       ],
       figs: ['gd-setup', 'gd-states', 'gd-fitts'],
       study: 'A target-acquisition study in the style of ISO 9241-411, comparing the trackpad with hand tracking at three gain levels. Measures: throughput in bits per second, error rate, and perceived exertion on the Borg CR10 scale after each block.',
+    },
+    GLANCE: {
+      rq: 'Can webcam gaze and blink input run a desktop reliably enough for everyday pointing, selecting and dragging, and which design choices (target snapping, blink-duration thresholds, sound confirmation) most reduce unintended actions?',
+      principles: [
+        ['The Midas touch problem', 'The eyes are both how people read the screen and, here, how they point, so anything that acts on looking alone fires constantly (Jacob, 1990). Glance never clicks on gaze. A deliberate blink is the clutch, and natural blinks shorter than 200 ms are ignored.'],
+        ['Target snapping and Fitts\'s law', 'Webcam gaze is only accurate to a few degrees, which makes small targets behave as if they were even smaller. Pulling the pointer toward the nearest button or file widens every target\'s effective width, trading free positioning for reliable selection.'],
+        ['Calibration and drift', 'Every face, screen and chair maps differently, so a short calibration learns how far the eyes travel across, then up and down, then how firmly the person blinks. After that, each blink-click on a small target nudges the mapping toward it, correcting drift without asking for a fresh calibration.'],
+        ['Feedback with the eyes closed', 'A long blink cannot be confirmed on screen, because the person cannot see it. A rising tone marks the moment a hold begins, moving the confirmation to sound, the one channel still open.'],
+        ['Graceful degradation', 'A closing eyelid distorts the iris reading, so the pointer freezes at the last steady position before a blink and stays put briefly after a click, letting a double blink land on the same item.'],
+      ],
+      figs: ['gl-blink', 'gl-snap'],
+      study: 'A within-subjects study on a grid of icons in three sizes, comparing Glance with and without target snapping. Measures: selection time, error rate, unintended activations per minute and NASA-TLX workload. A second 20-minute session would test whether click-driven drift correction holds accuracy without recalibrating.',
     },
   };
 
@@ -730,10 +868,52 @@
         return k.svg(this.label);
       },
     },
+    'gl-blink': {
+      caption: 'Blink length decides the action. Natural blinks fall under the threshold and are ignored, so only a deliberate close acts; a hold is confirmed by a rising tone because the eyes are shut.',
+      label: 'Wireframe timeline of how long the eyes stay closed: under 200 milliseconds ignored, 200 to 700 a click, 700 to 900 nothing, over 900 a press-and-hold with a tone. Eye sketches above show open, closed and a wink for right-click.',
+      draw(){
+        const k = sketcher(61, 660, 300);
+        const x = (t) => 40 + t * 480;
+        k.ellipse(70, 56, 30, 14).ellipse(70, 56, 9, 9, 'pc', 1.4).dot(70, 56, 4).text(70, 96, 'open', {size: 13, anchor: 'middle'});
+        k.curve(40, 56, 70, 70, 100, 56, 'pc', false).text(170, 96, 'closed', {size: 13, anchor: 'middle'}).curve(140, 56, 170, 70, 200, 56, 'pc', false);
+        k.ellipse(300, 56, 26, 12).dot(300, 56, 4).curve(338, 56, 364, 68, 390, 56, 'pc', false).text(345, 96, 'wink', {size: 13, anchor: 'middle'});
+        k.text(420, 50, 'one eye shut', {cls: 'ptr', size: 22, rot: -2}).text(420, 74, '= right-click', {cls: 'ptr', size: 22, rot: -2});
+        k.rect(x(0), 150, x(0.2) - x(0), 44).hatch(x(0), 150, x(0.2) - x(0), 44, 7);
+        k.rect(x(0.2), 150, x(0.7) - x(0.2), 44).rect(x(0.7), 150, x(0.9) - x(0.7), 44).rect(x(0.9), 150, x(1.18) - x(0.9), 44, 'pr', 1.8);
+        k.text((x(0) + x(0.2)) / 2, 142, 'ignored', {size: 13, anchor: 'middle'});
+        k.text((x(0.2) + x(0.7)) / 2, 178, 'click', {size: 18, anchor: 'middle'});
+        k.text((x(0.7) + x(0.9)) / 2, 178, '—', {size: 16, anchor: 'middle'});
+        k.text((x(0.9) + x(1.18)) / 2, 178, 'hold + tone', {cls: 'ptr', size: 20, anchor: 'middle'});
+        k.arrow(x(0), 222, x(1.22), 222);
+        [[0, '0'], [0.2, '200 ms'], [0.7, '700 ms'], [0.9, '900 ms']].forEach(([t, l]) => { k.line(x(t), 216, x(t), 228, 'pc', 1.2).text(x(t), 248, l, {size: 12, anchor: 'middle'}); });
+        k.text(x(1.18), 248, 'eyes closed for…', {size: 12, anchor: 'end'});
+        k.text(x(0.1), 284, 'natural blink', {cls: 'ptr', size: 20, anchor: 'middle', rot: -2}).curve(x(0.1), 268, x(0.06), 236, x(0.1), 200, 'pr');
+        return k.svg(this.label);
+      },
+    },
+    'gl-snap': {
+      caption: 'Gaze estimates scatter around where the person is looking. The pointer is pulled to the nearest button or file, so a few degrees of error still lands on the right target.',
+      label: 'Wireframe: a screen with a grid of file icons; a cloud of gaze samples sits near one icon, a dashed circle marks the uncertainty, and an arrow shows the pointer snapping to that icon. A side note shows the eye and head turn combined into one gaze estimate.',
+      draw(){
+        const k = sketcher(29, 660, 320);
+        k.rect(24, 20, 420, 270).line(24, 40, 444, 40, 'pc', 1);
+        for (let r = 0; r < 3; r++) for (let c = 0; c < 4; c++) { const X = 60 + c * 96, Y = 66 + r * 74; if (r === 1 && c === 2) k.rect(X, Y, 58, 46, 'pr', 2); else k.rect(X, Y, 58, 46); k.scrib(X + 8, Y + 56, 40); }
+        const gx = 300, gy = 120;
+        [[-14, 6], [9, -11], [18, 10], [-6, -16], [4, 15], [-20, -4], [14, -2], [-2, 4]].forEach(([dx, dy]) => k.dot(gx + dx, gy + dy, 2.2));
+        k.ellipse(gx, gy, 34, 30, 'pd', 1.2).text(gx + 40, gy - 30, 'gaze error', {size: 12});
+        k.arrow(gx + 4, gy + 22, 280, 148, 'pr', 2).text(292, 232, 'snap to target', {cls: 'ptr', size: 22, anchor: 'middle', rot: -2});
+        k.ellipse(540, 90, 40, 18).ellipse(556, 90, 11, 11, 'pc', 1.4).dot(556, 90, 4);
+        k.text(540, 130, 'iris shift', {size: 13, anchor: 'middle'});
+        k.ellipse(540, 210, 34, 42).line(540, 204, 556, 226, 'pc', 1.2).text(540, 274, 'head turn', {size: 13, anchor: 'middle'});
+        k.text(470, 160, '+', {size: 28, anchor: 'middle'}).arrow(500, 160, 450, 160);
+        k.text(600, 306, '= one gaze estimate', {cls: 'ptr', size: 20, anchor: 'end', rot: -2});
+        return k.svg(this.label);
+      },
+    },
   };
 
 
-  const CAT = { PAGELIFT: 'Research', PEGASUS: 'XR', DESKTOP: 'XR', PAPERTOSS: 'XR', SRK: 'Client', MOVEMENT: 'Client', PARALLEL: 'Engineering', ROJU: 'Engineering', FAATEH: 'Client' };
+  const CAT = { PAGELIFT: 'Research', PEGASUS: 'XR', DESKTOP: 'XR', GLANCE: 'XR', PAPERTOSS: 'XR', SRK: 'Client', MOVEMENT: 'Client', PARALLEL: 'Engineering', ROJU: 'Engineering', FAATEH: 'Client' };
   const CAT_LABEL = { Research: 'TOOLS', XR: 'XR & GESTURE', Client: 'CLIENT', Engineering: 'ENGINEERING' };
   const pad2 = (n) => String(n).padStart(2, '0');
 
@@ -766,6 +946,14 @@
         { type: 'image', src: 'intel/desktop-hand-setup.webp', caption: 'Hand-control setup over the desktop: hand-to-screen ratio and pinch calibration.' },
       ],
       links: [{ label: 'Try the desktop', href: 'https://sidag45.github.io/XR%20Projects/virtual-desktop/' }],
+    },
+    GLANCE: {
+      media: [
+        { type: 'image', src: 'intel/glance-setup.webp', caption: 'First run: the setup card and the eye-control panel for blink firmness, pointer smoothing and reach.' },
+        { type: 'image', src: 'intel/glance-gest.webp', caption: 'The eye-gesture vocabulary: look, blink, blink twice, long blink, wink, window edge and corner.' },
+        { type: 'image', src: 'intel/glance-desk.webp', caption: 'The desktop it drives: files on a grid, a dock and windows, all sized as gaze targets.' },
+      ],
+      links: [{ label: 'Try it with your eyes', href: 'https://sidag45.github.io/XR%20Projects/eye-desktop/' }],
     },
     PAPERTOSS: {
       media: [
@@ -891,13 +1079,13 @@
       cancelAnimationFrame(typeRaf); clearTimeout(typeTm);
       root.removeEventListener('click', skip);
       title.textContent = full;
-      root.classList.remove('sealed'); root.classList.add('unsealing');
+      root.classList.remove('sealed'); root.classList.add('unsealing'); SFX.stamp();
       typeTm = setTimeout(() => { root.classList.remove('unsealing'); unwrapRedactions(root); }, 700);
       finishTyping = () => { clearTimeout(typeTm); root.classList.remove('unsealing'); unwrapRedactions(root); finishTyping = () => {}; };
     };
     const step = (now) => {
       const k = Math.max(0, Math.min(full.length, Math.floor(((now - t0) / ms) * full.length) + (now >= t0 ? 1 : 0)));
-      if (k !== shown) { shown = k; typed.nodeValue = full.slice(0, k); ghost.textContent = full.slice(k); }
+      if (k !== shown) { if (k > 0 && k > shown) SFX.click(); shown = k; typed.nodeValue = full.slice(0, k); ghost.textContent = full.slice(k); }
       if (k < full.length) { typeRaf = requestAnimationFrame(step); return; }
       caret.classList.add('done');
       typeTm = setTimeout(() => finishTyping(), hold);
@@ -941,7 +1129,7 @@
     const tm = setInterval(() => {
       frame++;
       const keep = Math.floor(target.length * frame / total);
-      el.textContent = target.slice(0, keep) + scramble(target.slice(keep));
+      el.textContent = target.slice(0, keep) + scramble(target.slice(keep)); SFX.click(0.6);
       if (frame >= total) { clearInterval(tm); el.textContent = target; say('Annex for ' + f.code + ' decrypted. Use discretion.'); }
     }, 38);
   }
@@ -985,21 +1173,24 @@
     if (reduce || cls) { el.textContent = text; out.scrollTop = out.scrollHeight; return Promise.resolve(); }
     return new Promise((res) => {
       let i = 0; const tm = setInterval(() => {
-        el.textContent = 'A5: ' + text.slice(0, ++i); out.scrollTop = out.scrollHeight;
+        el.textContent = 'A5: ' + text.slice(0, ++i); out.scrollTop = out.scrollHeight; SFX.click(0.45);
         if (i >= text.length) { clearInterval(tm); res(); }
       }, 12);
     });
   }
   function say(text) { typingQ = typingQ.then(() => line(text)); return typingQ; }
-  const go = (id) => { const el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' }); };
+  const go = (id) => jump(id);
   const cmds = {
-    help: () => say('Commands: RECORD, OPS, PROFILE, UPLINK, LOCATE <CP|HK|ND>, OPEN <name>, LIST, FILTER <xr|tools|client|engineering|all>, WHOAMI, TIME, CLEAR.'),
+    help: () => say('Commands: RECORD, OPS, PROFILE, UPLINK, LOCATE <CP|HK|ND>, OPEN <name>, LIST, FILTER <xr|tools|client|engineering|all>, WHOAMI, TIME, SOUND, PLAIN, LOGOUT, CLEAR.'),
     record: () => go('record'), ops: () => go('operations'), operations: () => go('operations'), files: () => go('operations'),
     profile: () => go('profile'), about: () => go('profile'), uplink: () => go('uplink'), contact: () => go('uplink'),
     list: () => say(FILES.map((f) => f.code + ' ' + f.name).join(' · ')),
     whoami: () => say('You are agent ' + agent + '. Clearance: provisional.'),
     time: () => say('Station time ' + $('clock').textContent + ' EST.'),
     clear: () => { out.innerHTML = ''; },
+    sound: () => { const on = SFX.toggle(); say('Audio ' + (on ? 'restored.' : 'muted.')); },
+    plain: () => enterPlain(),
+    logout: () => { store.del('sa26.agent'); say('Identity purged. Reloading the terminal.').then(() => setTimeout(() => location.reload(), 600)); },
   };
   $('dockForm').addEventListener('submit', (e) => {
     e.preventDefault();
@@ -1027,6 +1218,79 @@
     if (e.key === '/' && tag !== 'INPUT' && tag !== 'TEXTAREA' && $('boot').hidden) { e.preventDefault(); dock.classList.remove('min'); dIn.focus(); }
   });
 
+  /* ---------- plain-text dossier: no animation, printable, screen-reader friendly ---------- */
+  const plainEl = $('plain');
+  let plainBuilt = false;
+  const txt = (el) => (el ? el.textContent.replace(/\s+/g, ' ').trim() : '');
+  function buildPlain() {
+    if (plainBuilt) return; plainBuilt = true;
+    const abs = (src) => { try { return new URL(src, location.href).href; } catch (e) { return src; } };
+    const fields = [...document.querySelectorAll('#profile .fields > div')].map((d) => [txt(d.querySelector('dt')), txt(d.querySelector('dd'))]);
+    const kit = [...document.querySelectorAll('#profile .prof-body .tags li')].map(txt);
+    const moves = [...document.querySelectorAll('#profile .timeline li')].map((li) => [txt(li.querySelector('time')), txt(li.querySelector('span'))]);
+    const assess = txt(document.querySelector('#profile .prof-body p'));
+    const dl = (rows) => '<dl class="p-dl">' + rows.map(([k, v]) => '<dt>' + esc(k) + '</dt><dd>' + esc(v) + '</dd>').join('') + '</dl>';
+    let h = '<header class="p-head"><p class="p-kicker">SA-26 · Personnel record · plain-text edition</p>' +
+      '<h1 id="plainTitle" tabindex="-1">Siddharth Agarwal</h1>' +
+      '<p class="p-lede">Designer and engineer of interfaces. Graduate student in HCI at the University of Maryland, College Park, and founder of Enclave Labs.</p>' +
+      '<p class="p-tools"><button type="button" class="p-btn" id="plainExit">Return to terminal view</button> <button type="button" class="p-btn" id="plainPrint">Print or save as PDF</button></p>' +
+      '<p class="p-contact">Email <a href="mailto:hello@enclave-studios.com">hello@enclave-studios.com</a> · LinkedIn <a href="https://www.linkedin.com/in/siddharthagarwal2608/">linkedin.com/in/siddharthagarwal2608</a> · College Park, Maryland (US Eastern)</p></header>';
+    h += '<nav class="p-toc" aria-label="Contents"><h2>Contents</h2><ol><li><a href="#p-profile">Profile</a></li><li><a href="#p-ops">Operations</a><ol>' +
+      FILES.map((f) => '<li><a href="#p-' + f.id.toLowerCase() + '">' + esc(f.name) + '</a></li>').join('') + '</ol></li><li><a href="#p-stations">Stations</a></li></ol></nav>';
+    h += '<section id="p-profile" aria-labelledby="p-profile-h"><h2 id="p-profile-h">Profile</h2>' + dl(fields) +
+      '<h3>Assessment</h3><p>' + esc(assess) + '</p>' +
+      '<h3>Tools</h3><p>' + kit.map(esc).join(', ') + '</p>' +
+      '<h3>Timeline</h3><ul class="p-time">' + moves.map(([y, t]) => '<li><b>' + esc(y) + '</b> ' + esc(t) + '</li>').join('') + '</ul></section>';
+    h += '<section id="p-ops" aria-labelledby="p-ops-h"><h2 id="p-ops-h">Operations</h2><p>' + FILES.length + ' projects. Public files are personal work; confidential files are client or employer work.</p>';
+    FILES.forEach((f) => {
+      const I = INTEL[f.id] || {}, A = ANALYSIS[f.id];
+      const links = (I.links && I.links.length) ? I.links : (f.link ? [f.link] : []);
+      h += '<article class="p-op" id="p-' + f.id.toLowerCase() + '" aria-labelledby="p-' + f.id.toLowerCase() + '-h">' +
+        '<h3 id="p-' + f.id.toLowerCase() + '-h">' + esc(f.name) + ' <span class="p-code">' + f.code + '</span></h3>' +
+        '<p class="p-sum">' + esc(f.op) + '</p>' +
+        dl([['Status', f.status], ['Role', f.role], ['Category', (CAT_LABEL[CAT[f.id]] || '').replace('&amp;', '&')], ['Classification', f.clr]]) +
+        '<h4>Field report</h4><p>' + esc(f.body) + '</p>' +
+        '<h4>Annex</h4><p>' + esc(f.secret) + '</p>' +
+        '<h4>Methods</h4><p>' + f.tags.map(esc).join(', ') + '</p>';
+      const media = I.media || [];
+      if (media.length) {
+        h += '<h4>Intel</h4><div class="p-media">' + media.map((m) => '<figure><img src="' + abs(m.poster || m.src) + '" alt="' + esc(m.caption || '') + '"><figcaption>' +
+          (m.type === 'video' ? 'Video still. ' : '') + esc(m.caption || '') + '</figcaption></figure>').join('') + '</div>';
+      }
+      if (links.length) h += '<p class="p-links">' + links.map((l) => '<a href="' + l.href + '">' + esc(l.label) + '</a> <span class="p-url">(' + esc(l.href.replace(/^https?:\/\//, '').replace(/%20/g, ' ')) + ')</span>').join('<br>') + '</p>';
+      if (A) {
+        h += '<h4>HCI analysis</h4><p><b>Research question.</b> ' + A.rq + '</p><ol class="p-pr">' +
+          A.principles.map(([n, t]) => '<li><b>' + n + '.</b> ' + t + '</li>').join('') + '</ol>' +
+          '<p><b>Proposed study (not yet run).</b> ' + A.study + '</p>';
+      }
+      h += '</article>';
+    });
+    h += '</section><section id="p-stations" aria-labelledby="p-stations-h"><h2 id="p-stations-h">Stations</h2>' +
+      ORDER.map((id) => { const st = STATIONS[id];
+        return '<h3>' + esc(st.name) + '</h3>' + (st.pending ? '<p>Details to be added.</p>' : dl(st.brief)); }).join('') + '</section>' +
+      '<footer class="p-foot"><p>Plain-text edition of the SA-26 records terminal. Interactive version: <a href="' + esc(location.href.split('#')[0].replace(/[?&]plain\b/, '')) + '">' + esc(location.host + location.pathname) + '</a></p></footer>';
+    plainEl.innerHTML = h;
+    $('plainExit').addEventListener('click', exitPlain);
+    $('plainPrint').addEventListener('click', () => window.print());
+  }
+  function enterPlain() {
+    buildPlain(); root.classList.add('plain'); plainEl.hidden = false;
+    if (!viewer.hidden) closeFile();
+    try { history.replaceState(null, '', location.pathname + location.search + '#plain'); } catch (e) {}
+    window.scrollTo(0, 0); $('plainTitle').focus({ preventScroll: true });
+  }
+  function exitPlain() {
+    root.classList.remove('plain'); plainEl.hidden = true;
+    try { history.replaceState(null, '', location.pathname + location.search.replace(/[?&]plain\b/, '').replace(/^&/, '?')); } catch (e) {}
+    if (!$('boot').hidden) return;
+    $('clr').textContent = 'AGENT ' + (agent === 'VISITOR' ? 'NIGHTINGALE' : agent);
+    window.scrollTo(0, 0);
+  }
+  window.addEventListener('beforeprint', () => buildPlain());
+  window.addEventListener('hashchange', () => { if (location.hash === '#plain') enterPlain(); });
+  document.querySelectorAll('[data-plain]').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); enterPlain(); }));
+  if (isPlain()) { buildPlain(); plainEl.hidden = false; }
+
   const $q = (s) => document.querySelector(s);
   /* ---------- BOOT SEQUENCE ---------- */
   const boot = $q('#boot'), log = $q('#bootlog'), bf = $q('#bootform'), cn = $q('#codename');
@@ -1039,7 +1303,7 @@
     el.appendChild(cur);
     for (let i=0;i<text.length;i++){
       if (skipped) { el.textContent = text; return; }
-      cur.before(text[i]); await sleep(speed);
+      cur.before(text[i]); if (text[i] !== ' ') SFX.click(cls === 'dim' ? 0.5 : 0.8); await sleep(speed);
     }
     cur.remove();
   }
@@ -1062,12 +1326,13 @@
   bf.addEventListener('submit', async e => {
     e.preventDefault();
     agent = (cn.value.trim() || 'NIGHTINGALE').toUpperCase().replace(/[^A-Z0-9 \-]/g,'').slice(0,24) || 'NIGHTINGALE';
-    bf.hidden = true;
+    bf.hidden = true; store.set('sa26.agent', agent);
     await type(`> ${agent}`, '', 10);
     await type(`\nVOICEPRINT ACCEPTED. WELCOME, AGENT ${agent}.`);
     await type('CLEARANCE GRANTED: CASE FILES, SUBJECT PROFILE, CONTACT.');
     await type('I WILL STAY ON THE LINE. ADDRESS ME ANY TIME WITH "/".');
-    $q('#bootactions').hidden = false; $q('#openBtn').focus({preventScroll:true});
+    await sleep(650);
+    dismiss();
   });
   function dismiss(){
     if (!cn.value.trim() && agent==='VISITOR') agent = 'NIGHTINGALE';
@@ -1080,7 +1345,13 @@
   }
   $q('#openBtn').addEventListener('click', dismiss);
   $q('#skip').addEventListener('click', () => { skipped = true; dismiss(); });
-  run();
+  cn.addEventListener('keydown', (e) => { if (e.key.length === 1 || e.key === 'Backspace') SFX.click(); });
+  const savedAgent = store.get('sa26.agent');
+  if (isPlain() || savedAgent) {
+    skipped = true; agent = savedAgent || 'NIGHTINGALE';
+    boot.hidden = true; $q('#skip').hidden = true; $q('#clr').textContent = 'AGENT ' + agent;
+    if (savedAgent) say(`Welcome back, agent ${agent}. ${FILES.length} operations on record.`).then(() => say('Type HELP for commands, or LOGOUT to sign in under another name.'));
+  } else run();
 
 
   /* ---------- start ---------- */
