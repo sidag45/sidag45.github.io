@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Vault SA-26</title>
+  <meta name="description" content="Siddharth Agarwal's portfolio, kept in a modern military information vault.">
+  <meta name="theme-color" content="#161a1e">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@700;800&family=Barlow:wght@400;500;600&family=Share+Tech+Mono&family=VT323&family=Architects+Daughter&family=Reenie+Beanie&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<!-- ============ BOOT ============ -->
+<div id="boot" role="dialog" aria-label="Alpha 5 terminal">
+  <div class="log" id="bootlog" aria-live="polite"></div>
+  <form id="bootform" hidden autocomplete="off">
+    <span>&gt;</span><label for="codename" class="dim" style="position:absolute;left:-9999px">Codename</label>
+    <input id="codename" maxlength="24" placeholder="ENTER CODENAME" spellcheck="false">
+  </form>
+  <div class="actions" id="bootactions" hidden>
+    <button class="btn-crt" id="openBtn" type="button">[ OPEN DOSSIER ]</button>
+  </div>
+</div>
+<button id="skip" type="button">SKIP ›</button>
+
+<!-- ============ VAULT ============ -->
+<header class="topbar">
+  <div class="brand">
+    <svg viewBox="0 0 40 40" aria-hidden="true"><polygon points="20,2 36,11 36,29 20,38 4,29 4,11" fill="none" stroke="#fb4f29" stroke-width="2"/><polygon points="20,9 30,15 30,25 20,31 10,25 10,15" fill="#2a3137" stroke="#5d666e"/><text x="20" y="23.5" text-anchor="middle" font-family="Share Tech Mono, monospace" font-size="8" fill="#e3e8ec">SA</text></svg>
+    <div><b>Archive Vault 07</b><small>Directorate of Interface Intelligence</small></div>
+  </div>
+  <div class="status">
+    <span><span class="led pulse"></span>&nbsp; LINK SECURE</span>
+    <span class="sep"></span>
+    <span id="clr">AGENT —</span>
+    <span class="sep"></span>
+    <span>UTC <span id="utc">--:--:--</span></span>
+  </div>
+</header>
+
+<div class="wrap">
+  <section class="hero">
+    <div>
+      <span class="etch">Subject file · SA-26 · opened <span id="opened"></span></span>
+      <h1>Siddharth Agarwal</h1>
+      <p>Designer and engineer of interfaces. This vault holds his operations on record, a profile of the subject, and a secure line to reach him.</p>
+    </div>
+    <div class="readout" aria-label="Vault summary">
+      <div><span class="etch">Files</span><span class="v" id="countFiles">09</span></div>
+      <div><span class="etch">Annexes</span><span class="v sig" id="countAnnex">03</span></div>
+      <div><span class="etch">Amended</span><span class="v mono" id="amended" style="font-size:16px;font-family:var(--f-mono)"></span></div>
+    </div>
+  </section>
+
+  <nav class="bays" role="tablist" aria-label="Vault bays">
+    <button class="bay" role="tab" id="t-files" aria-controls="p-files" aria-selected="true"><span><span class="k">BAY A</span><span class="n">Case files</span></span><span class="c" id="bayCount">09</span></button>
+    <button class="bay" role="tab" id="t-subject" aria-controls="p-subject" aria-selected="false"><span><span class="k">BAY B</span><span class="n">Subject profile</span></span><span class="c">01</span></button>
+    <button class="bay" role="tab" id="t-contact" aria-controls="p-contact" aria-selected="false"><span><span class="k">BAY C</span><span class="n">Secure uplink</span></span><span class="c">03</span></button>
+  </nav>
+
+  <main>
+    <!-- CASE FILES -->
+    <section class="panel" id="p-files" role="tabpanel" aria-labelledby="t-files">
+      <div class="section-head">
+        <div><span class="etch">Bay A · operations on record</span><h2>Case files</h2></div>
+        <div class="filters" role="group" aria-label="Filter files">
+          <button class="filter" type="button" data-f="all" aria-pressed="true">All</button>
+          <button class="filter" type="button" data-f="XR" aria-pressed="false">XR &amp; gesture</button>
+          <button class="filter" type="button" data-f="Research" aria-pressed="false">Tools</button>
+          <button class="filter" type="button" data-f="Client" aria-pressed="false">Client</button>
+          <button class="filter" type="button" data-f="Engineering" aria-pressed="false">Engineering</button>
+        </div>
+      </div>
+      <div class="files" id="fileGrid"></div>
+    </section>
+
+    <!-- SUBJECT -->
+    <section class="panel" id="p-subject" role="tabpanel" aria-labelledby="t-subject" hidden>
+      <div class="section-head">
+        <div><span class="etch">Bay B · eyes only</span><h2>Subject profile</h2></div>
+        <span class="chip ok"><span class="led"></span>Identity confirmed</span>
+      </div>
+      <div class="subject">
+        <figure class="plate screws bio" style="margin:0">
+          <div class="photo"><img src="subject.jpg" width="598" height="800" alt="Portrait of Siddharth Agarwal in a wool greatcoat, looking off to the left"></div>
+          <figcaption class="cap"><span class="etch">Subj. SA-26</span><span class="etch">Photo ref. 1/1</span></figcaption>
+        </figure>
+        <div class="plate screws records">
+          <dl class="fields">
+            <div><dt class="etch">Name</dt><dd>Siddharth Agarwal</dd></div>
+            <div><dt class="etch">Codename</dt><dd>ENCLAVE</dd></div>
+            <div><dt class="etch">Cover</dt><dd>Founder, Enclave Labs (formerly Enclave Studios)</dd></div>
+            <div><dt class="etch">Current post</dt><dd>Graduate student, University of Maryland, College Park</dd></div>
+            <div><dt class="etch">Trained at</dt><dd>University of Hong Kong, graduated May 2022</dd></div>
+            <div><dt class="etch">Specialty</dt><dd>Front-end engineering, UX and 3D interfaces</dd></div>
+            <div><dt class="etch">Objective</dt><dd>Human factors and HCI research on wearables and physical interfaces</dd></div>
+          </dl>
+          <h4>Field assessment</h4>
+          <p>Subject operates where engineering meets interface design. Has led a front-end unit of five-plus at a Layer 1 blockchain lab, shipped mobile apps to both app stores, and runs a studio building web, 3D web and app work for clients. Off-duty projects tend toward unusual input: hand-tracking desktops, exploded 3D watches, tools that lift live webpages into Figma. Considered approachable. Has published libraries to npm and formerly taught coding, Unity and Arduino robotics to students.</p>
+          <h4>Known equipment</h4>
+          <div class="tags">
+            <span class="chip">React</span><span class="chip">Next.js</span><span class="chip">TypeScript</span><span class="chip">React Native / Expo</span><span class="chip">three.js</span><span class="chip">Webflow</span><span class="chip">Node / Express</span><span class="chip">GraphQL</span><span class="chip">Docker / AWS</span><span class="chip">Figma plugins</span><span class="chip">Chrome extensions</span><span class="chip">Java Spring Boot</span>
+          </div>
+          <h4>Movements</h4>
+          <ol class="timeline">
+            <li><time class="fyear">1999</time><span>Subject born. This file is opened the same day.</span></li>
+            <li><time>2022</time><span>Graduates, University of Hong Kong.</span></li>
+            <li><time>PRIOR</time><span>Lead Front-end Engineer, ParallelChain Lab. Builds explorer, wallet and developer tools.</span></li>
+            <li><time>PRIOR</time><span>Mobile and CMS work for ROJU, an online jump rope platform.</span></li>
+            <li><time>ACTIVE</time><span>Runs Enclave Labs. Clients include a luxury watch boutique, a Hong Kong gym and a real estate firm.</span></li>
+            <li class="now"><time>2026</time><span>Enters a master's programme at UMD, with a focus on HCI research.</span></li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section class="panel" id="p-contact" role="tabpanel" aria-labelledby="t-contact" hidden>
+      <div class="section-head">
+        <div><span class="etch">Bay C · channels verified by Alpha 5</span><h2>Secure uplink</h2></div>
+      </div>
+      <div class="contact">
+        <form class="plate screws uplink" id="cable" novalidate>
+          <div class="row2">
+            <div class="field"><label for="c-from">From</label><input id="c-from" placeholder="Your name or agency" autocomplete="name"></div>
+            <div class="field"><label for="c-reply">Reply via</label><input id="c-reply" type="email" placeholder="you@example.com" autocomplete="email"></div>
+          </div>
+          <div class="field"><label for="c-op">Operation</label>
+            <select id="c-op">
+              <option>Web design</option><option>3D web design</option><option>Web or app development</option>
+              <option>Workflow automation</option><option>Research collaboration</option><option>Hiring / internship</option><option>Something else</option>
+            </select></div>
+          <div class="field"><label for="c-msg">Message</label><textarea id="c-msg" placeholder="State your business, agent."></textarea></div>
+          <div class="foot">
+            <span class="err" id="c-err" role="alert"></span>
+            <button class="btn sig" type="submit">Encode transmission</button>
+          </div>
+          <div id="enc-wrap" hidden>
+            <div class="enc" id="enc"></div>
+            <div class="foot" style="margin-top:12px">
+              <span class="note">Transmission encoded. Copy it and send it to the address on the right.</span>
+              <button class="btn" type="button" id="copyCable">Copy transmission</button>
+            </div>
+          </div>
+        </form>
+        <div class="channels">
+          <div class="plate chan">
+            <span class="etch">Dead drop · email</span>
+            <div class="val">hello@enclave-studios.com</div>
+            <div class="act"><button class="btn" type="button" data-copy="hello@enclave-studios.com">Copy address</button><a class="btn" href="mailto:hello@enclave-studios.com">Open mail</a></div>
+          </div>
+          <div class="plate chan">
+            <span class="etch">Open channel · LinkedIn</span>
+            <div class="val">in/siddharthagarwal2608</div>
+            <div class="act"><a class="btn" href="https://www.linkedin.com/in/siddharthagarwal2608/" target="_blank" rel="noopener">Open profile ↗</a></div>
+          </div>
+          <div class="plate chan">
+            <span class="etch">Station</span>
+            <div class="val" style="user-select:text">College Park, Maryland · EST</div>
+          </div>
+          <p class="note">This page does not transmit anything itself. Encoding formats your message so you can paste it into an email.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="sig">
+    <span class="etch">Declassified for public viewing by order of the subject</span>
+    <span class="etch">Alpha 5 · press "/" to address</span>
+  </footer>
+</div>
+
+<!-- file viewer -->
+<div class="viewer" id="viewer" hidden>
+  <article class="panel-x vx" id="vx" role="dialog" aria-modal="true" aria-labelledby="vxTitle"></article>
+</div>
+
+<!-- ALPHA 5 HUD -->
+<aside id="dock" aria-label="Alpha 5 terminal">
+  <header><span><span class="led pulse"></span>Alpha 5 · line secure</span><button type="button" id="dockMin" aria-label="Minimise terminal">[ – ]</button></header>
+  <div class="out" id="dockOut" aria-live="polite"></div>
+  <form id="dockForm" autocomplete="off"><span>&gt;</span><label for="dockIn" class="sr-only">Command</label><input id="dockIn" placeholder="type HELP" spellcheck="false"></form>
+</aside>
+
+
+<script src="script.js" defer></script>
+</body>
+</html>

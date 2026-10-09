@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>SA-26 Records</title>
+  <meta name="description" content="Siddharth Agarwal's portfolio: a 1990s records terminal with a live subject feed, a station globe, nine operations, a subject profile and a secure uplink.">
+  <meta name="theme-color" content="#070a08">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Arimo:wght@400;700&family=VT323&family=Architects+Daughter&family=Reenie+Beanie&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<!-- ============ BOOT ============ -->
+<div id="boot" role="dialog" aria-label="Alpha 5 terminal">
+  <div class="log" id="bootlog" aria-live="polite"></div>
+  <form id="bootform" hidden autocomplete="off">
+    <span>&gt;</span><label for="codename" class="dim" style="position:absolute;left:-9999px">Codename</label>
+    <input id="codename" maxlength="24" placeholder="ENTER CODENAME" spellcheck="false">
+  </form>
+  <div class="actions" id="bootactions" hidden>
+    <button class="btn-crt" id="openBtn" type="button">[ OPEN DOSSIER ]</button>
+  </div>
+</div>
+<button id="skip" type="button">SKIP ›</button>
+
+<header class="menubar">
+  <a class="brand" href="#record"><span class="brand-mark" aria-hidden="true">SA</span><span>DII RECORDS <span class="dim">v5.0</span></span></a>
+  <nav class="menu" aria-label="Sections">
+    <a class="bevel" href="#record">RECORD</a>
+    <a class="bevel" href="#operations">OPERATIONS</a>
+    <a class="bevel" href="#profile">PROFILE</a>
+    <a class="bevel" href="#uplink">UPLINK</a>
+  </nav>
+  <div class="status crt"><span id="clr">AGENT —</span><span class="sep" aria-hidden="true">|</span><span>EST <span id="clock">--:--</span></span></div>
+</header>
+
+<main class="wrap">
+  <section class="masthead" id="record">
+    <div>
+      <div class="kicker">SA-26 · PERSONNEL RECORD · FILE OPENED <span id="opened"></span></div>
+      <h1>Siddharth Agarwal</h1>
+    </div>
+    <p>Designer and engineer of interfaces. Move the pointer and the subject turns to follow. Switch to Location, drag the globe, and select a station for its mission brief.</p>
+  </section>
+
+  <section class="window" aria-label="Personnel record">
+    <div class="titlebar"><b>DIRECTORATE OF INTERFACE INTELLIGENCE ▪ <span id="feedName">LIVE FEED</span></b><span class="winbtns" aria-hidden="true"><i></i><i></i><i></i></span></div>
+    <div class="window-body">
+      <div class="feed" id="feed" tabindex="0" aria-describedby="feedHelp">
+        <span id="feedHelp" class="sr-only">Use the arrow keys to turn the subject or rotate the globe.</span>
+
+        <div class="view" id="viewSubject">
+          <div class="ruler" aria-hidden="true"><span class="mark">6'2"</span><span style="top:calc(26.5% - 1.1em)">6'</span><span class="half" style="top:calc(57.7% - 1.1em)">5'6"</span><span style="top:calc(88.9% - 1.1em)">5'</span></div>
+          <div class="sprite" id="sprite" role="img" aria-label="Siddharth Agarwal in dark operative clothing, looking away; his head turns to follow the pointer"></div>
+          <div class="facebox" id="facebox" aria-hidden="true"></div>
+          <span class="facetag" id="facetag" aria-hidden="true">MATCH 99.7%</span>
+        </div>
+
+        <div class="view" id="viewMap" hidden>
+          <canvas class="globe" id="globe" role="img" aria-label="Dot-matrix globe with three stations: College Park, Hong Kong and New Delhi. Drag to rotate; select a station for its mission brief."></canvas>
+          <div class="stations" role="group" aria-label="Stations">
+            <span class="tag">STATIONS</span>
+            <button type="button" data-station="cp" aria-pressed="true">COLLEGE PARK</button>
+            <button type="button" data-station="hk" aria-pressed="false">HONG KONG</button>
+            <button type="button" data-station="nd" aria-pressed="false">NEW DELHI</button>
+          </div>
+        </div>
+
+        <div class="seg" role="group" aria-label="Feed view">
+          <button type="button" id="btnSubject" aria-pressed="true">SUBJECT</button>
+          <button type="button" id="btnMap" aria-pressed="false">LOCATION</button>
+        </div>
+        <span class="cam" aria-hidden="true"><i></i><span id="camLabel">REC CAM 02</span></span>
+        <span class="readout" id="readout" aria-live="polite">MOVE POINTER TO TRACK</span>
+      </div>
+
+      <div class="record">
+        <div class="row head"><span>PERSONNEL RECORD</span><span class="hatch" aria-hidden="true"></span></div>
+        <div class="row name">SIDDHARTH AGARWAL</div>
+        <div class="row"><span class="k">CALLSIGN</span>ENCLAVE</div>
+        <div class="row"><span class="k">FILED</span><span class="filed"></span> · SA-26</div>
+        <div class="row"><span class="k">STATUS</span><span class="ok">ACTIVE</span></div>
+        <div class="row"><span class="k">HEIGHT</span>6'2" · 188 CM</div>
+        <div class="row"><span class="k">ROLE</span>DESIGNER / ENGINEER OF INTERFACES</div>
+        <div class="row"><span class="k">COVER</span>FOUNDER, ENCLAVE LABS</div>
+        <div class="row label" id="panelTitle">TRACKING</div>
+        <p class="panel-text" id="panelText"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="lower">
+    <div class="window stats" aria-label="Record summary">
+      <div class="stat"><span class="k">OPERATIONS</span><b class="crt" id="statOps">09</b></div>
+      <div class="stat"><span class="k">HCI ANNEXES</span><b class="crt" id="statAnnex">03</b></div>
+      <div class="stat"><span class="k">STATIONS</span><b class="crt">03</b></div>
+      <div class="stat"><span class="k">LAST AMENDED</span><b class="crt small" id="amended"></b></div>
+    </div>
+    <aside class="window log" aria-label="Main log">
+      <div class="bar">MAIN LOG</div>
+      <pre>FEED CAM 02 / 30 FPS
+SEGMENT=U2NET_HUMAN
+GEO=NE_110M / ORTHO
+NEURAL_OVERLAY=2036.r4
+&gt; <span id="logLine">AWAITING POINTER_</span></pre>
+    </aside>
+  </section>
+
+  <!-- ============ OPERATIONS ============ -->
+  <section class="window" id="operations" aria-labelledby="opsTitle">
+    <div class="titlebar"><b id="opsTitle">OPERATIONS HISTORY ▪ <span id="opsCount">09</span> FILES ON RECORD</b><span class="winbtns" aria-hidden="true"><i></i><i></i><i></i></span></div>
+    <div class="toolbar">
+      <span class="k">FILTER</span>
+      <div class="filters" role="group" aria-label="Filter operations">
+        <button type="button" class="bevel sm" data-f="all" aria-pressed="true">ALL</button>
+        <button type="button" class="bevel sm" data-f="XR" aria-pressed="false">XR &amp; GESTURE</button>
+        <button type="button" class="bevel sm" data-f="Research" aria-pressed="false">TOOLS</button>
+        <button type="button" class="bevel sm" data-f="Client" aria-pressed="false">CLIENT</button>
+        <button type="button" class="bevel sm" data-f="Engineering" aria-pressed="false">ENGINEERING</button>
+      </div>
+    </div>
+    <div class="ops-head" aria-hidden="true"><span>CODE</span><span>OPERATION</span><span>CATEGORY</span><span>STATUS</span><span>CLASS</span></div>
+    <div id="opsList" class="ops-list"></div>
+    <p class="hint crt">&gt; SELECT A FILE TO UNSEAL IT_</p>
+  </section>
+
+  <!-- ============ PROFILE ============ -->
+  <section class="window" id="profile" aria-labelledby="profTitle">
+    <div class="titlebar"><b id="profTitle">SUBJECT PROFILE ▪ EYES ONLY</b><span class="winbtns" aria-hidden="true"><i></i><i></i><i></i></span></div>
+    <div class="profile">
+      <dl class="fields">
+        <div><dt>NAME</dt><dd>Siddharth Agarwal</dd></div>
+        <div><dt>CODENAME</dt><dd>ENCLAVE</dd></div>
+        <div><dt>HEIGHT</dt><dd>6'2" (188 cm)</dd></div>
+        <div><dt>COVER</dt><dd>Founder, Enclave Labs (formerly Enclave Studios)</dd></div>
+        <div><dt>CURRENT POST</dt><dd>Graduate student, University of Maryland, College Park</dd></div>
+        <div><dt>TRAINED AT</dt><dd>University of Hong Kong, graduated May 2022</dd></div>
+        <div><dt>SPECIALTY</dt><dd>Front-end engineering, UX and 3D interfaces</dd></div>
+        <div class="wide"><dt>OBJECTIVE</dt><dd>Human factors and HCI research on wearables and physical interfaces</dd></div>
+      </dl>
+      <div class="prof-body">
+        <h3>FIELD ASSESSMENT</h3>
+        <p>Subject operates where engineering meets interface design. Has led a front-end unit of five-plus at a Layer 1 blockchain lab, shipped mobile apps to both app stores, and runs a studio building web, 3D web and app work for clients. Off-duty projects tend toward unusual input: hand-tracking desktops, exploded 3D watches, tools that lift live webpages into Figma. Considered approachable. Has published libraries to npm and formerly taught coding, Unity and Arduino robotics to students.</p>
+        <h3>KNOWN EQUIPMENT</h3>
+        <ul class="tags">
+          <li>React</li><li>Next.js</li><li>TypeScript</li><li>React Native / Expo</li><li>three.js</li><li>Webflow</li><li>Node / Express</li><li>GraphQL</li><li>Docker / AWS</li><li>Figma plugins</li><li>Chrome extensions</li><li>Java Spring Boot</li>
+        </ul>
+        <h3>MOVEMENTS</h3>
+        <ol class="timeline">
+          <li><time class="fyear">1999</time><span>Subject born. This file is opened the same day.</span></li>
+          <li><time>2022</time><span>Graduates, University of Hong Kong.</span></li>
+          <li><time>PRIOR</time><span>Lead Front-end Engineer, ParallelChain Lab. Builds explorer, wallet and developer tools.</span></li>
+          <li><time>PRIOR</time><span>Mobile and CMS work for ROJU, an online jump rope platform.</span></li>
+          <li><time>ACTIVE</time><span>Runs Enclave Labs. Clients include a luxury watch boutique, a Hong Kong gym and a real estate firm.</span></li>
+          <li class="now"><time>2026</time><span>Enters a master's programme at UMD, with a focus on HCI research.</span></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ UPLINK ============ -->
+  <section class="window" id="uplink" aria-labelledby="upTitle">
+    <div class="titlebar"><b id="upTitle">SECURE UPLINK ▪ CHANNELS VERIFIED BY ALPHA 5</b><span class="winbtns" aria-hidden="true"><i></i><i></i><i></i></span></div>
+    <div class="uplink">
+      <form id="cable" novalidate>
+        <div class="row2">
+          <div class="field"><label for="c-from">FROM</label><input id="c-from" placeholder="Your name or agency" autocomplete="name"></div>
+          <div class="field"><label for="c-reply">REPLY VIA</label><input id="c-reply" type="email" placeholder="you@example.com" autocomplete="email"></div>
+        </div>
+        <div class="field"><label for="c-op">OPERATION</label>
+          <select id="c-op"><option>Web design</option><option>3D web design</option><option>Web or app development</option><option>Workflow automation</option><option>Research collaboration</option><option>Hiring / internship</option><option>Something else</option></select></div>
+        <div class="field"><label for="c-msg">MESSAGE</label><textarea id="c-msg" placeholder="State your business, agent."></textarea></div>
+        <div class="form-foot"><span class="err" id="c-err" role="alert"></span><button class="bevel" type="submit">Encode Transmission</button></div>
+        <div id="enc-wrap" hidden>
+          <pre class="enc" id="enc"></pre>
+          <div class="form-foot"><span class="muted">Transmission encoded. Copy it and send it to the dead drop.</span><button class="bevel" type="button" id="copyCable">Copy Transmission</button></div>
+        </div>
+      </form>
+      <div class="channels">
+        <div class="chan"><span class="k">DEAD DROP · EMAIL</span><span class="val">hello@enclave-studios.com</span>
+          <div class="act"><button class="bevel sm" type="button" data-copy="hello@enclave-studios.com">Copy Address</button><a class="bevel sm" href="mailto:hello@enclave-studios.com">Open Mail</a></div></div>
+        <div class="chan"><span class="k">OPEN CHANNEL · LINKEDIN</span><span class="val">in/siddharthagarwal2608</span>
+          <div class="act"><a class="bevel sm" href="https://www.linkedin.com/in/siddharthagarwal2608/" target="_blank" rel="noopener">Open Profile ↗</a></div></div>
+        <div class="chan"><span class="k">STATION</span><span class="val">College Park, Maryland · EST</span></div>
+        <p class="muted">This page does not transmit anything itself. Encoding formats your message so you can paste it into an email.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot-note"><span>DECLASSIFIED FOR PUBLIC VIEWING BY ORDER OF THE SUBJECT</span><span>ALPHA 5 TERMINAL · PRESS "/" TO ADDRESS</span></footer>
+</main>
+
+<!-- file viewer -->
+<div class="viewer" id="viewer" hidden>
+  <div class="window viewer-win" role="dialog" aria-modal="true" aria-labelledby="vxTitle">
+    <div class="titlebar"><b id="vxBar">FILE</b><button type="button" class="bevel sm close" id="closeVx" aria-label="Close file">✕</button></div>
+    <article class="vx" id="vx"></article>
+  </div>
+</div>
+
+<!-- intel image viewer -->
+<div class="lightbox" id="lightbox" hidden role="dialog" aria-modal="true" aria-label="Intel image">
+  <figure class="window lb-win">
+    <div class="titlebar"><b>INTEL ▪ IMAGE</b><button type="button" class="bevel sm close" id="lbClose" aria-label="Close image">✕</button></div>
+    <img id="lbImg" alt="">
+    <figcaption id="lbCap" class="crt"></figcaption>
+  </figure>
+</div>
+
+<!-- Alpha 5 terminal -->
+<aside id="dock" aria-label="Alpha 5 terminal">
+  <div class="dock-bar"><span><i class="led"></i>ALPHA 5 · LINE SECURE</span><button type="button" id="dockMin" aria-label="Minimise terminal">[–]</button></div>
+  <div class="out" id="dockOut" aria-live="polite"></div>
+  <form id="dockForm" autocomplete="off"><span aria-hidden="true">&gt;</span><label for="dockIn" class="sr-only">Command</label><input id="dockIn" placeholder="type HELP" spellcheck="false"></form>
+</aside>
+
+<script src="script.js" defer></script>
+</body>
+</html>

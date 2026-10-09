@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Dossier SA-26</title>
+  <meta name="description" content="Siddharth Agarwal's portfolio, presented as a Cold War top-secret dossier.">
+  <meta name="theme-color" content="#16170f">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Reenie+Beanie&family=VT323&family=Courier+Prime:wght@400;700&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <filter id="ink" x="-2%" y="-10%" width="104%" height="120%">
+    <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="4" result="n"/>
+    <feDisplacementMap in="SourceGraphic" in2="n" scale="1.8" xChannelSelector="R" yChannelSelector="G" result="d"/>
+    <feTurbulence type="fractalNoise" baseFrequency=".06" numOctaves="2" seed="9" result="fade"/>
+    <feColorMatrix in="fade" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.3 1.55" result="fm"/>
+    <feComposite in="d" in2="fm" operator="in"/>
+  </filter>
+  <filter id="wear" x="-5%" y="-10%" width="110%" height="120%">
+    <feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="2" result="t"/>
+    <feColorMatrix in="t" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -2.6 1.75" result="m"/>
+    <feDisplacementMap in="SourceGraphic" in2="t" scale="2.5" xChannelSelector="R" yChannelSelector="G" result="d"/>
+    <feComposite in="d" in2="m" operator="in"/>
+  </filter>
+</svg>
+
+<!-- ============ BOOT ============ -->
+<div id="boot" role="dialog" aria-label="Alpha 5 terminal">
+  <div class="log" id="bootlog" aria-live="polite"></div>
+  <form id="bootform" hidden autocomplete="off">
+    <span>&gt;</span><label for="codename" class="dim" style="position:absolute;left:-9999px">Codename</label>
+    <input id="codename" maxlength="24" placeholder="ENTER CODENAME" spellcheck="false">
+  </form>
+  <div class="actions" id="bootactions" hidden>
+    <button class="btn-crt" id="openBtn" type="button">[ OPEN DOSSIER ]</button>
+  </div>
+</div>
+<button id="skip" type="button">SKIP ›</button>
+
+<!-- ============ DESK ============ -->
+<div class="wrap">
+  <header class="masthead">
+    <div>
+      <div class="agency">Directorate of Interface Intelligence · Field Office College Park</div>
+      <h1 class="inked">Dossier SA-26</h1>
+    </div>
+    <div class="meta">
+      FILE OPENED <span id="opened"></span><br>
+      LAST AMENDED <span id="amended"></span><br>
+      CLEARANCE: <span id="clr">VISITOR</span><br>
+      COPY 1 OF 1 · DO NOT REMOVE
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Dossier sections">
+    <button class="tab" role="tab" id="t-files" aria-controls="p-files" aria-selected="true"><span class="no">I</span><span class="lbl">Case Files</span></button>
+    <button class="tab" role="tab" id="t-subject" aria-controls="p-subject" aria-selected="false"><span class="no">II</span><span class="lbl">Subject Profile</span></button>
+    <button class="tab" role="tab" id="t-contact" aria-controls="p-contact" aria-selected="false"><span class="no">III</span><span class="lbl">Establish Contact</span></button>
+  </nav>
+
+  <main class="folder">
+    <span class="stamp top">Top Secret</span>
+    <span class="stamp datestamp" aria-label="Received stamp">RECEIVED<br><span class="fdate-short"></span><br>REGISTRY · 4</span>
+
+    <!-- CASE FILES -->
+    <section class="panel" id="p-files" role="tabpanel" aria-labelledby="t-files">
+      <div class="panel-head">
+        <h2 class="inked">Operations on Record</h2>
+        <span class="pen">opened the day he was born. keep watching. —M.</span>
+        <span class="ref">9 FILES · OPEN ANY TO DECLASSIFY</span>
+      </div>
+      <div class="files" id="fileGrid"></div>
+    </section>
+
+    <!-- SUBJECT -->
+    <section class="panel" id="p-subject" role="tabpanel" aria-labelledby="t-subject" hidden>
+      <div class="panel-head">
+        <h2 class="inked">Subject Profile</h2>
+        <span class="ref">REF. SA-26/PERS · EYES ONLY</span>
+      </div>
+      <div class="profile">
+        <figure class="mug" style="margin:0">
+          <img src="subject.jpg" width="598" height="800" alt="Sepia portrait of Siddharth Agarwal in a wool greatcoat, looking off to the left">
+          <figcaption class="cap"><span>SUBJ. SA-26</span><span>PHOTO REF. 1 OF 1</span></figcaption>
+        </figure>
+        <div class="record inked">
+          <dl>
+            <dt>Name</dt><dd>Siddharth Agarwal</dd>
+            <dt>Codename</dt><dd>ENCLAVE</dd>
+            <dt>Cover</dt><dd>Founder, Enclave Labs (formerly Enclave Studios)</dd>
+            <dt>Current post</dt><dd>Graduate student, University of Maryland, College Park</dd>
+            <dt>Trained at</dt><dd>University of Hong Kong, graduated May 2022</dd>
+            <dt>Specialty</dt><dd>Front-end engineering, UX and 3D interfaces</dd>
+            <dt>Objective</dt><dd>Human factors and HCI research on wearables and physical interfaces</dd>
+          </dl>
+
+          <h4>Field assessment</h4>
+          <p>Subject operates where engineering meets interface design. Has led a front-end unit of five-plus at a Layer 1 blockchain lab, shipped mobile apps to both app stores, and runs a studio building web, 3D web and app work for clients. Off-duty projects tend toward unusual input: hand-tracking desktops, exploded 3D watches, tools that lift live webpages into Figma. Considered approachable. Has published libraries to npm and formerly taught coding, Unity and Arduino robotics to students.</p>
+
+          <h4>Known equipment</h4>
+          <div class="skills">
+            <span>React</span><span>Next.js</span><span>TypeScript</span><span>React Native / Expo</span><span>three.js</span><span>Webflow</span><span>Node / Express</span><span>GraphQL</span><span>Docker / AWS</span><span>Figma plugins</span><span>Chrome extensions</span><span>Java Spring Boot</span>
+          </div>
+
+          <h4>Movements</h4>
+          <ol class="timeline">
+            <li><time class="fyear">1999</time><span>Subject born. This file is opened the same day.</span></li>
+            <li><time>2022</time><span>Graduates, University of Hong Kong.</span></li>
+            <li><time>PRIOR</time><span>Lead Front-end Engineer, ParallelChain Lab. Builds explorer, wallet and developer tools.</span></li>
+            <li><time>PRIOR</time><span>Mobile and CMS work for ROJU, an online jump rope platform.</span></li>
+            <li><time>ACTIVE</time><span>Runs Enclave Labs. Clients include a luxury watch boutique, a Hong Kong gym and a real estate firm.</span></li>
+            <li><time>2026</time><span>Enters a master's programme at UMD, with a focus on HCI research.</span></li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section class="panel" id="p-contact" role="tabpanel" aria-labelledby="t-contact" hidden>
+      <div class="panel-head">
+        <h2 class="inked">Establish Contact</h2>
+        <span class="ref">CHANNELS VERIFIED BY ALPHA 5</span>
+      </div>
+      <div class="contact">
+        <form class="cable" id="cable" novalidate>
+          <div class="row"><label for="c-from">From</label><input id="c-from" placeholder="Your name or agency" autocomplete="name"></div>
+          <div class="row"><label for="c-reply">Reply via</label><input id="c-reply" type="email" placeholder="you@example.com" autocomplete="email"></div>
+          <div class="row"><label for="c-op">Operation</label>
+            <select id="c-op">
+              <option>Web design</option><option>3D web design</option><option>Web or app development</option>
+              <option>Workflow automation</option><option>Research collaboration</option><option>Hiring / internship</option><option>Something else</option>
+            </select></div>
+          <div class="row" style="grid-template-columns:1fr"><label for="c-msg">Message</label><textarea id="c-msg" placeholder="State your business, agent."></textarea></div>
+          <div class="foot">
+            <span class="err" id="c-err" role="alert"></span>
+            <button class="btn-ink" type="submit">Encode cable</button>
+          </div>
+          <div id="enc-wrap" hidden>
+            <div class="enc" id="enc"></div>
+            <div class="foot">
+              <span class="note">Cable is ready. Copy it and send to the address on the right.</span>
+              <button class="btn-ink" type="button" id="copyCable">Copy cable</button>
+            </div>
+          </div>
+        </form>
+
+        <div class="channels">
+          <div class="chan">
+            <h4>Dead drop · email</h4>
+            <div class="val" id="mailVal">hello@enclave-studios.com</div>
+            <div class="act">
+              <button type="button" data-copy="hello@enclave-studios.com">Copy address</button>
+              <a href="mailto:hello@enclave-studios.com">Open mail</a>
+            </div>
+          </div>
+          <div class="chan">
+            <h4>Open channel · LinkedIn</h4>
+            <div class="val">in/siddharthagarwal2608</div>
+            <div class="act"><a href="https://www.linkedin.com/in/siddharthagarwal2608/" target="_blank" rel="noopener">Open profile ↗</a></div>
+          </div>
+          <div class="chan">
+            <h4>Station</h4>
+            <div class="val" style="user-select:text">College Park, Maryland · EST</div>
+          </div>
+          <p class="note">This page does not transmit anything itself. Encoding a cable formats your message so you can paste it into an email.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<footer class="sig">
+  <span>DECLASSIFIED FOR PUBLIC VIEWING BY ORDER OF THE SUBJECT</span>
+  <span>ALPHA 5 TERMINAL v5.0 · PRESS "/" TO ADDRESS</span>
+</footer>
+
+<!-- open file -->
+<div class="sheet-back" id="sheetBack" hidden>
+  <article class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle"></article>
+</div>
+
+<!-- ALPHA 5 DOCK -->
+<aside id="dock" aria-label="Alpha 5 terminal">
+  <header><span><span class="led"></span>ALPHA 5 · LINE SECURE</span><button type="button" id="dockMin" aria-label="Minimise terminal">[–]</button></header>
+  <div class="out" id="dockOut" aria-live="polite"></div>
+  <form id="dockForm" autocomplete="off"><span>&gt;</span><label for="dockIn" style="position:absolute;left:-9999px">Command</label><input id="dockIn" placeholder="type HELP" spellcheck="false"></form>
+</aside>
+
+<script src="script.js" defer></script>
+</body>
+</html>
