@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
 /* =========================================================
    Third Axis — one live 3D scene behind the whole page.
@@ -11,7 +12,7 @@ const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').match
 
 const COLORS = {
   fog: new THREE.Color('#E4E5EA'),
-  ink: new THREE.Color('#1C1B22'),
+  ink: new THREE.Color('#0B0B0E'),
   violet: '#4B36E0',
   signal: '#F5B83D',
   chalk: '#EDEAE4',
@@ -52,6 +53,10 @@ key.shadow.bias = -0.0008;
 key.shadow.normalBias = 0.03;
 scene.add(key);
 scene.add(key.target);
+// Rim lights: in the dark studio these carve the product's edges out of black
+const rimL = new THREE.DirectionalLight(0xdfe6ff, 2.2); rimL.position.set(-5, 2.5, -4); scene.add(rimL);
+const rimR = new THREE.DirectionalLight(0xffffff, 1.6); rimR.position.set(5, 1, -3.5); scene.add(rimR);
+const topRim = new THREE.DirectionalLight(0xffffff, 0.8); topRim.position.set(0, 6, -2); scene.add(topRim);
 
 /* Stage: everything that moves together sits on `stage`, offset to the free side of the screen */
 const stage = new THREE.Group();
@@ -117,86 +122,262 @@ function applyVisibility(group, v) {
 }
 
 /* =========================================================
-   Subject 1 — the vase (product viewer + exploded view)
+   Subject 1 — Enclave Labs E1, a concept action camera
+   Built from separate parts so it can come apart on scroll.
    ========================================================= */
-const vase = makeSubject('vase');
-const vaseMat = new THREE.MeshPhysicalMaterial({
-  color: COLORS.celadon, roughness: 0.32, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.18, side: THREE.DoubleSide,
-});
-const MATERIALS = {
-  celadon: { color: COLORS.celadon, roughness: 0.32, metalness: 0, clearcoat: 1 },
-  brass:   { color: COLORS.brass,   roughness: 0.26, metalness: 1, clearcoat: 0.2 },
-  ink:     { color: COLORS.inkObj,  roughness: 0.62, metalness: 0, clearcoat: 0.4 },
-  chalk:   { color: COLORS.chalk,   roughness: 0.88, metalness: 0, clearcoat: 0 },
+const product = makeSubject('product');
+const ENCLAVE_ORANGE = '#FB4F29';
+const COLORWAYS = {
+  graphite: { color: '#62656E', metalness: 0.6, roughness: 0.36 },
+  ember:    { color: ENCLAVE_ORANGE, metalness: 0.12, roughness: 0.46 },
+  arctic:   { color: '#E6E6E9', metalness: 0.05, roughness: 0.48 },
+  sand:     { color: '#B9A684', metalness: 0.25, roughness: 0.5 },
 };
-let matTarget = { ...MATERIALS.celadon, color: new THREE.Color(MATERIALS.celadon.color) };
+let matTarget = { ...COLORWAYS.graphite, color: new THREE.Color(COLORWAYS.graphite.color) };
 
-const profileCurve = new THREE.SplineCurve([
-  new THREE.Vector2(0.001, 0),
-  new THREE.Vector2(0.5, 0.0),
-  new THREE.Vector2(0.72, 0.28),
-  new THREE.Vector2(0.92, 0.8),
-  new THREE.Vector2(0.88, 1.3),
-  new THREE.Vector2(0.62, 1.75),
-  new THREE.Vector2(0.38, 2.12),
-  new THREE.Vector2(0.36, 2.42),
-  new THREE.Vector2(0.48, 2.7),
-]);
-const profile = profileCurve.getPoints(160);
-const VASE_H = 2.7;
-const SLICES = 6;
-const vaseSlices = [];
-const wireMat = new THREE.MeshBasicMaterial({ color: COLORS.violet, wireframe: true, transparent: true, opacity: 0 });
-wireMat.userData.alwaysTransparent = true;
-wireMat.userData.baseOpacity = 0; // driven separately by explode amount
+const bodyMat = new THREE.MeshPhysicalMaterial({
+  color: COLORWAYS.graphite.color, metalness: 0.6, roughness: 0.36, clearcoat: 0.35, clearcoatRoughness: 0.35,
+});
+const mk = (color, o = {}) => new THREE.MeshStandardMaterial({ color, roughness: 0.5, ...o });
+const rubberMat = mk('#141418', { roughness: 0.82 });
+const accentMat = mk(ENCLAVE_ORANGE, { roughness: 0.38 });
+const glassMat = new THREE.MeshPhysicalMaterial({ color: '#05060A', metalness: 0.2, roughness: 0.04, clearcoat: 1, clearcoatRoughness: 0.02 });
+const coatMat = mk('#1C2A4A', { metalness: 0.9, roughness: 0.14 });
+const coverMat = new THREE.MeshPhysicalMaterial({ color: '#ffffff', metalness: 0, roughness: 0.02, clearcoat: 1, transparent: true, opacity: 0.16 });
+const pcbMat = mk('#123026', { roughness: 0.6 });
+const chipMat = mk('#17171B', { roughness: 0.35, metalness: 0.3 });
+const goldMat = mk('#C9A44C', { metalness: 1, roughness: 0.3 });
+const cellMat = mk('#1E1F25', { roughness: 0.55 });
+const ledMat = new THREE.MeshStandardMaterial({ color: ENCLAVE_ORANGE, emissive: ENCLAVE_ORANGE, emissiveIntensity: 2 });
+// Names carry through to Blender / glTF exports
+Object.entries({ bodyMat: 'E1 Body Anodised', rubberMat: 'E1 Rubber Black', accentMat: 'E1 Enclave Orange', glassMat: 'E1 Lens Glass',
+  coatMat: 'E1 Lens Coating', coverMat: 'E1 Cover Glass', pcbMat: 'E1 PCB', chipMat: 'E1 Chip', goldMat: 'E1 Gold Contacts',
+  cellMat: 'E1 Battery Cell', ledMat: 'E1 Status LED' }).forEach(([k, n]) => { ({ bodyMat, rubberMat, accentMat, glassMat, coatMat, coverMat, pcbMat, chipMat, goldMat, cellMat, ledMat })[k].name = n; });
 
-function profileX(y) {
-  for (let i = 1; i < profile.length; i++) {
-    const a = profile[i - 1], b = profile[i];
-    if ((y >= a.y && y <= b.y) || (y <= a.y && y >= b.y)) {
-      const t = (y - a.y) / ((b.y - a.y) || 1);
-      return lerp(a.x, b.x, t);
+/* Small canvas textures for printed graphics */
+const textTextures = [];
+function canvasTex(w, h, draw) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
+  const redraw = () => { const g = c.getContext('2d'); g.clearRect(0, 0, w, h); draw(g, w, h); tex.needsUpdate = true; };
+  redraw(); textTextures.push(redraw);
+  return tex;
+}
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => textTextures.forEach(r => r()));
+const DISPLAY_FONT = '"Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif';
+const BODY_FONT = '"IBM Plex Sans", "Helvetica Neue", Arial, sans-serif';
+
+const topDisplayTex = canvasTex(512, 240, (g, w, h) => {
+  g.fillStyle = '#07080A'; g.fillRect(0, 0, w, h);
+  g.fillStyle = ENCLAVE_ORANGE; g.beginPath(); g.arc(46, 52, 14, 0, Math.PI * 2); g.fill();
+  g.fillStyle = '#F2F2F4'; g.font = `600 40px ${BODY_FONT}`; g.fillText('REC', 74, 66);
+  g.font = `700 92px ${DISPLAY_FONT}`; g.fillText('01:12:04', 30, 170);
+  g.font = `500 34px ${BODY_FONT}`; g.fillStyle = '#9B9CA6'; g.fillText('4K 60  ·  WIDE', 30, 220);
+  g.strokeStyle = '#F2F2F4'; g.lineWidth = 4; g.strokeRect(400, 34, 76, 36); g.fillStyle = '#F2F2F4'; g.fillRect(406, 40, 50, 24); g.fillRect(478, 44, 6, 16);
+});
+const wordmarkTex = canvasTex(1024, 160, (g, w, h) => {
+  g.fillStyle = '#F2F2F4'; g.font = `600 92px ${DISPLAY_FONT}`; g.textAlign = 'center'; g.textBaseline = 'middle';
+  if ('letterSpacing' in g) g.letterSpacing = '18px';
+  g.fillText('ENCLAVE LABS', w / 2, h / 2 + 4);
+});
+const sideTex = canvasTex(512, 512, (g, w, h) => {
+  g.fillStyle = ENCLAVE_ORANGE; g.font = `800 300px ${DISPLAY_FONT}`; g.textBaseline = 'alphabetic';
+  g.fillText('E1', 44, 330);
+  g.fillStyle = '#F2F2F4'; g.font = `600 44px ${DISPLAY_FONT}`;
+  if ('letterSpacing' in g) g.letterSpacing = '6px';
+  g.fillText('ENCLAVE LABS', 52, 410);
+  g.fillStyle = 'rgba(242,242,244,.55)'; g.font = `500 32px ${BODY_FONT}`;
+  if ('letterSpacing' in g) g.letterSpacing = '2px';
+  g.fillText('Action camera', 52, 456);
+});
+const badgeTex = canvasTex(256, 256, (g, w, h) => {
+  g.fillStyle = ENCLAVE_ORANGE; g.beginPath(); g.arc(w / 2, h / 2, w / 2, 0, Math.PI * 2); g.fill();
+  g.fillStyle = '#F2F2F4'; g.font = `800 150px ${DISPLAY_FONT}`; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText('E', w / 2 + 4, h / 2 + 8);
+});
+const labelTex = canvasTex(512, 384, (g, w, h) => {
+  g.fillStyle = ENCLAVE_ORANGE; g.fillRect(0, 0, w, h);
+  g.fillStyle = '#141418'; g.font = `800 120px ${DISPLAY_FONT}`; g.fillText('E1', 34, 140);
+  g.font = `600 40px ${BODY_FONT}`; g.fillText('Li-ion battery', 38, 220);
+  g.font = `500 32px ${BODY_FONT}`; g.fillText('1800 mAh  ·  3.85 V', 38, 270);
+  g.fillRect(38, 310, 436, 4);
+});
+const printed = (tex, w, h) => new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshStandardMaterial({ map: tex, transparent: true, roughness: 0.6 }));
+
+/* Body dimensions: about the size of a mini action camera */
+const BW = 1.6, BH = 1.5, BD = 1.25;
+const parts = [];
+function part(name, ex) {
+  const g = new THREE.Group(); g.name = name;
+  g.userData.ex = new THREE.Vector3(...ex);
+  product.pivot.add(g); parts.push(g); return g;
+}
+
+// 1 · Front shell with top display, shutter, printed graphics
+const front = part('front shell', [0, 0, 1.6]);
+{
+  const d = 0.82;
+  const shell = new THREE.Mesh(new RoundedBoxGeometry(BW, BH, d, 5, 0.16), bodyMat);
+  shell.position.z = BD / 2 - d / 2; front.add(shell);
+  const bezel = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.012, 0.36), rubberMat); bezel.position.set(-0.27, BH / 2 + 0.004, 0.2); front.add(bezel);
+  const disp = new THREE.Mesh(new THREE.PlaneGeometry(0.64, 0.3), new THREE.MeshBasicMaterial({ map: topDisplayTex, toneMapped: false }));
+  disp.rotation.x = -Math.PI / 2; disp.position.set(-0.27, BH / 2 + 0.012, 0.2); front.add(disp);
+  const shutter = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.17, 0.07, 40), rubberMat); shutter.position.set(0.4, BH / 2 + 0.03, 0.2); front.add(shutter);
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.185, 0.02, 12, 48), accentMat); ring.rotation.x = Math.PI / 2; ring.position.set(0.4, BH / 2 + 0.035, 0.2); front.add(ring);
+  const word = printed(wordmarkTex, 0.62, 0.1); word.position.set(0, -0.63, BD / 2 + 0.002); front.add(word);
+  const led = new THREE.Mesh(new THREE.SphereGeometry(0.03, 12, 10), ledMat); led.position.set(-0.62, 0.6, BD / 2 - 0.005); front.add(led);
+  const side = printed(sideTex, 0.95, 0.95); side.rotation.y = Math.PI / 2; side.position.set(BW / 2 + 0.002, -0.02, 0.2); front.add(side);
+  const latch = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.26, 0.1), accentMat); latch.position.set(BW / 2 + 0.01, -0.5, 0.5); front.add(latch);
+  const doorLine = new THREE.Mesh(new THREE.BoxGeometry(0.006, 1.2, 0.012), rubberMat); doorLine.position.set(BW / 2 + 0.002, -0.02, 0.6); front.add(doorLine);
+  const mode = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.05, 32), rubberMat); mode.rotation.z = Math.PI / 2; mode.position.set(-BW / 2 - 0.01, 0.3, 0.2); front.add(mode);
+}
+
+// 2 · Lens housing (sits on the front face)
+const LENS_Y = 0.12;
+const lensHousing = part('lens housing', [0, 0, 2.35]);
+{
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(0.52, 0.54, 0.16, 64), rubberMat);
+  base.rotation.x = Math.PI / 2; base.position.set(0, LENS_Y, BD / 2 + 0.08); lensHousing.add(base);
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.47, 0.024, 12, 72), accentMat); ring.position.set(0, LENS_Y, BD / 2 + 0.162); lensHousing.add(ring);
+  const glass = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 0.02, 64), glassMat);
+  glass.rotation.x = Math.PI / 2; glass.position.set(0, LENS_Y, BD / 2 + 0.162); lensHousing.add(glass);
+  const coat = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.05, 16, 48), coatMat); coat.position.set(0, LENS_Y, BD / 2 + 0.15); lensHousing.add(coat);
+}
+
+// 3 · Removable lens cover
+const cover = part('lens cover', [0, 0, 3.05]);
+{
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(0.54, 0.035, 12, 72), rubberMat); rim.position.set(0, LENS_Y, BD / 2 + 0.2); cover.add(rim);
+  const pane = new THREE.Mesh(new THREE.CylinderGeometry(0.525, 0.525, 0.012, 64), coverMat);
+  pane.rotation.x = Math.PI / 2; pane.position.set(0, LENS_Y, BD / 2 + 0.2); cover.add(pane);
+}
+
+// 4 · Lens barrel + sensor (inside)
+const barrel = part('lens barrel', [0, 0, 0.95]);
+{
+  const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.3, 0.55, 48), rubberMat);
+  tube.rotation.x = Math.PI / 2; tube.position.set(0, LENS_Y, 0.3); barrel.add(tube);
+  [0.58, 0.42, 0.24].forEach((z, i) => {
+    const el = new THREE.Mesh(new THREE.CylinderGeometry(0.3 - i * 0.04, 0.3 - i * 0.04, 0.03, 48), coatMat);
+    el.rotation.x = Math.PI / 2; el.position.set(0, LENS_Y, z); barrel.add(el);
+  });
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.33, 0.015, 8, 48), accentMat); ring.position.set(0, LENS_Y, 0.575); barrel.add(ring);
+}
+
+// 5 · Main board
+const board = part('main board', [0, 0, 0.22]);
+{
+  const pcb = new THREE.Mesh(new THREE.BoxGeometry(1.36, 1.24, 0.04), pcbMat); pcb.position.z = 0.0; board.add(pcb);
+  const sensor = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.42, 0.04), glassMat); sensor.position.set(0, LENS_Y, 0.04); board.add(sensor);
+  [[-0.45, -0.38, 0.3, 0.22], [0.42, -0.4, 0.26, 0.26], [0.45, 0.42, 0.22, 0.16], [-0.46, 0.44, 0.18, 0.18]].forEach(([x, y, w, h]) => {
+    const chip = new THREE.Mesh(new THREE.BoxGeometry(w, h, 0.05), chipMat); chip.position.set(x, y, 0.04); board.add(chip);
+  });
+  for (let i = 0; i < 9; i++) { const p = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.1, 0.02), goldMat); p.position.set(-0.4 + i * 0.1, -0.58, 0.03); board.add(p); }
+}
+
+// 6 · Battery
+const battery = part('battery', [0, 0, -0.55]);
+{
+  const cell = new THREE.Mesh(new RoundedBoxGeometry(1.18, 0.9, 0.32, 3, 0.05), cellMat); cell.position.z = -0.24; battery.add(cell);
+  const label = printed(labelTex, 0.96, 0.72); label.position.set(0, 0, -0.079); battery.add(label);
+}
+
+// 7 · Rear shell with cooling fins and badge
+const rear = part('rear shell', [0, 0, -1.35]);
+{
+  const d = 0.4;
+  const shell = new THREE.Mesh(new RoundedBoxGeometry(BW, BH, d, 5, 0.16), bodyMat);
+  shell.position.z = -BD / 2 + d / 2; rear.add(shell);
+  const seam = new THREE.Mesh(new THREE.BoxGeometry(BW - 0.05, BH - 0.05, 0.035), rubberMat); seam.position.z = -BD / 2 + d + 0.012; rear.add(seam);
+  const finGeo = new THREE.BoxGeometry(0.045, 1.08, 0.07);
+  for (let i = 0; i < 15; i++) {
+    const x = -0.63 + i * 0.09;
+    if (Math.abs(x) < 0.3) continue; // leave room for the badge
+    const fin = new THREE.Mesh(finGeo, bodyMat); fin.position.set(x, 0, -BD / 2 - 0.03); rear.add(fin);
+  }
+  [-1, 1].forEach(s => { const bar = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.045, 0.07), bodyMat); bar.position.set(0, s * 0.515, -BD / 2 - 0.03); rear.add(bar); });
+  const disc = new THREE.Mesh(new THREE.CylinderGeometry(0.27, 0.27, 0.06, 48), rubberMat); disc.rotation.x = Math.PI / 2; disc.position.set(0, 0, -BD / 2 - 0.03); rear.add(disc);
+  const badge = printed(badgeTex, 0.44, 0.44); badge.rotation.y = Math.PI; badge.position.set(0, 0, -BD / 2 - 0.062); rear.add(badge);
+}
+
+// 8 · Magnetic mount
+const mount = part('mount', [0, -1.05, 0]);
+{
+  const plate = new THREE.Mesh(new RoundedBoxGeometry(1.0, 0.12, 0.9, 3, 0.05), rubberMat); plate.position.y = -BH / 2 - 0.07; mount.add(plate);
+  [-0.28, 0.28].forEach(x => {
+    const pin = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.14, 24), accentMat); pin.position.set(x, -BH / 2 - 0.19, 0); mount.add(pin);
+  });
+  const steelMat = mk('#8E9099', { metalness: 1, roughness: 0.3 }); steelMat.name = 'E1 Magnet Steel';
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.26, 0.03, 10, 48), steelMat);
+  ring.rotation.x = Math.PI / 2; ring.position.y = -BH / 2 - 0.135; mount.add(ring);
+}
+
+collectMaterials(product.group);
+product.group.traverse(o => { if (o.isMesh) o.receiveShadow = true; });
+
+/* Poses: rotation, scale, and a local focus point that is kept centred on screen */
+const pose = { rx: 0.2, ry: -2.2, rz: 0, scale: 1, fx: 0, fy: 0, fz: 0, ex: 0 };
+const poseTarget = { ...pose };
+const HERO_POSE = { rx: 0.2, ry: -0.6, rz: 0, scale: 1, fx: 0, fy: 0, fz: 0, ex: 0 };
+const FAQ_POSE = { rx: 0.28, ry: 0.75, rz: -0.05, scale: 0.9, fx: 0, fy: 0, fz: 0, ex: 0 };
+
+// The teardown film: keyframes along scroll progress of the 3D chapter.
+// h = how long the pose holds before moving on.
+const SHOTS = [
+  { p: 0.00, h: 0.04, rx: 0.2,  ry: -0.6,  rz: 0,    scale: 1,    f: [0, 0, 0],       ex: 0, cap: 'Scroll to take it apart' },
+  { p: 0.20, h: 0.12, rx: 0.42, ry: -1.12, rz: 0.12, scale: 0.6,  f: [0, -0.1, 0.6], ex: 1, cap: 'Eight parts, in the order they come apart' },
+  { p: 0.44, h: 0.03, rx: 0.12, ry: -0.5,  rz: 0,    scale: 1,    f: [0, 0, 0],       ex: 0, cap: 'Back in one piece' },
+  { p: 0.54, h: 0.04, rx: 1.0,  ry: -0.3,  rz: 0.05, scale: 2.3,  f: [0, 0.75, 0.15], ex: 0, cap: 'Status display and shutter' },
+  { p: 0.64, h: 0.04, rx: 0.1,  ry: -0.22, rz: 0,    scale: 2.5,  f: [0, 0.12, 0.75], ex: 0, cap: 'Ultra-wide lens behind a swappable cover' },
+  { p: 0.74, h: 0.04, rx: 0.1,  ry: -1.3,  rz: 0.04, scale: 2.1,  f: [0.8, 0, 0.2],   ex: 0, cap: 'Battery door' },
+  { p: 0.84, h: 0.04, rx: -0.18, ry: 2.95, rz: 0.06, scale: 2.1,  f: [0, 0, -0.66],   ex: 0, cap: 'Finned back to carry heat away' },
+  { p: 0.93, h: 0.03, rx: -1.0, ry: -0.5,  rz: 0,    scale: 2.0,  f: [0, -0.85, 0],   ex: 0, cap: 'Magnetic quick-release mount' },
+  { p: 1.00, h: 0,    rx: 0.2,  ry: -0.6,  rz: 0,    scale: 1,    f: [0, 0, 0],       ex: 0, cap: 'Magnetic quick-release mount' },
+];
+const smooth = t => t * t * (3 - 2 * t);
+function shotAt(p) {
+  for (let i = 0; i < SHOTS.length - 1; i++) {
+    const a = SHOTS[i], b = SHOTS[i + 1];
+    if (p <= b.p || i === SHOTS.length - 2) {
+      const start = a.p + a.h;
+      const t = p <= start ? 0 : smooth(clamp((p - start) / Math.max(b.p - start, 1e-4), 0, 1));
+      return {
+        rx: lerp(a.rx, b.rx, t), ry: lerp(a.ry, b.ry, t), rz: lerp(a.rz, b.rz, t), scale: lerp(a.scale, b.scale, t),
+        fx: lerp(a.f[0], b.f[0], t), fy: lerp(a.f[1], b.f[1], t), fz: lerp(a.f[2], b.f[2], t), ex: lerp(a.ex, b.ex, t),
+        cap: t < 0.5 ? a.cap : b.cap,
+      };
     }
   }
-  return profile[profile.length - 1].x;
+  return SHOTS[0];
 }
 
-for (let k = 0; k < SLICES; k++) {
-  const y0 = (k / SLICES) * VASE_H, y1 = ((k + 1) / SLICES) * VASE_H;
-  const pts = k === 0
-    ? [new THREE.Vector2(0.001, 0), new THREE.Vector2(0.5, 0)]
-    : [new THREE.Vector2(profileX(y0), y0)];
-  profile.forEach(p => { if (p.y > Math.max(y0, 0.01) && p.y < y1) pts.push(p.clone()); });
-  pts.push(new THREE.Vector2(profileX(y1), y1));
-  const geo = new THREE.LatheGeometry(pts, 72);
-  geo.translate(0, -VASE_H / 2, 0);
-  const mesh = new THREE.Mesh(geo, vaseMat);
-  const wire = new THREE.Mesh(new THREE.LatheGeometry(pts, 24).translate(0, -VASE_H / 2, 0), wireMat);
-  wire.scale.setScalar(1.012);
-  mesh.add(wire);
-  vase.pivot.add(mesh);
-  vaseSlices.push(mesh);
-}
-const VASE_BASE_Y = FLOOR_Y + VASE_H / 2 + 0.02;
-vase.pivot.position.y = VASE_BASE_Y;
-collectMaterials(vase.group);
-vaseSlices.forEach(m => { m.receiveShadow = false; m.children[0].castShadow = false; });
-let explode = 0, explodeTarget = 0;
+/* Intro: the camera turns into the light, like a product film opening */
+let intro = reduceMotion ? 1 : 0;
+const productEuler = new THREE.Euler();
+const focusV = new THREE.Vector3();
 
-function updateVase(t, dt) {
-  explode = damp(explode, explodeTarget, reduceMotion ? 30 : 3.2, dt);
-  const mid = (SLICES - 1) / 2;
-  vase.pivot.position.y = VASE_BASE_Y + explode * 0.95;
-  vaseSlices.forEach((m, k) => {
-    m.position.y = explode * (k - mid) * 0.34;
-    m.rotation.y = explode * (k - mid) * 0.22;
-  });
-  wireMat.opacity = 0.32 * explode * easeInOut(clamp(vase.group.userData.vis, 0, 1));
-  // material swatch transition
-  vaseMat.color.lerp(matTarget.color, 1 - Math.exp(-6 * dt));
-  vaseMat.roughness = damp(vaseMat.roughness, matTarget.roughness, 6, dt);
-  vaseMat.metalness = damp(vaseMat.metalness, matTarget.metalness, 6, dt);
-  vaseMat.clearcoat = damp(vaseMat.clearcoat, matTarget.clearcoat, 6, dt);
+function updateProduct(t, dt, userYaw, userPitch, userScale) {
+  const rate = reduceMotion ? 30 : lerp(1.1, 5, easeInOut(intro));
+  for (const k in poseTarget) pose[k] = damp(pose[k], poseTarget[k], rate, dt);
+  const inFilm = activeScene === 'model';
+  const ry = pose.ry + (inFilm ? userYaw * 0.25 : userYaw) + (inFilm || reduceMotion ? 0 : Math.sin(t * 0.4) * 0.12);
+  const rx = pose.rx + (inFilm ? userPitch * 0.25 : userPitch);
+  const s = pose.scale * (inFilm ? 1 : userScale);
+  productEuler.set(rx, ry, pose.rz, 'YXZ');
+  product.pivot.rotation.copy(productEuler);
+  product.pivot.scale.setScalar(s);
+  focusV.set(pose.fx, pose.fy, pose.fz).applyEuler(productEuler).multiplyScalar(s);
+  const float = inFilm || reduceMotion ? 0 : Math.sin(t * 0.9) * 0.06;
+  product.pivot.position.set(-focusV.x, -focusV.y + float, -focusV.z);
+
+  const e = easeInOut(clamp(pose.ex, 0, 1));
+  parts.forEach(g => g.position.copy(g.userData.ex).multiplyScalar(e));
+
+  bodyMat.color.lerp(matTarget.color, 1 - Math.exp(-6 * dt));
+  bodyMat.roughness = damp(bodyMat.roughness, matTarget.roughness, 6, dt);
+  bodyMat.metalness = damp(bodyMat.metalness, matTarget.metalness, 6, dt);
+  ledMat.emissiveIntensity = 1.2 + Math.sin(t * 3) * 0.8;
 }
 
 /* =========================================================
@@ -481,19 +662,23 @@ nodeMatOn.userData.baseOpacity = 1;
    Chapters → which subject is on stage
    ========================================================= */
 const SCENES = {
-  hero:    { vase: 1, explode: 0, dark: 0 },
-  model:   { vase: 1, explode: 1, dark: 0 },
+  hero:    { product: 1, dark: 1 },
+  model:   { product: 1, dark: 1 },
   hand:    { hand: 1, dark: 1 },
   ui:      { ui: 1, dark: 0 },
   who:     { who: 1, dark: 0 },
   process: { process: 1, dark: 0 },
-  faq:     { vase: 1, explode: 0, dark: 0 },
-  contact: { vase: 1, explode: 0, dark: 0 },
+  faq:     { product: 1, dark: 0 },
+  contact: { product: 1, dark: 1 },
 };
-const SUBJECTS = { vase, hand, ui, who, process: proc };
+const SUBJECTS = { product, hand, ui, who, process: proc };
 const chapters = [...document.querySelectorAll('[data-scene]')];
 let activeScene = 'hero';
-let darkness = 0, darkTarget = 0;
+let darkness = 1, darkTarget = 1;
+const filmEl = document.getElementById('services');
+const shotCaption = document.getElementById('shot-caption');
+const shotBar = document.getElementById('shot-bar');
+let filmP = 0, lastCap = '';
 
 function readScroll() {
   const mid = window.innerHeight * 0.5;
@@ -508,8 +693,20 @@ function readScroll() {
   }
   const cfg = SCENES[activeScene];
   Object.entries(SUBJECTS).forEach(([k, s]) => { s.group.userData.target = cfg[k] ? 1 : 0; });
-  explodeTarget = cfg.explode || 0;
   darkTarget = cfg.dark || 0;
+
+  // teardown film: progress through the tall 3D chapter
+  const fr = filmEl.getBoundingClientRect();
+  filmP = clamp(-fr.top / Math.max(fr.height - window.innerHeight, 1), 0, 1);
+  let target;
+  if (activeScene === 'model') {
+    const shot = shotAt(filmP);
+    target = shot;
+    if (shot.cap !== lastCap) { lastCap = shot.cap; shotCaption.textContent = shot.cap; }
+    shotBar.style.setProperty('--p', (filmP * 100).toFixed(1) + '%');
+  } else if (activeScene === 'faq') target = FAQ_POSE;
+  else target = HERO_POSE;
+  ['rx', 'ry', 'rz', 'scale', 'fx', 'fy', 'fz', 'ex'].forEach(k => { poseTarget[k] = target[k]; });
 
   // process step from scroll progress through its chapter
   const pr = document.getElementById('process').getBoundingClientRect();
@@ -680,7 +877,7 @@ resize();
 readScroll();
 
 const gizmoEl = document.getElementById('gizmo');
-const gizmoEuler = new THREE.Euler(0, 0, 0, 'XYZ');
+const gizmoEuler = new THREE.Euler(0, 0, 0, 'YXZ');
 const camInv = new THREE.Quaternion();
 const GIZMO_AXES = [
   { v: new THREE.Vector3(1, 0, 0), cls: 'gx' },
@@ -715,10 +912,6 @@ function frame() {
     applyVisibility(s.group, d.vis);
   });
 
-  const idle = reduceMotion ? 0 : t * 0.25;
-  const scrollSpin = reduceMotion ? 0 : window.scrollY * 0.0012;
-  vase.pivot.rotation.set(user.pitch, idle + scrollSpin + user.yaw, 0);
-  vase.pivot.scale.setScalar(user.scale);
   hand.pivot.rotation.set(user.pitch * 0.5, (liveHandFresh < 0.4 ? 0 : Math.sin(t * 0.5) * 0.35) + user.yaw, 0);
   ui.pivot.rotation.set(user.pitch * 0.6, user.yaw * 0.6 + (reduceMotion ? 0 : Math.sin(t * 0.3) * 0.1), 0);
   ui.pivot.scale.setScalar(user.scale);
@@ -726,7 +919,10 @@ function frame() {
   proc.pivot.rotation.set(user.pitch * 0.5, -0.35 + user.yaw * 0.6 + (reduceMotion ? 0 : Math.sin(t * 0.25) * 0.15), 0);
   proc.pivot.scale.setScalar(user.scale);
 
-  if (vase.group.visible) updateVase(t, dt);
+  // opening: the camera turns out of the dark into the key light
+  intro = Math.min(1, intro + dt / 3.2);
+  const ie = easeInOut(intro);
+  if (product.group.visible) updateProduct(t, dt, user.yaw, user.pitch, user.scale);
   if (hand.group.visible) updateHand(t, dt);
   if (ui.group.visible) updateUI(t);
   if (who.group.visible) updateWho(t, dt);
@@ -736,9 +932,15 @@ function frame() {
   darkness = damp(darkness, darkTarget, reduceMotion ? 30 : 3, dt);
   scene.background.copy(lightBg).lerp(darkBg, darkness);
   document.body.classList.toggle('is-dark', darkness > 0.5);
-  grid.material.opacity = lerp(0.55, 0.22, darkness);
-  shadowFloor.material.opacity = lerp(0.16, 0.05, darkness);
-  hemi.intensity = lerp(0.6, 0.35, darkness);
+  grid.material.opacity = lerp(0.55, 0, darkness);
+  grid.visible = darkness < 0.98;
+  shadowFloor.material.opacity = lerp(0.16, 0, darkness);
+  hemi.intensity = lerp(0.6, 0.05, darkness);
+  key.intensity = lerp(1.6, 2.4, darkness) * ie;
+  scene.environmentIntensity = lerp(1, 0.32, darkness) * lerp(0.08, 1, ie);
+  rimL.intensity = lerp(0.3, 2.6, darkness);
+  rimR.intensity = lerp(0.2, 1.8, darkness);
+  topRim.intensity = lerp(0.2, 1.0, darkness);
 
   // camera parallax
   pointer.sx = damp(pointer.sx, pointer.x, 3, dt);
@@ -749,8 +951,8 @@ function frame() {
   camera.lookAt(stage.position.x * 0.0, 0, 0);
 
   // 2D gizmo shows the on-stage model's orientation
-  const onVase = !!SCENES[activeScene].vase;
-  gizmoEuler.set(onVase ? vase.pivot.rotation.x : user.pitch, onVase ? vase.pivot.rotation.y : user.yaw, 0);
+  if (SCENES[activeScene].product) gizmoEuler.copy(product.pivot.rotation);
+  else gizmoEuler.set(user.pitch, user.yaw, 0, 'YXZ');
   camInv.copy(camera.quaternion).invert();
   GIZMO_AXES.forEach(ax => {
     tmpV.copy(ax.v).applyEuler(gizmoEuler).applyQuaternion(camInv);
@@ -770,10 +972,9 @@ requestAnimationFrame(frame);
 document.querySelectorAll('.swatch').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.swatch').forEach(b => b.setAttribute('aria-checked', String(b === btn)));
-    const m = MATERIALS[btn.dataset.mat];
+    const m = COLORWAYS[btn.dataset.mat];
     matTarget = { ...m, color: new THREE.Color(m.color) };
-    // bring the vase into view if it isn't on stage
-    if (!SCENES[activeScene].vase) setStatus('Glaze changed. Scroll to the top to see the vase.');
+    if (!SCENES[activeScene].product) setStatus('Colour changed. Scroll up to see the camera.');
   });
 });
 

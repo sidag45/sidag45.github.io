@@ -1,0 +1,50 @@
+GLANCE DESKTOP · EYE CALIBRATION RECORD
+
+Saved:                            09/10/2026, 20:18:51 (America/New_York)
+Name:                             Siddharth
+Age:                              27
+Gender:                           Man
+
+SETUP
+Window:                           1512 × 830 px, pixel ratio 2
+Camera:                           1280 × 720
+Browser:                          Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36
+
+CALIBRATION
+Steps:                            13 dots, head-movement pass, 5 reach-check dots, 4 corners, 3 folder tasks
+Head-movement frames:             289
+Accuracy after the dots:          145 px (each dot left out of the fit)
+Corners and tasks, before refit:  116 px
+After session refit:              126 px (each look left out of the fit)
+  Top-left corner:                89 px off (target 45, 37)
+  Top-right corner:               45 px off (target 1467, 37)
+  Bottom-right corner:            206 px off (target 1467, 789)
+  Bottom-left corner:             173 px off (target 45, 789)
+  Select the folder:              39 px off (target 1436, 192)
+  Open the folder, first blink:   75 px off (target 1436, 192)
+  Open the folder, first blink:   105 px off (target 1436, 192)
+  Open the folder, second blink:  92 px off (target 1436, 192)
+  Close the window:               106 px off (target 456, 71)
+Reach correction across:          ×1.000, shift 0.0%
+Reach correction up and down:     ×1.000, shift 0.0%
+
+POINTER SETTINGS
+Sensitivity across:               ×1.00
+Sensitivity up and down:          ×1.00
+Centre offset across:             +0 px
+Centre offset up and down:        +0 px
+Flip across / up and down:        off / off
+Smoothing:                        1.9 (Light)
+Follows fast eye jumps:           0.002 (Some)
+Ignore wobble under:              Off
+Pull toward targets:              on, reach 90 px, strength 100%
+Learn drift from clicks:          on (current drift −6 px, +20 px)
+
+BLINK
+Blink must be:                    Light close (threshold 0.416)
+Ignore blinks shorter than:       170 ms
+Long blink after:                 900 ms
+Double blink within:              1100 ms
+
+MODEL (for reloading)
+{"v":3,"mu":[0.4930830032444446,-0.04380194280965902,0.30991984397535505,-0.014312208968253633,-0.0861700228889307,0.024546557966407662,-0.005504451757407574,-0.416380880185873],"sd":[0.05885714439493686,0.00753779296059191,0.02429374143646124,0.19739774602530058,0.0655392832619588,0.011375439657031822,0.002743122571174679,0.005791789357344402],"bx":[0.5192210131145659,-0.42383291426245,0.012023156679595422,0.010947683670095147,-0.36764360670144947,0.002806305511506018,0.0307004444201673,0.03991576496396844,-0.018999393915218776],"by":[0.4453131916380814,-0.10365433786164913,0.16832852179140487,-0.10883940873352173,-0.15705396536656968,-0.15415381192104446,0.10082051348453223,-0.24404707269777734,-0.002411712322530433],"cx":[0.03208141516628339,0.7811296352498929,0.008110123340333425,0.556623943814829,-0.2918866767371712,0.08901413980539721,-0.39753046327553376,0.2589164398694047],"cy":[-0.004692653092629823,0.20196145329866128,0.6347634985294903,-0.19461479753027622,1.0170618502980897,-0.0680740962107856,0.029359895525134638,-0.6931895264575921],"loo":115.41785538555445,"aff":{"ax":1,"bx":0,"ay":1,"by":0}}

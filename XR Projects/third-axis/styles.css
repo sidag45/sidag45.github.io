@@ -336,3 +336,28 @@ main { position: relative; z-index: 5; pointer-events: none; }
 @media (max-width: 420px) {
   .hand-btn span { display: none; }
 }
+
+/* ---------- Teardown film ---------- */
+.scrim {
+  position: fixed; inset: 0; z-index: 1; pointer-events: none;
+  background: linear-gradient(90deg, rgba(11, 11, 14, .92) 0%, rgba(11, 11, 14, .6) 32%, rgba(11, 11, 14, 0) 56%);
+  opacity: 0; transition: opacity .6s var(--ease);
+}
+body.is-dark .scrim { opacity: 1; }
+.chapter.tall { display: block; min-height: 700vh; padding-top: 0; padding-bottom: 0; }
+.chapter.tall .panel {
+  position: sticky; top: 0; min-height: 100vh;
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 90px 0 90px;
+}
+.shot { margin-top: 4px; padding-top: 16px; border-top: 1px solid var(--line); max-width: 420px; }
+.shot-caption { font-family: var(--display); font-size: var(--step-1); font-weight: 600; letter-spacing: -0.01em; margin: 0 0 12px; color: var(--text); min-height: 1.3em; }
+.shot-bar { height: 2px; background: var(--line); border-radius: 2px; overflow: hidden; }
+.shot-bar span { display: block; height: 100%; width: var(--p, 0%); background: #FB4F29; }
+
+@media (max-width: 900px) {
+  .scrim { background: linear-gradient(0deg, rgba(11, 11, 14, .9) 0%, rgba(11, 11, 14, .5) 40%, rgba(11, 11, 14, 0) 62%); }
+  .chapter.tall .panel { top: 54vh; min-height: 0; padding: 20px; margin-top: 54vh; position: sticky; }
+  .chapter.tall .panel .ticks, .chapter.tall .panel > p:not(.kicker) { display: none; }
+  .chapter.tall { padding-bottom: 100px; }
+}
