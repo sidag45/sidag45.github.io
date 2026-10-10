@@ -19,7 +19,7 @@
         ['ASSIGNMENT', "Master's programme, Univ. of Maryland"],
         ['FOCUS', 'HCI research: wearables and physical interfaces'],
         ['COVER', 'Founder, Enclave Labs studio'],
-        ['RECENT OPS', 'Pagelift · Pegasus-1 · Gesture Desktop · Glance Desktop · Paper Toss'],
+        ['RECENT OPS', 'Pagelift · Pegasus-1 · The Lanterns · Glance Desktop · Gesture Kombat'],
       ],
     },
     hk: {
@@ -485,52 +485,108 @@
       secret:'The brand does not exist. The watch does not exist. The movement is real enough to fool a collector.',
       tags:['three.js','Scroll animation','WebXR','Product storytelling'],
       link:{href:'https://sidag45.github.io/XR%20Projects/3d-watch-animate/', label:'View the watch'} },
-    { id:'DESKTOP', code:'OP-03', name:'Gesture Desktop', status:'In progress', clr:'Public',
+    { id:'LANTERNS', code:'OP-03', name:'The Lanterns', status:'Concept build', clr:'Public',
+      op:'A scroll-driven 3D sales site for a fictional hillside tower in Hong Kong, one home to a floor.',
+      role:'Concept, interaction design, 3D modelling and three.js build.',
+      body:'The Lanterns (燈苑) is an invented development of 24 homes on the hillside above Pok Fu Lam, one flat to a floor, every one facing the East Lamma Channel. Scrolling rides the building like a lift: arrival at the foot of the tower, the building with availability by floor, terraces that swap corners floor by floor, then up to Flat 23 with the floors above lifted away. Visitors read the floor plan with room sizes labelled in place, try three finish schemes in the rooms, furnished or empty, by day or night, stand in the living room looking out to sea, and book a viewing with their choices already filled in. A lift-style floor indicator shows where they are in the tour throughout.',
+      secret:'The question underneath: can a website give someone enough sense of a home\'s layout, scale and finish to shortlist it before they ever visit?',
+      tags:['three.js','Scroll storytelling','3D configurator','Wayfinding','Procedural modelling','Ambient sound'],
+      sections:[
+        { h:'THE TOUR', ordered:true, list:[
+          'Arrival: the tower at dusk from the foot of the hill, with skip links to the floor plan or viewings for visitors short on time.',
+          'The building: one flat per floor, glass on all four sides; pick a floor by its availability.',
+          'Terraces: each terrace swaps corners on alternate floors, so none looks down onto another.',
+          'Up to the flat: the camera rises to the chosen floor and the floors above lift out of the way.',
+          'Floor plan: a top-down view with every room\'s dimensions labelled in the model and listed in the card.',
+          'Finishes: oak and linen, walnut and brass, or terrazzo and jade, applied to the rooms; furnished or empty; day or night.',
+          'Living room: an eye-level view from the sofa that turns to the sea.',
+          'Viewings: a booking form that already knows the flat and finish, with travel times underneath.' ] },
+        { h:'BUILD NOTES', list:[
+          'Modelled procedurally in three.js: the tower, interiors and furniture, the hillside, neighbouring estates and Lamma Island across the channel.',
+          'Image-based lighting for day and blue hour; switching to night plays the sunset and lights the flats. The page opens in day or night to match the visitor\'s local time.',
+          'Performance: shadows re-render only when something moves, resolution drops while moving if frames are slow, idle frames render at a low rate, and sharper interior textures load once the page is idle.',
+          'Ambient sound: sea swell, cicadas by day, crickets at night and room tone indoors.',
+          'Touch: horizontal swipes turn the model and vertical swipes scroll. A fallback view appears if the 3D module cannot load.',
+          'Fictional by design: the development and developer are invented, and the booking form sends nothing.' ] },
+      ],
+      link:{href:'https://sidag45.github.io/XR%20Projects/the-lanterns/', label:'Take the tour'} },
+    { id:'DESKTOP', code:'OP-04', name:'Gesture Desktop', status:'In progress', clr:'Public',
       op:'A MacBook-style desktop in the browser, operated by hand in front of a webcam.',
       role:'Interaction design and engineering.',
       body:'Files and folders can be picked up, dragged and dropped with fingers. A two-finger tap opens the context menu, and the usual trackpad controls still work. With the camera on, hand tracking drives a red pointer, mapped from finger movement to screen distance.',
       secret:'Built as a study in how far direct-manipulation habits transfer to mid-air input.',
       tags:['Hand tracking','Computer vision','Gesture UX','JavaScript'],
       link:{href:'https://sidag45.github.io/XR%20Projects/virtual-desktop/', label:'Try the desktop'} },
-    { id:'GLANCE', code:'OP-04', name:'Glance Desktop', status:'Prototype', clr:'Public',
+    { id:'GLANCE', code:'OP-05', name:'Glance Desktop', status:'Prototype', clr:'Public',
       op:'A MacBook-style desktop in the browser, operated with the eyes through a webcam.',
       role:'Interaction design and engineering.',
       body:'A red pointer follows the visitor\'s gaze and settles on the nearest button or file. One deliberate blink clicks, two blinks open, a long blink picks something up and the next blink drops it, and a wink right-clicks. Looking at the top or bottom edge of a window scrolls it, and the top-right corner opens Mission Control. A short calibration learns each person\'s eyes and blink, and the video never leaves the device.',
       secret:'The hands-free sequel to Gesture Desktop: can a desktop be run when the eyes have to both read the screen and act on it?',
       tags:['Eye tracking','Face landmarks (MediaPipe)','Gaze interaction','Accessibility','JavaScript'],
       link:{href:'https://sidag45.github.io/XR%20Projects/eye-desktop/', label:'Try it with your eyes'} },
-    { id:'PAPERTOSS', code:'OP-05', name:'Paper Toss', status:'Playable', clr:'Public',
+    { id:'KOMBAT', code:'OP-06', name:'Gesture Kombat', status:'Prototype', clr:'Public',
+      op:'A browser fighting-game prototype played with full-body webcam gestures or the keyboard.',
+      role:'Design and engineering: game, gesture recognition and match server.',
+      body:'Gesture Kombat turns a player\'s body movements into fighting-game actions in an original 2D side-view arena, with two original fighters, Ember and Glacier. Gestures select animated moves rather than mapping the body directly onto the character, so the fight keeps the rules of a classic 2D fighter: health bars, a 60-second round timer, hit effects, blocking and combos. It runs in the browser with solo training against an AI opponent, local two-player, a full keyboard fallback and an optional webcam mode using full-body pose tracking. A WebSocket server prototype adds room-code online matches.',
+      secret:'An exploration of embodied interaction, inspired by classic arcade fighters but with its own characters, arena and art: the camera recognises intent, and the game executes a predefined move with its own timing and combat rules.',
+      tags:['Pose tracking (MediaPipe)','Embodied interaction','Game design','Canvas 2D','WebSocket','Node.js'],
+      sections:[
+        { h:'INTERACTION DESIGN', p:[
+          'The body is a source of intent rather than a puppet. Each camera reading is classified into a small set of commands, and the fighter then plays an authored move with its own startup, hit and recovery timing. The familiar rules of a 2D fighter stay intact: moves are readable, can be blocked or ducked, and cannot be spammed faster than they play.',
+          'Strikes are events and stance is state. A punch fires when a forearm extends quickly, not whenever an arm happens to be out, and a kick when an ankle rises above the knee. Guard (both hands raised) and crouch (hips below the calibrated standing height) last exactly as long as the posture does.',
+          'Calibration records a neutral stance as the baseline, then walks the player through the squat and guard poses beside a mirrored live skeleton, so they can see what the camera sees before the first round.' ] },
+        { h:'TECHNICAL APPROACH', list:[
+          'Client: plain JavaScript and Canvas 2D for the arena, fighters, health bars, round timer, hit flashes and the punch, punch, kick combo.',
+          'Pose: MediaPipe Pose Landmarker (Lite model) running in the browser, GPU first with a CPU fallback, sampled about 12 times a second.',
+          'Privacy: camera frames and pose landmarks stay on the device. In an online match only small action messages are sent.',
+          'Online prototype: a Node.js WebSocket server creates six-character room codes and owns the combat state, running a 60 Hz loop with sequence checks, action cooldowns, move startup and recovery, and server-side hit resolution.',
+          'Modes: solo training against an AI opponent, local two-player on one keyboard, and room-code online matches.' ] },
+        { h:'CURRENT LIMITATIONS', list:[
+          'A working prototype, not a released game. There is no live matchmaking.',
+          'Online play needs the included WebSocket server deployed separately; the static site on its own covers solo and local play.',
+          'No accounts, reconnect handling, ranking or competitive anti-cheat yet.',
+          'Gesture thresholds are hand-tuned, and full-body tracking needs room to stand back with the whole body in frame.',
+          'The camera needs HTTPS or localhost, and the pose model loads from a CDN on first use.' ] },
+        { h:'DEMO WALKTHROUGH', ordered:true, list:[
+          'Open the page, keep Solo Training selected and press Start Fight (or Space).',
+          'Fight on the keyboard: A/D move, W jump, S crouch, J/K punch, L kick, hold I to guard. Punch, punch, kick lands a 3-hit combo.',
+          'Press Enable Camera, allow access, then Calibrate: stand neutral, squat, and raise both hands to guard.',
+          'Fight again with your body: extend an arm to punch, lift a leg to kick, raise both hands to block, squat to duck.',
+          'For two players on one machine choose Local Duel. Online rooms need the match server running.' ] },
+      ],
+      link:{href:'https://sidag45.github.io/gesture-kombat/', label:'Play the prototype'} },
+    { id:'PAPERTOSS', code:'OP-07', name:'Paper Toss', status:'Playable', clr:'Public',
       op:'Office basketball played hands-free: crumple a sheet and throw it in the bin, using only your hand in front of a webcam.',
       role:'Game design, gesture design and build.',
       body:'Pinch thumb and index finger to pick up the sheet from the desk, make a fist three times to crumple it into a ball, then swing toward the bin and open your hand to let go. A power meter shows the strength of the throw, and every basket moves the bin farther away. The game tracks baskets, tosses, streak and best streak. Hand tracking runs in the browser and the video never leaves the device; mouse and touch work too.',
       secret:'Every gesture maps to something a real hand does with real paper. Nobody needs a tutorial to throw.',
       tags:['Hand tracking','Gesture input','Game design','JavaScript'],
       link:{href:'https://sidag45.github.io/XR%20Projects/paper-toss/paper-toss.html', label:'Play Paper Toss'} },
-    { id:'SRK', code:'OP-06', name:'SRK Haute Horlogerie', status:'Delivered', clr:'Confidential',
+    { id:'SRK', code:'OP-08', name:'SRK Haute Horlogerie', status:'Delivered', clr:'Confidential',
       op:'A private viewing room for a luxury watch boutique.',
       role:'Web design and Webflow development, via Enclave Labs.',
       body:'Designed and improved the boutique\'s Webflow site to feel like an appointment, not a checkout. Built the CMS structure, SEO-friendly imports, collection filtering, dynamic content and custom JavaScript interactions, plus automations for publishing new pieces.',
       secret:'The brief: nobody should feel they are shopping. They should feel invited.',
       tags:['Webflow','CMS architecture','Custom JS','Automation'] },
-    { id:'MOVEMENT', code:'OP-07', name:'Movement Lab', status:'Active', clr:'Confidential',
+    { id:'MOVEMENT', code:'OP-09', name:'Movement Lab', status:'Active', clr:'Confidential',
       op:'A coaching app for a Hong Kong gym, built to grow into a global subscription.',
       role:'Product and engineering lead, via Enclave Labs.',
       body:'Stage one equips Movement Fitness\'s personal trainers to coach their in-gym clients through the app. Stage two opens the same codebase to self-serve subscribers worldwide, covering training programmes and nutrition.',
       secret:'Two products, one codebase. Planned that way from day one.',
       tags:['Next.js','Mobile','Product strategy','Scalability'] },
-    { id:'PARALLEL', code:'OP-08', name:'ParallelChain Lab', status:'Concluded', clr:'Confidential',
+    { id:'PARALLEL', code:'OP-10', name:'ParallelChain Lab', status:'Concluded', clr:'Confidential',
       op:'Front-end lead on a Layer 1 blockchain platform.',
       role:'Lead Front-end Engineer. Unit of 5+.',
       body:'Led the front-end team and set its architecture. Shipped the block explorer and a native wallet, built developer tools and documentation, and helped tighten engineering processes across the lab.',
       secret:'Leadership of the unit included process reform, not only code.',
       tags:['React','TypeScript','Team lead','Developer tools'] },
-    { id:'ROJU', code:'OP-09', name:'ROJU', status:'Concluded', clr:'Confidential',
+    { id:'ROJU', code:'OP-11', name:'ROJU', status:'Concluded', clr:'Confidential',
       op:'Mobile app and CMS for an online jump rope learning platform.',
       role:'Mobile and full-stack engineer.',
       body:'Built ROJU\'s React Native app and published it to the App Store and Google Play. Contributed backend features in Java Spring Boot and built a React content management system for the coaching content.',
       secret:'Shipped on both stores, which is its own kind of fieldcraft.',
       tags:['React Native','Spring Boot','React CMS'] },
-    { id:'FAATEH', code:'OP-10', name:'Faateh Real Estate', status:'Handed over', clr:'Confidential',
+    { id:'FAATEH', code:'OP-12', name:'Faateh Real Estate', status:'Handed over', clr:'Confidential',
       op:'A Webflow site for a real estate firm, plus a full handover kit.',
       role:'Design, build and client training, via Enclave Labs.',
       body:'Built the site in Webflow, then prepared the client to own it: a handover document and a tutorial video script covering sign-up, site transfer and day-to-day editing.',
@@ -587,6 +643,31 @@
       ],
       figs: ['gl-blink', 'gl-snap'],
       study: 'A within-subjects study on a grid of icons in three sizes, comparing Glance with and without target snapping. Measures: selection time, error rate, unintended activations per minute and NASA-TLX workload. A second 20-minute session would test whether click-driven drift correction holds accuracy without recalibrating.',
+    },
+    KOMBAT: {
+      rq: 'When a webcam recognises intent and the game plays a predefined move, do players still feel in control? How do recognition delay, gesture thresholds and move commitment shape responsiveness, readability and fatigue compared with a keyboard?',
+      principles: [
+        ['Intent, not mimicry', 'Mapping the body straight onto the fighter would pass every tracking jitter into the fight and make hits hard to judge. Classifying a gesture into one of a few commands, then playing an authored move, trades some expressiveness for moves that read clearly and follow consistent rules.'],
+        ['Responsiveness and commitment', 'Pose readings arrive about 12 times a second, so a strike is recognised a beat after the arm moves. Each move then has its own startup before it can hit, the same commitment players expect from a 2D fighter. The open question is how much recognition delay can hide inside that wind-up before the game feels sluggish.'],
+        ['Events versus states', 'Strikes trigger on fast extension, so an arm resting out in front does not keep punching: the Midas touch problem, for the whole body. Guard and crouch mirror posture continuously, because they are held in real life too.'],
+        ['Personal baselines', 'Crouching is measured against the player\'s own standing hip height, captured during calibration, so the same thresholds work for different heights and distances from the camera.'],
+        ['Readable feedback', 'During setup a mirrored skeleton shows what the camera sees. In the fight, hit flashes, knockback, BLOCKED messages and the combo banner confirm what each gesture did.'],
+        ['Exertion and choice', 'Full-body play is tiring in a way keys are not. Rounds last 60 seconds and the keyboard always works, so the camera is an option, not a gate.'],
+      ],
+      figs: ['gk-pipeline', 'gk-gestures'],
+      study: 'A within-subjects study in solo training comparing keyboard and camera input. Measures: recognition accuracy (intended versus triggered moves, coded from session video), false triggers per minute, delay from gesture peak to on-screen strike, win rate against the AI, perceived control and enjoyment, and exertion on the Borg CR10 scale.',
+    },
+    LANTERNS: {
+      rq: 'Can a scroll-driven 3D tour help someone shortlist a home remotely, understanding its layout, scale and finish well enough to book a viewing with confidence, compared with the usual gallery of renders and a PDF floor plan?',
+      principles: [
+        ['From route to map', 'People learn a new place first as a route and only later as a map. The tour follows that order: arrive at the foot of the tower, ride up, step inside, look down on the plan with sizes labelled in place, then stand in the living room at eye level.'],
+        ['Wayfinding in a long scroll', 'A lift-style floor indicator is the tour\'s progress bar and its menu at once: it shows the current stop, how many remain, and lets visitors jump. "Short on time?" links skip straight to the plan or the booking, keeping the visitor in control.'],
+        ['One question per stop', 'Each card asks one thing (which floor, which finish, how big is the bedroom) and the model beside it answers. Progressive disclosure keeps a dense decision from arriving all at once.'],
+        ['Seeing over imagining', 'Finish schemes, furnished or empty, and day or night are applied to the actual rooms, so visitors compare outcomes rather than swatches. Lifting the floors above opens the flat while keeping the tower in view.'],
+        ['Recognition over recall', 'The booking form arrives filled in with the flat and finish chosen along the way, and a link copies that exact flat to share, so nothing has to be remembered or re-entered at the moment of commitment.'],
+      ],
+      figs: ['ln-journey', 'ln-panel', 'ln-reveal', 'ln-carry'],
+      study: 'A between-subjects study with prospective buyers or renters: the 3D tour versus a conventional listing (photo gallery and PDF plan) for the same flat. Measures: accuracy sketching the layout from memory and estimating room sizes, time to a booking decision, confidence in the choice, and SUS. Logging which stops people skip would show where the tour runs long.',
     },
   };
 
@@ -910,10 +991,158 @@
         return k.svg(this.label);
       },
     },
+    'gk-pipeline': {
+      caption: 'The hybrid pipeline. Pose tracking stays in the browser and only yields a command; the fighter then plays an authored move whose startup, hit and recovery frames belong to the game, not the camera.',
+      label: 'Wireframe pipeline: camera, pose landmarks, gesture to intent, move player, inside a dashed box marked stays in the browser; a frame-data bar with startup, hit and recovery; a branch to a match server receiving action messages only.',
+      draw(){
+        const k = sketcher(91, 660, 310);
+        const B = [[20, 'camera'], [180, 'pose landmarks'], [340, 'gesture → intent'], [500, 'move player']];
+        B.forEach(([x, t], i) => { k.rect(x, 44, 140, 58).text(x + 70, 79, t, {size: 15, anchor: 'middle'}); if (i) k.arrow(x - 18, 73, x - 2, 73); });
+        k.rect(10, 26, 314, 92, 'pd', 1.2).text(167, 20, 'stays in the browser', {cls: 'ptr', size: 19, anchor: 'middle'});
+        k.text(410, 130, '"PUNCH · LEFT"', {size: 13, anchor: 'middle'});
+        k.arrow(570, 104, 570, 150);
+        const x0 = 440, f = 9;
+        k.rect(x0, 158, 6 * f, 26).hatch(x0, 158, 6 * f, 26, 6).rect(x0 + 6 * f, 158, 3 * f, 26, 'pr', 2).rect(x0 + 9 * f, 158, 14 * f, 26);
+        k.text(x0 + 3 * f, 202, 'startup', {size: 12, anchor: 'middle'}).text(x0 + 7.5 * f, 202, 'hit', {cls: 'ptr', size: 16, anchor: 'middle'}).text(x0 + 16 * f, 202, 'recovery', {size: 12, anchor: 'middle'});
+        k.text(x0 + 11.5 * f, 226, 'frames owned by the game', {size: 12, anchor: 'middle'});
+        k.curve(380, 104, 360, 190, 300, 232, 'pd');
+        k.rect(120, 236, 180, 52).text(210, 258, 'match server', {size: 15, anchor: 'middle'}).text(210, 278, '(online only)', {size: 12, anchor: 'middle'});
+        k.text(318, 278, 'action messages, never video', {size: 12});
+        k.text(20, 168, 'camera = intent', {cls: 'ptr', size: 22, rot: -3}).text(20, 194, 'game = timing', {cls: 'ptr', size: 22, rot: -3});
+        return k.svg(this.label);
+      },
+    },
+    'gk-gestures': {
+      caption: 'The gesture vocabulary as the camera reads it. Strikes are events triggered by speed or crossing a line; guard and crouch are states that last as long as the posture.',
+      label: 'Wireframe: five stick figures labelled punch (forearm extends fast), kick (ankle above knee), guard (wrists above shoulders, held), crouch (hips below standing baseline, held) and jump (hips rise fast).',
+      draw(){
+        const k = sketcher(47, 660, 290);
+        const G = 214;
+        const fig = (cx, o) => {
+          const lift = o.lift || 0, drop = o.drop || 0, g = G - lift;
+          const hy = g - 120 + drop, sy = g - 100 + drop, py = g - 60 + drop;
+          k.ellipse(cx, hy, 11, 12).line(cx, hy + 12, cx, py);
+          (o.arms || [[cx - 18, sy + 22, cx - 24, sy + 44], [cx + 18, sy + 22, cx + 24, sy + 44]]).forEach(([ex, ey, wx, wy]) => k.line(cx, sy, ex, ey).line(ex, ey, wx, wy));
+          (o.legs || [[cx - 10, g - 30, cx - 16, g], [cx + 10, g - 30, cx + 16, g]]).forEach(([kx, ky, ax, ay]) => k.line(cx, py, kx, ky).line(kx, ky, ax, ay));
+          return {hy, sy, py, g};
+        };
+        k.line(10, G, 650, G, 'pc', 1);
+        const cols = [70, 200, 330, 460, 590];
+        // punch
+        let a = fig(cols[0], {arms: [[cols[0] + 12, 140, cols[0] + 6, 124], [cols[0] + 30, 116, cols[0] + 58, 114]]});
+        k.line(cols[0] + 34, 104, cols[0] + 52, 104, 'pr', 1.4).line(cols[0] + 30, 126, cols[0] + 50, 126, 'pr', 1.4);
+        // kick
+        fig(cols[1], {legs: [[cols[1] - 10, G - 30, cols[1] - 16, G], [cols[1] + 24, 162, cols[1] + 54, 146]]});
+        k.dot(cols[1] + 24, 162, 3, 'fr').dot(cols[1] + 54, 146, 3, 'fr').dash(cols[1] + 10, 162, cols[1] + 64, 162);
+        // guard
+        const gd = fig(cols[2], {arms: [[cols[2] - 16, 126, cols[2] - 8, 92], [cols[2] + 16, 126, cols[2] + 8, 92]]});
+        k.dash(cols[2] - 34, gd.sy, cols[2] + 34, gd.sy);
+        // crouch
+        fig(cols[3], {drop: 26, legs: [[cols[3] - 22, G - 22, cols[3] - 16, G], [cols[3] + 22, G - 22, cols[3] + 16, G]]});
+        k.dash(cols[3] - 40, G - 60, cols[3] + 40, G - 60).text(cols[3] + 42, G - 56, 'standing', {size: 11});
+        // jump
+        fig(cols[4], {lift: 22});
+        k.arrow(cols[4] + 34, G - 10, cols[4] + 34, G - 52, 'pr', 1.8);
+        const L = [['PUNCH', 'forearm extends fast'], ['KICK', 'ankle above knee'], ['GUARD', 'wrists above shoulders'], ['CROUCH', 'hips below baseline'], ['JUMP', 'hips rise fast']];
+        L.forEach(([n, t], i) => { k.text(cols[i], 244, n, {size: 16, anchor: 'middle'}).text(cols[i], 264, t, {size: 12, anchor: 'middle'}); });
+        k.text(cols[2], 282, 'held', {cls: 'ptr', size: 17, anchor: 'middle'}).text(cols[3], 282, 'held', {cls: 'ptr', size: 17, anchor: 'middle'});
+        k.text(cols[0], 282, 'event', {cls: 'ptr', size: 17, anchor: 'middle'}).text(cols[1], 282, 'event', {cls: 'ptr', size: 17, anchor: 'middle'}).text(cols[4], 282, 'event', {cls: 'ptr', size: 17, anchor: 'middle'});
+        return k.svg(this.label);
+      },
+    },
+    'ln-journey': {
+      caption: 'The tour as a lift ride. Scrolling moves the camera from the foot of the tower, up and inside, then back out for viewings; the floor indicator on the left is both the progress bar and the menu, with shortcuts for visitors short on time.',
+      label: 'Wireframe: a list of eight tour stops with dots beside a tower outline of 24 floors; numbered camera positions climb from the ground to floor 23 and back out, with dashed shortcuts from arrival to the floor plan and to viewings.',
+      draw(){
+        const k = sketcher(23, 660, 340);
+        const stops = ['Arrival', 'The building', 'Terraces', 'Flat 23', 'Floor plan', 'Finishes', 'Living room', 'Viewings'];
+        k.rect(14, 22, 150, 300).text(140, 58, 'G', {size: 30, anchor: 'end'});
+        stops.forEach((n, i) => { const y = 92 + i * 28; k.text(128, y + 5, n, {size: 13, anchor: 'end'}); i === 0 ? k.dot(144, y, 5, 'fr') : k.ellipse(144, y, 5, 5, 'pc', 1.2); });
+        const bx = 330, bw = 92, top = 34, fh = 11.5;
+        k.rect(bx, top, bw, 24 * fh);
+        for (let i = 1; i < 24; i++) k.line(bx, top + i * fh, bx + bw, top + i * fh, 'pc', 0.6);
+        k.hatch(bx, top + fh, bw, fh, 5);
+        k.text(bx + bw + 8, top + fh + 9, 'flat 23', {size: 12});
+        const P = [[262, 318], [500, 236], [520, 142], [482, 92], [376, 12], [270, 92], [376, 52], [600, 304]];
+        P.forEach(([x, y], i) => { k.ellipse(x, y, 10, 10, i === 0 ? 'pr' : 'pc', 1.4).text(x, y + 5, String(i + 1), {size: 12, anchor: 'middle'}); });
+        for (let i = 0; i < P.length - 1; i++) { const [x1, y1] = P[i], [x2, y2] = P[i + 1]; k.curve(x1, y1, (x1 + x2) / 2 + 14, (y1 + y2) / 2 + 8, x2, y2, 'pc'); }
+        k.curve(250, 312, 200, 140, 364, 18, 'pd').curve(272, 326, 440, 334, 588, 310, 'pd');
+        k.text(200, 192, 'short on time?', {cls: 'ptr', size: 18, rot: -8});
+        k.text(650, 52, 'scroll = ride', {cls: 'ptr', size: 22, rot: -3, anchor: 'end'}).text(650, 76, 'the lift', {cls: 'ptr', size: 22, rot: -3, anchor: 'end'});
+        k.text(20, 340, 'where am I + how far to go', {cls: 'ptr', size: 18});
+        return k.svg(this.label);
+      },
+    },
+    'ln-panel': {
+      caption: 'The screen at every stop: one card asks one question, the model beside it answers, the floor indicator says where you are, and booking is always one tap away.',
+      label: 'Wireframe of a screen: a top bar with logo, day and night toggle, sound and a Book button; a text card on the left with options; the 3D model filling the middle; a floor indicator on the right edge showing 23 and the list of stops.',
+      draw(){
+        const k = sketcher(37, 660, 320);
+        k.rect(14, 16, 632, 290);
+        k.scrib(32, 40, 70).rect(436, 28, 76, 22).text(474, 44, 'day | night', {size: 12, anchor: 'middle'}).ellipse(530, 39, 11, 11).rect(552, 28, 76, 22, 'pr', 1.8).text(590, 44, 'Book', {size: 13, anchor: 'middle'});
+        k.rect(34, 70, 178, 214).line(46, 94, 168, 94, 'pc', 2.6).line(46, 106, 132, 106, 'pc', 2.6);
+        k.scrib(46, 128, 150).scrib(46, 140, 136).scrib(46, 152, 120);
+        [176, 204, 232].forEach((y, i) => { k.rect(46, y - 12, 154, 22, i === 0 ? 'pr' : 'pc', i === 0 ? 1.6 : 1.1); k.dot(58, y - 1, 4).dot(68, y - 1, 4).scrib(80, y, 90); });
+        k.rect(46, 256, 70, 18).rect(126, 256, 70, 18);
+        k.xbox(232, 70, 296, 214).text(380, 186, '3D model', {size: 16, anchor: 'middle'});
+        k.rect(566, 104, 62, 168).text(612, 142, '23', {size: 30, anchor: 'end'});
+        for (let i = 0; i < 8; i++) { const y = 160 + i * 13; k.scrib(574, y, 28); i === 4 ? k.dot(616, y - 2, 3.5, 'fr') : k.ellipse(616, y - 2, 3.5, 3.5, 'pc', 1); }
+        k.text(42, 318, 'one question per stop', {cls: 'ptr', size: 18}).curve(110, 304, 100, 296, 96, 288, 'pr');
+        k.text(392, 316, 'the model answers it', {cls: 'ptr', size: 18, anchor: 'middle'});
+        k.text(640, 290, 'you are here', {cls: 'ptr', size: 17, anchor: 'end'});
+        k.curve(600, 82, 612, 70, 600, 54, 'pr').text(636, 96, 'one tap away', {cls: 'ptr', size: 15, anchor: 'end'});
+        return k.svg(this.label);
+      },
+    },
+    'ln-reveal': {
+      caption: 'Three ways to show a flat inside a tower. A see-through building shows everything and explains nothing, a section cut reads like a drawing but loses the tower; lifting the floors above opens the flat and keeps the building in view.',
+      label: 'Wireframe comparing three tower diagrams: a glass box with every floor visible, a vertical section cut, and a tower with its upper floors raised away from the chosen floor, which is outlined and ticked.',
+      draw(){
+        const k = sketcher(59, 660, 270);
+        const tower = (x, y, n, w, cls) => { k.rect(x, y, w, n * 10, cls || 'pc'); for (let i = 1; i < n; i++) k.line(x, y + i * 10, x + w, y + i * 10, 'pc', 0.6); };
+        // glass box
+        tower(60, 36, 18, 90, 'pd');
+        for (let i = 0; i < 18; i += 2) k.scrib(68, 44 + i * 10, 70);
+        k.text(105, 236, 'see-through', {size: 15, anchor: 'middle'}).text(105, 256, 'everything at once', {size: 12, anchor: 'middle'});
+        // section
+        tower(270, 36, 18, 90);
+        k.hatch(270, 36, 45, 180, 6).line(315, 26, 315, 226, 'pr', 1.4);
+        k.text(315, 236, 'section cut', {size: 15, anchor: 'middle'}).text(315, 256, 'a drawing, not a tower', {size: 12, anchor: 'middle'});
+        // lift floors above
+        tower(480, 22, 7, 90);
+        k.arrow(525, 98, 525, 92, 'pr', 1.6).arrow(470, 120, 470, 96, 'pr', 1.4);
+        k.rect(480, 126, 90, 10, 'pr', 2.2).scrib(488, 132, 70, 'pr');
+        tower(480, 136, 8, 90);
+        k.text(525, 236, 'lift the floors above', {cls: 'ptr', size: 20, anchor: 'middle'}).text(525, 256, 'flat opens, tower stays', {size: 12, anchor: 'middle'});
+        k.line(596, 120, 604, 130, 'pr', 2.4).line(604, 130, 622, 104, 'pr', 2.4);
+        return k.svg(this.label);
+      },
+    },
+    'ln-carry': {
+      caption: 'Choices made along the tour travel with the visitor. The booking form arrives already holding the flat and finish, and the same selection can be copied as a link to share.',
+      label: 'Wireframe: a finishes card with oak, walnut and terrazzo options, furnished or empty and day or night, joined by an arrow to a booking form whose floor field reads Flat 18 and whose summary reads your selection: Flat 18, oak and linen, furnished; a link icon labelled copy a link to this flat.',
+      draw(){
+        const k = sketcher(71, 660, 304);
+        k.rect(20, 20, 220, 250).text(36, 50, 'Choose your finishes', {size: 16});
+        [['oak + linen', 1], ['walnut + brass', 0], ['terrazzo + jade', 0]].forEach(([t, on], i) => { const y = 74 + i * 36; k.rect(34, y, 192, 28, on ? 'pr' : 'pc', on ? 1.8 : 1.1).dot(48, y + 14, 4).dot(58, y + 14, 4).text(70, y + 19, t, {size: 13}); });
+        k.text(36, 206, 'furnished | empty', {size: 13}).text(36, 232, 'day | night', {size: 13});
+        k.text(36, 258, 'Flat 18', {cls: 'ptr', size: 18});
+        k.curve(246, 140, 330, 70, 392, 132, 'pr');
+        k.text(318, 60, 'carried forward', {cls: 'ptr', size: 19, anchor: 'middle', rot: -4});
+        k.rect(400, 20, 240, 250).text(416, 50, 'Book a viewing', {size: 16});
+        k.text(416, 80, 'name', {size: 11}).line(416, 96, 520, 96, 'pc', 1).text(530, 80, 'phone', {size: 11}).line(530, 96, 624, 96, 'pc', 1);
+        k.text(416, 122, 'date', {size: 11}).line(416, 138, 520, 138, 'pc', 1).text(530, 122, 'floor', {size: 11}).rect(530, 126, 94, 22, 'pr', 1.6).text(536, 142, 'Flat 18', {size: 12});
+        k.text(416, 172, 'Your selection: Flat 18,', {size: 12}).text(416, 188, 'oak and linen, furnished', {size: 12});
+        k.rect(416, 204, 208, 26).text(520, 222, 'Request a viewing', {size: 13, anchor: 'middle'});
+        k.ellipse(426, 252, 7, 5, 'pc', 1.2).ellipse(436, 252, 7, 5, 'pc', 1.2).text(450, 257, 'copy a link to this flat', {size: 12});
+        k.text(20, 298, 'recognition, not recall', {cls: 'ptr', size: 18});
+        return k.svg(this.label);
+      },
+    },
   };
 
 
-  const CAT = { PAGELIFT: 'Research', PEGASUS: 'XR', DESKTOP: 'XR', GLANCE: 'XR', PAPERTOSS: 'XR', SRK: 'Client', MOVEMENT: 'Client', PARALLEL: 'Engineering', ROJU: 'Engineering', FAATEH: 'Client' };
+  const CAT = { PAGELIFT: 'Research', PEGASUS: 'XR', LANTERNS: 'XR', DESKTOP: 'XR', GLANCE: 'XR', KOMBAT: 'XR', PAPERTOSS: 'XR', SRK: 'Client', MOVEMENT: 'Client', PARALLEL: 'Engineering', ROJU: 'Engineering', FAATEH: 'Client' };
   const CAT_LABEL = { Research: 'TOOLS', XR: 'XR & GESTURE', Client: 'CLIENT', Engineering: 'ENGINEERING' };
   const pad2 = (n) => String(n).padStart(2, '0');
 
@@ -955,6 +1184,29 @@
       ],
       links: [{ label: 'Try it with your eyes', href: 'https://sidag45.github.io/XR%20Projects/eye-desktop/' }],
     },
+    LANTERNS: {
+      media: [
+        { type: 'image', src: 'intel/lanterns-arrival.webp', caption: 'Arrival: the tower at dusk, with skip links to the floor plan or viewings. The floor indicator on the right starts at G.' },
+        { type: 'image', src: 'intel/lanterns-flat23.webp', caption: 'Up to Flat 23: the floors above are lifted out of the way so the flat opens while the tower stays in view.' },
+        { type: 'image', src: 'intel/lanterns-floorplan.webp', caption: 'Floor plan from above, room sizes labelled in the model and listed in the card.' },
+        { type: 'image', src: 'intel/lanterns-oak.webp', caption: 'Finishes: oak and linen, furnished, at night. Drag to look from any angle.' },
+        { type: 'image', src: 'intel/lanterns-walnut.webp', caption: 'The same room in walnut and brass.' },
+        { type: 'image', src: 'intel/lanterns-terrazzo.webp', caption: 'The same room in terrazzo and jade.' },
+        { type: 'image', src: 'intel/lanterns-viewing.webp', caption: 'Viewings: the form already holds the chosen flat and finish, with travel times underneath.' },
+      ],
+      links: [{ label: 'Take the tour', href: 'https://sidag45.github.io/XR%20Projects/the-lanterns/' }],
+    },
+    KOMBAT: {
+      media: [
+        { type: 'video', src: 'intel/kombat-fight.mp4', webm: 'intel/kombat-fight.webm', poster: 'intel/kombat-fight-poster.webp', caption: 'Solo training on the keyboard: approach, punch, punch, kick for the 3-hit combo, block, jump kick.' },
+        { type: 'image', src: 'intel/kombat-landing.webp', caption: 'The arena: original fighters Ember and Glacier, health bars and the 60-second round timer.' },
+        { type: 'image', src: 'intel/kombat-combo.webp', caption: 'Punch, punch, kick: the 3-hit combo banner as the kick connects.' },
+        { type: 'image', src: 'intel/kombat-counter.webp', caption: 'The AI opponent answers with a kick of its own.' },
+        { type: 'image', src: 'intel/kombat-controls.webp', caption: 'Mode select (solo, local duel, online room) and the input guide pairing each gesture with its key.' },
+        { type: 'image', src: 'intel/kombat-calibrate.webp', caption: 'Camera setup: stand neutral to set a baseline, then squat and raise a guard. Video stays in the browser.' },
+      ],
+      links: [{ label: 'Play the prototype', href: 'https://sidag45.github.io/gesture-kombat/' }],
+    },
     PAPERTOSS: {
       media: [
         { type: 'image', src: 'intel/paper-toss-intro.webp', caption: 'Mission card: pinch, squeeze three times, throw. Hands or mouse.' },
@@ -967,9 +1219,8 @@
     const links = (I.links && I.links.length) ? I.links : (f.link ? [{ label: f.link.label, href: f.link.href }] : []);
     const media = (I.media || []).map((m, i) => {
       if (m.type === 'video') {
-        const srcs = (m.webm ? '<source src="' + m.webm + '" type="video/webm">' : '') + '<source src="' + m.src + '" type="video/mp4">';
-        return '<figure class="intel-item wide"><video' + (m.poster ? ' poster="' + m.poster + '"' : '') +
-          ' controls muted loop playsinline preload="metadata"' + (reduce ? '' : ' autoplay') + '>' + srcs + '</video>' +
+        return '<figure class="intel-item"><button type="button" class="intel-img is-video" data-kind="video" data-src="' + m.src + '" data-webm="' + (m.webm || '') + '" data-poster="' + (m.poster || '') + '" data-caption="' + esc(m.caption || '') + '" aria-label="Play video: ' + esc(m.caption || '') + '">' +
+          '<img src="' + (m.poster || '') + '" alt="' + esc(m.caption || '') + '" loading="lazy"><span class="play" aria-hidden="true">▶</span></button>' +
           '<figcaption><b>VID-' + pad2(i + 1) + '</b> ' + esc(m.caption || '') + '</figcaption></figure>';
       }
       return '<figure class="intel-item"><button type="button" class="intel-img" data-src="' + m.src + '" data-caption="' + esc(m.caption || '') + '" aria-label="Enlarge: ' + esc(m.caption || 'image') + '">' +
@@ -985,11 +1236,18 @@
   /* ---------- lightbox for intel images ---------- */
   const lightbox = $('lightbox'), lbImg = $('lbImg'), lbCap = $('lbCap');
   let lbReturn = null;
+  const lbVid = $('lbVid');
   function openLightbox(src, caption, from) {
-    lbReturn = from; lbImg.src = src; lbImg.alt = caption; lbCap.textContent = caption;
+    lbReturn = from; lbCap.textContent = caption;
+    const vid = from && from.dataset.kind === 'video';
+    lbImg.hidden = vid; lbVid.hidden = !vid;
+    if (vid) {
+      lbVid.innerHTML = (from.dataset.webm ? '<source src="' + from.dataset.webm + '" type="video/webm">' : '') + '<source src="' + src + '" type="video/mp4">';
+      lbVid.poster = from.dataset.poster || ''; lbVid.load(); lbVid.play().catch(() => {});
+    } else { lbImg.src = src; lbImg.alt = caption; }
     lightbox.hidden = false; $('lbClose').focus();
   }
-  function closeLightbox() { lightbox.hidden = true; lbImg.removeAttribute('src'); if (lbReturn) lbReturn.focus(); }
+  function closeLightbox() { lightbox.hidden = true; lbImg.removeAttribute('src'); lbVid.pause(); lbVid.removeAttribute('poster'); lbVid.innerHTML = ''; if (lbReturn) lbReturn.focus(); }
   $('lbClose').addEventListener('click', closeLightbox);
   lightbox.addEventListener('click', (e) => { if (e.target === lightbox) closeLightbox(); });
 
@@ -1033,6 +1291,10 @@
   let lastFocus = null;
   const GLYPHS = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789#$%&*+=<>/';
   const scramble = (t) => t.replace(/\S/g, () => GLYPHS[Math.floor(Math.random() * GLYPHS.length)]);
+  function sectionsHTML(f) {
+    return (f.sections || []).map((x) => '<h4>' + esc(x.h) + '</h4>' + (x.p || []).map((t) => '<p>' + esc(t) + '</p>').join('') +
+      (x.list ? '<' + (x.ordered ? 'ol' : 'ul') + ' class="xlist">' + x.list.map((t) => '<li>' + esc(t) + '</li>').join('') + '</' + (x.ordered ? 'ol' : 'ul') + '>' : '')).join('');
+  }
   function annexHTML(f) {
     const A = ANALYSIS[f.id]; if (!A) return '';
     const fig = (id, n) => '<figure class="fig"><div class="sheet">' + SKETCHES[id].draw() + '</div><figcaption><b>FIG. ' + n + '</b> · ' + SKETCHES[id].caption + '</figcaption></figure>';
@@ -1157,6 +1419,7 @@
       '<dl class="grid"><div><dt class="k">STATUS</dt><dd>' + esc(f.status) + '</dd></div><div><dt class="k">ROLE</dt><dd>' + esc(f.role) + '</dd></div>' +
       '<div><dt class="k">CATEGORY</dt><dd>' + (CAT_LABEL[CAT[f.id]] || '') + '</dd></div><div><dt class="k">CLEARED FOR</dt><dd>AGENT ' + esc(agent) + '</dd></div></dl>' +
       '<h4>FIELD REPORT</h4><p>' + esc(f.body) + '</p>' +
+      sectionsHTML(f) +
       intelHTML(f) +
       '<h4>ENCRYPTED ANNEX</h4><div class="cipher" id="cipher"><span class="txt" id="cipherTxt">' + esc(scramble(f.secret)) + '</span><button type="button" class="bevel sm" id="decrypt">Decrypt</button></div>' +
       '<h4>METHODS</h4><div class="tags">' + f.tags.map((t) => '<span>' + esc(t) + '</span>').join('') + '</div>' +
@@ -1302,6 +1565,7 @@
         '<p class="p-sum">' + esc(f.op) + '</p>' +
         dl([['Status', f.status], ['Role', f.role], ['Category', (CAT_LABEL[CAT[f.id]] || '').replace('&amp;', '&')], ['Classification', f.clr]]) +
         '<h4>Field report</h4><p>' + esc(f.body) + '</p>' +
+        (f.sections || []).map((x) => '<h4>' + esc(x.h.charAt(0) + x.h.slice(1).toLowerCase()) + '</h4>' + (x.p || []).map((t) => '<p>' + esc(t) + '</p>').join('') + (x.list ? '<' + (x.ordered ? 'ol' : 'ul') + ' class="p-pr">' + x.list.map((t) => '<li>' + esc(t) + '</li>').join('') + '</' + (x.ordered ? 'ol' : 'ul') + '>' : '')).join('') +
         '<h4>Annex</h4><p>' + esc(f.secret) + '</p>' +
         '<h4>Methods</h4><p>' + f.tags.map(esc).join(', ') + '</p>';
       const media = I.media || [];

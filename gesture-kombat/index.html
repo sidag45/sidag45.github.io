@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101113">
+  <meta name="description" content="Gesture Kombat — a camera-powered fighting game. Move your body. Own the arena.">
+  <title>Gesture Kombat — Enter the arena</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="Gesture Kombat home"><span class="brand-mark">GK</span><span>GESTURE<br>KOMBAT</span></a>
+      <div class="top-meta"><span class="live-dot"></span><span>CAMERA-FIRST COMBAT</span><span class="meta-divider"></span><span>BUILD 01.01</span></div>
+      <button class="icon-button" id="soundToggle" aria-label="Toggle sound" title="Toggle sound">♫</button>
+    </header>
+
+    <section class="intro">
+      <div class="eyebrow"><span>01</span> THE BODY IS THE CONTROLLER</div>
+      <h1>MOVE YOUR<br><span>BODY.</span> OWN THE<br>ARENA<span class="period">.</span></h1>
+      <p class="intro-copy">Step into a new kind of fighting game. Throw a punch, drop low, raise your guard. Your moves become the fight.</p>
+    </section>
+
+    <section class="arena-wrap" aria-label="Game arena">
+      <div class="arena-topline"><span><i class="live-dot"></i> <b id="roundLabel">ROUND 01</b></span><span class="arena-mode" id="modeLabel">LOCAL TRAINING</span><span class="fps-label" id="connectionLabel">READY</span></div>
+      <div class="scoreboard">
+        <div class="player-score player-left"><div class="score-name"><span class="player-index">P1</span><span>EMBER</span></div><div class="health-track"><div class="health-fill" id="health1"></div></div><div class="score-sub"><span>THE STRIKER</span><span id="healthText1">100</span></div></div>
+        <div class="versus">VS</div>
+        <div class="player-score player-right"><div class="score-name"><span>GLACIER</span><span class="player-index">CPU</span></div><div class="health-track"><div class="health-fill" id="health2"></div></div><div class="score-sub"><span id="healthText2">100</span><span>THE SENTINEL</span></div></div>
+      </div>
+      <div class="canvas-frame"><canvas id="game" aria-label="Gesture Kombat fighting arena"></canvas><div class="fight-flash" id="fightFlash"></div><div class="arena-hint" id="arenaHint"><span class="hint-key">SPACE</span> OR <span class="hint-key">START FIGHT</span> TO BEGIN</div><div class="combo-pop" id="comboPop"></div></div>
+      <div class="arena-bottom"><span><span class="sound-wave">▂▅▃</span> <span id="statusText">WARM UP. FIGHT WHEN READY.</span></span><span id="timer">60</span></div>
+    </section>
+
+    <section class="control-deck">
+      <div class="deck-main">
+        <div class="deck-title"><span class="eyebrow"><span>02</span> CHOOSE YOUR FIGHT</span><span class="privacy-tag"><span class="lock">⌑</span> YOUR CAMERA STAYS ON YOUR DEVICE</span></div>
+        <div class="mode-cards">
+          <button class="mode-card selected" data-mode="training"><span class="mode-icon">◉</span><span class="mode-card-copy"><b>SOLO TRAINING</b><small>Fight the arena sentinel</small></span><span class="card-arrow">↗</span></button>
+          <button class="mode-card" data-mode="local"><span class="mode-icon">Ⅱ</span><span class="mode-card-copy"><b>LOCAL DUEL</b><small>Two players · one keyboard</small></span><span class="card-arrow">↗</span></button>
+          <button class="mode-card" data-mode="online"><span class="mode-icon">⌁</span><span class="mode-card-copy"><b>ONLINE MATCH</b><small>Challenge a friend by code</small></span><span class="card-arrow">↗</span></button>
+        </div>
+        <div class="setup-row" id="onlineSetup" hidden><label for="serverUrl">MATCH SERVER</label><input id="serverUrl" type="url" placeholder="wss://your-match-server.example"><input id="joinRoomCode" maxlength="6" aria-label="Room code" placeholder="ROOM CODE"><button id="onlineButton" class="mini-button">CREATE ROOM</button><span id="roomCode" class="room-code"></span></div>
+        <div class="action-row"><button class="primary-button" id="startButton"><span class="button-icon">▶</span> START FIGHT <span class="button-shortcut">SPACE</span></button><button class="camera-button" id="cameraButton"><span>◎</span> ENABLE CAMERA</button><button class="calibrate-button" id="calibrateButton" disabled>CALIBRATE <span>↗</span></button></div>
+        <div class="camera-status"><span class="status-dot" id="cameraDot"></span><span id="cameraStatus">KEYBOARD CONTROLS ACTIVE</span><span class="camera-note" id="cameraNote">Camera is optional · processed locally</span></div>
+      </div>
+      <aside class="controls-card">
+        <div class="controls-head"><span>HOW TO PLAY</span><span class="tiny-label">INPUT GUIDE</span></div>
+        <div class="control-list">
+          <div class="control-item"><span class="gesture-icon punch-icon">↗</span><span><b>PUNCH</b><small>Extend an arm / <kbd>J</kbd> <kbd>K</kbd></small></span><span class="control-arrow">→</span></div>
+          <div class="control-item"><span class="gesture-icon kick-icon">⌁</span><span><b>KICK</b><small>Lift & extend a leg / <kbd>L</kbd></small></span><span class="control-arrow">→</span></div>
+          <div class="control-item"><span class="gesture-icon guard-icon">⌂</span><span><b>GUARD</b><small>Raise both hands / hold <kbd>I</kbd></small></span><span class="control-arrow">→</span></div>
+          <div class="control-item"><span class="gesture-icon crouch-icon">⌄</span><span><b>CROUCH</b><small>Squat / <kbd>S</kbd></small></span><span class="control-arrow">→</span></div>
+          <div class="control-item"><span class="gesture-icon jump-icon">↟</span><span><b>JUMP</b><small>Jump / <kbd>W</kbd></small></span><span class="control-arrow">→</span></div>
+          <div class="control-item"><span class="gesture-icon">↔</span><span><b>MOVE</b><small>Step / <kbd>A</kbd> <kbd>D</kbd></small></span><span class="control-arrow">→</span></div>
+        </div>
+        <div class="combo-tip"><span>✦</span><span><b>CHAIN YOUR MOVES</b><small>Left → right → kick for a 3-hit combo.</small></span></div>
+      </aside>
+    </section>
+
+    <footer class="footer"><span>GESTURE KOMBAT <span class="footer-dim">© 2026</span></span><span>ORIGINAL FIGHTERS. REAL MOVEMENT.</span><a href="../">SIDAG45.GITHUB.IO ↗</a></footer>
+  </main>
+
+  <div class="modal-backdrop" id="calibrationModal" hidden><section class="modal" role="dialog" aria-modal="true" aria-labelledby="calibrationTitle"><button class="modal-close" data-close="calibrationModal" aria-label="Close">×</button><div class="eyebrow"><span>CAMERA SETUP</span></div><h2 id="calibrationTitle">FIND YOUR<br><em>FIGHTING STANCE.</em></h2><p>Stand far enough back to fit your full body in frame. Face the camera with a little room around you.</p><div class="preview-shell"><video id="preview" autoplay playsinline muted></video><canvas id="poseOverlay"></canvas><div id="previewMessage">CAMERA PREVIEW</div></div><div class="calibration-progress"><div id="calibrationBar"></div></div><div class="calibration-step" id="calibrationStep">STEP 1 OF 3 · STAND NEUTRAL</div><div class="modal-actions"><button class="primary-button" id="calibrationNext">START CALIBRATION →</button></div><p class="modal-footnote">Video is processed here in your browser. No footage is uploaded.</p></section></div>
+  <div class="toast" id="toast" role="status"></div>
+  <script type="module" src="game.js"></script>
+</body>
+</html>

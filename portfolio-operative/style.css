@@ -262,6 +262,7 @@ button{font:inherit;color:inherit}
 .lightbox{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(2,4,3,.88)}
 .lightbox[hidden]{display:none}
 .lb-win{margin:0;width:min(1200px,100%);max-height:100%;display:flex;flex-direction:column}
+.lb-win video{display:block;width:100%;max-height:calc(100vh - 140px);background:#050806}
 .lb-win img{display:block;width:100%;max-height:calc(100vh - 140px);object-fit:contain;background:#050806}
 .lb-win figcaption{padding:8px 12px;font-size:17px;color:var(--phos);border-top:1px solid var(--rule)}
 
@@ -395,6 +396,19 @@ html.plain body > :not(#plain):not(script){display:none!important}
 .vx span.dc.dc,.vx span.dc.dc span.sc{all:unset}
 .vx span.dc.dc span.sc{opacity:.28}
 .vx{font-kerning:none;font-variant-ligatures:none;text-rendering:optimizeSpeed}
+
+/* intel media as thumbnails; full size opens in the viewer */
+.intel-grid{grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:10px}
+.intel-item.wide{grid-column:auto}
+.intel-img img,.intel-item video{aspect-ratio:4/3;object-fit:cover}
+.intel-img{cursor:zoom-in}
+.intel-img.is-video{cursor:pointer}
+.intel-img .play{position:absolute;inset:0;display:grid;place-items:center;font-size:22px;color:var(--phos);text-shadow:0 0 8px #000,0 0 14px var(--phos-glow);background:linear-gradient(transparent,rgba(0,0,0,.25))}
+.intel-item figcaption{font-size:11px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.intel-item figcaption b{font-size:13px}
+.vx .xlist{margin:0 0 10px;padding-left:22px;max-width:66ch;color:#cfd8d1}
+.vx .xlist li{margin:0 0 6px}
+.vx .xlist li::marker{color:var(--phos);font-family:var(--f-crt)}
 
 /* ---------- boot terminal (from the original dossier) ---------- */
 /* ============ BOOT TERMINAL ============ */
