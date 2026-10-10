@@ -1,0 +1,629 @@
+<!doctype html>
+<html lang="en" data-theme="celestial" data-side="right">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rivière d'Or · Aurelle</title>
+  <meta name="description" content="Aurelle Rivière d'Or — a gold necklace that forms from raw gold as you scroll. Concept by Enclave Labs." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..800;1,6..96,400..800&family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Mono:wght@400&family=DM+Serif+Display:ital@0;1&family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&family=Italiana&family=Josefin+Sans:wght@300;400;600&family=Jost:wght@300;400;500&family=Manrope:wght@300;400;500;600&family=Marcellus&family=Montserrat:wght@300;400;500&family=Noto+Serif+TC:wght@400;600&family=Playfair+Display:ital,wght@0,400..800;1,400..800&family=Poiret+One&family=Syne:wght@400;600;700&display=swap" />
+  <link rel="stylesheet" href="styles.css" />
+  <script type="importmap">
+    { "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    } }
+  </script>
+</head>
+<body>
+  <div class="bg-fx" aria-hidden="true"></div>
+  <div class="spot" aria-hidden="true"></div>
+  <div class="orbit" aria-hidden="true"><i></i><i></i><i></i></div>
+  <div class="plinth" aria-hidden="true"></div>
+  <canvas id="gl" aria-label="3D gold necklace forming from a gold bar"></canvas>
+  <div class="frame" aria-hidden="true"><span class="c tl"></span><span class="c tr"></span><span class="c bl"></span><span class="c br"></span></div>
+
+  <header class="nav">
+    <a class="brand" href="#top"><span class="mark">A</span><span class="word">Aurelle</span><span class="zh">金蘊</span></a>
+    <nav class="links">
+      <a href="#ch1">The Making</a>
+      <a href="#ch6">The Stone</a>
+      <a href="#finale">The Necklace</a>
+    </nav>
+    <a class="btn btn-ghost nav-cta bag" href="#finale">Bag (<span id="bagCount">0</span>)</a>
+  </header>
+
+  <ol class="rail" aria-label="Chapters">
+    <li data-i="0"><a href="#top">◆</a></li>
+    <li data-i="1"><a href="#ch1">I</a></li>
+    <li data-i="2"><a href="#ch2">II</a></li>
+    <li data-i="3"><a href="#ch3">III</a></li>
+    <li data-i="4"><a href="#ch4">IV</a></li>
+    <li data-i="5"><a href="#ch5">V</a></li>
+    <li data-i="6"><a href="#ch6">VI</a></li>
+    <li data-i="7"><a href="#finale">VII</a></li>
+  </ol>
+
+  <main id="top">
+    <section class="chapter hero" data-i="0">
+      <div class="copy product">
+        <nav class="crumbs" aria-label="Breadcrumb"><a href="#top">Necklaces</a> / Rivière d’Or</nav>
+        <p class="eyebrow"><span class="orn"></span>Aurelle Haute Joaillerie · Hong Kong</p>
+        <h1>Rivière <em>d'Or</em></h1>
+        <p class="zh-line">金河 · 由金條到項鍊</p>
+        <p class="rating"><span aria-hidden="true">★★★★★</span> 4.9 · 128 reviews</p>
+        <p class="price"><span class="cur">HK$</span>88,000</p>
+        <p class="lede">A necklace that remembers it was gold. Scroll to watch a single bar become the piece you’ll wear.</p>
+
+        <fieldset class="opt" data-group="metal">
+          <legend>Metal</legend>
+          <div class="chips">
+            <button type="button" class="pick on" data-metal="#d8ab4e" aria-pressed="true">18K Yellow</button>
+            <button type="button" class="pick" data-metal="#dfe3ea" aria-pressed="false">18K White</button>
+            <button type="button" class="pick" data-metal="#e3a594" aria-pressed="false">18K Rose</button>
+          </div>
+        </fieldset>
+        <fieldset class="opt" data-group="length">
+          <legend>Chain length</legend>
+          <div class="chips">
+            <button type="button" class="pick" aria-pressed="false">16 in</button>
+            <button type="button" class="pick on" aria-pressed="true">18 in</button>
+            <button type="button" class="pick" aria-pressed="false">20 in</button>
+          </div>
+        </fieldset>
+
+        <div class="buy">
+          <div class="qty" role="group" aria-label="Quantity">
+            <button type="button" data-qty="-1" aria-label="Decrease quantity">−</button>
+            <output id="qtyVal">1</output>
+            <button type="button" data-qty="1" aria-label="Increase quantity">+</button>
+          </div>
+          <button type="button" class="btn btn-solid add-bag" data-add>Add to bag</button>
+          <button type="button" class="btn btn-ghost save" aria-pressed="false">♡ Save</button>
+        </div>
+        <ul class="perks">
+          <li>Complimentary insured shipping</li>
+          <li>30-day returns</li>
+          <li>Certificate of authenticity</li>
+        </ul>
+        <a class="scroll-cue" href="#ch1"><span>See it form</span><i></i></a>
+      </div>
+    </section>
+
+    <section class="chapter" id="ch1" data-i="1">
+      <div class="copy">
+        <p class="eyebrow"><span class="num">I</span><span class="lbl">Alloy &amp; Melt</span><span class="zh">合金熔煉</span></p>
+        <h2>Pure gold is too soft to <em>wear every day.</em></h2>
+        <p>24K gold is blended with copper and silver (palladium for white gold), then melted past 1,000&nbsp;°C into 18K bars for daily wear.</p>
+        <dl class="spec"><div><dt>Karat</dt><dd>18K</dd></div><div><dt>Gold content</dt><dd>75%</dd></div><div><dt>Melt</dt><dd>1,000 °C+</dd></div></dl>
+      </div>
+    </section>
+
+    <section class="chapter" id="ch2" data-i="2">
+      <div class="copy">
+        <p class="eyebrow"><span class="num">II</span><span class="lbl">Roll &amp; Anneal</span><span class="zh">軋延退火</span></p>
+        <h2>Rolled into a rod, <em>then softened.</em></h2>
+        <p>The bar passes through a rolling mill until it is a long, even rod. Cold metal cracks, so it goes into the oven, cools slowly, and is ready to stretch.</p>
+        <dl class="spec"><div><dt>Passes</dt><dd>Rolling mill</dd></div><div><dt>Anneal</dt><dd>Heat, then cool</dd></div><div><dt>Result</dt><dd>Malleable rod</dd></div></dl>
+      </div>
+    </section>
+
+    <section class="chapter" id="ch3" data-i="3">
+      <div class="copy">
+        <p class="eyebrow"><span class="num">III</span><span class="lbl">Draw the Wire</span><span class="zh">拉絲</span></p>
+        <h2>Drawn finer <em>than silk.</em></h2>
+        <p>The rod is pulled through diamond-lined draw plates, each hole smaller than the last, until it becomes one unbroken wire fine enough to link by hand.</p>
+        <dl class="spec"><div><dt>Draw plates</dt><dd>Diamond-lined</dd></div><div><dt>Gauge</dt><dd>0.6 mm</dd></div><div><dt>Wire</dt><dd>Unbroken</dd></div></dl>
+      </div>
+    </section>
+
+    <section class="chapter" id="ch4" data-i="4">
+      <div class="copy">
+        <p class="eyebrow"><span class="num">IV</span><span class="lbl">Hand-Link</span><span class="zh">手工鏈環</span></p>
+        <h2>Every ring <em>cut and interlocked.</em></h2>
+        <p>The wire is wrapped around a rod and cut into individual rings. Each one is woven into the next by hand, building the cable pattern link by link.</p>
+        <dl class="spec"><div><dt>Links</dt><dd>168</dd></div><div><dt>Pattern</dt><dd>Cable</dd></div><div><dt>Length</dt><dd>42 cm</dd></div></dl>
+      </div>
+    </section>
+
+    <section class="chapter" id="ch5" data-i="5">
+      <div class="copy">
+        <p class="eyebrow"><span class="num">V</span><span class="lbl">Solder &amp; Fuse</span><span class="zh">焊接</span></p>
+        <h2>Each joint <em>fused by flame.</em></h2>
+        <p>Flux and gold solder go onto every joint. A torch melts the solder, and the links fuse permanently, one by one.</p>
+        <dl class="spec"><div><dt>Solder</dt><dd>18K gold</dd></div><div><dt>Furnace</dt><dd>815 °C</dd></div><div><dt>Joints</dt><dd>Hand-soldered</dd></div></dl>
+      </div>
+    </section>
+
+    <section class="chapter" id="ch6" data-i="6">
+      <div class="copy">
+        <p class="eyebrow"><span class="num">VI</span><span class="lbl">Cast the Pendant</span><span class="zh">失蠟鑄造</span></p>
+        <h2>Wax carved, gold poured, <em class="gem-name">a moss agate set.</em></h2>
+        <p>The pendant is modelled in wax, cast in plaster, and the wax burned out so molten gold can fill the mould. The moss agate is set in four prongs beneath a leaf-motif setting.</p>
+        <dl class="spec"><div><dt>Method</dt><dd>Lost-wax</dd></div><div><dt>Stone</dt><dd class="gem-spec">4.20 ct moss agate</dd></div><div><dt>Setting</dt><dd>Four prongs</dd></div></dl>
+      </div>
+    </section>
+
+    <section class="chapter finale" id="finale" data-i="7">
+      <div class="copy card">
+        <p class="eyebrow"><span class="num">VII</span><span class="lbl">Polish, Clasp &amp; Hallmark</span><span class="zh">拋光扣合</span></p>
+        <h2>Rivière <em>d'Or</em></h2>
+        <p>Pickled to clear oxidation, buffed to a high shine, then fitted with a box clasp and a purity hallmark. 18K yellow gold with a <span class="gem-short">moss agate</span> pendant, made to order in Hong Kong and delivered in six weeks.</p>
+        <p class="price"><span class="cur">HK$</span>88,000</p>
+        <div class="ctas">
+          <button type="button" class="btn btn-solid add-bag" data-add>Add to bag</button>
+          <a class="btn btn-ghost" href="#finale">Book a private viewing</a>
+        </div>
+        <p class="fine">By appointment · Central, Hong Kong · 預約鑑賞</p>
+      </div>
+    </section>
+
+    <footer class="foot">
+      <span>Aurelle is a fictional maison · Concept by Enclave Labs</span>
+      <span>Dummy content for design exploration</span>
+    </footer>
+  </main>
+
+  
+
+  <script src="themes.js"></script>
+  <script src="ui.js"></script>
+  <div class="gl-notice" role="status" hidden>The 3D necklace couldn't load. Check your internet connection (three.js loads from jsDelivr) and that WebGL is enabled, then reload.</div>
+  <script>
+    // If the 3D hasn't started after a few seconds, say so instead of leaving an empty stage.
+    setTimeout(function () { if (!document.documentElement.classList.contains('gl-ready')) document.querySelector('.gl-notice').hidden = false; }, 8000);
+  </script>
+  <!-- 3D scene: inline module so it also runs when the file is opened directly (file://) -->
+  <script type="module">
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+
+/* ---------- helpers ---------- */
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+const smooth = (a, b, v) => { const t = clamp((v - a) / (b - a)); return t * t * (3 - 2 * t); };
+const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+
+/* ---------- renderer / scene ---------- */
+const canvas = document.getElementById('gl');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setClearColor(0x000000, 0);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
+camera.position.set(0, 0.3, 8);
+
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture;
+
+const keyLight = new THREE.DirectionalLight(0xfff1d6, 2.4);
+keyLight.position.set(3, 5, 4);
+const rimLight = new THREE.DirectionalLight(0xff5a6e, 2.0);
+rimLight.position.set(-4, 1.5, -3);
+const glowLight = new THREE.PointLight(0xff6a1a, 0, 6, 1.5);
+scene.add(keyLight, rimLight, glowLight, new THREE.AmbientLight(0xffffff, 0.12));
+
+const root = new THREE.Group();   // placed on screen (side)
+const model = new THREE.Group();  // rotated / animated
+root.add(model);
+scene.add(root);
+
+/* ---------- materials ---------- */
+const goldBase = { color: 0xd8ab4e, metalness: 1, roughness: 0.2, clearcoat: 0.35, clearcoatRoughness: 0.18, emissive: 0xff4a10, emissiveIntensity: 0 };
+const ingotMat = new THREE.MeshPhysicalMaterial(goldBase);
+const wireMat = new THREE.MeshPhysicalMaterial(goldBase);
+const linkMat = new THREE.MeshPhysicalMaterial({ ...goldBase, emissiveIntensity: 0 });
+const pendantGold = new THREE.MeshPhysicalMaterial({ ...goldBase });
+const goldMats = [ingotMat, wireMat, linkMat, pendantGold];
+
+const moss = (() => {
+  const c = document.createElement('canvas'); c.width = c.height = 256;
+  const g = c.getContext('2d');
+  g.fillStyle = '#3d6a4a'; g.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < 900; i++) {
+    const light = Math.random() < 0.5;
+    g.fillStyle = light
+      ? `rgba(${120 + Math.random() * 40 | 0},${160 + Math.random() * 40 | 0},${100 + Math.random() * 40 | 0},${0.3 + Math.random() * 0.4})`
+      : `rgba(${15 + Math.random() * 20 | 0},${30 + Math.random() * 25 | 0},${15 + Math.random() * 15 | 0},${0.4 + Math.random() * 0.5})`;
+    g.beginPath(); g.arc(Math.random() * 256, Math.random() * 256, 1 + Math.random() * 4, 0, Math.PI * 2); g.fill();
+  }
+  return new THREE.CanvasTexture(c);
+})();
+const gemMat = new THREE.MeshPhysicalMaterial({ map: moss,
+  color: 0xa0101f, metalness: 0, roughness: 0.04, transmission: 0.55, thickness: 0.6,
+  ior: 1.77, clearcoat: 1, flatShading: true, emissive: 0x000000, emissiveIntensity: 0.25,
+});
+
+/* ---------- 1. ingot ---------- */
+const IW = 1.5, IH = 0.42, ID = 0.72;
+const ingotGeo = new RoundedBoxGeometry(IW, IH, ID, 4, 0.05);
+{
+  const p = ingotGeo.attributes.position;
+  for (let i = 0; i < p.count; i++) {
+    const f = 1 - 0.17 * ((p.getY(i) + IH / 2) / IH); // taper toward the top like a cast bar
+    p.setX(i, p.getX(i) * f);
+    p.setZ(i, p.getZ(i) * f);
+  }
+  ingotGeo.computeVertexNormals();
+}
+const ingot = new THREE.Mesh(ingotGeo, ingotMat);
+model.add(ingot);
+
+// stamped markings on top
+{
+  const c = document.createElement('canvas');
+  c.width = 1024; c.height = 512;
+  const g = c.getContext('2d');
+  g.fillStyle = '#000'; g.fillRect(0, 0, 1024, 512);
+  g.strokeStyle = '#fff'; g.lineWidth = 10; g.strokeRect(40, 40, 944, 432);
+  g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.font = '600 120px serif'; g.fillText('AURELLE', 512, 170);
+  g.font = '500 64px serif'; g.fillText('999.9  ·  FINE GOLD', 512, 300);
+  g.font = '400 52px serif'; g.fillText('1 KG  ·  香港', 512, 395);
+  const tex = new THREE.CanvasTexture(c);
+  const stampMat = new THREE.MeshStandardMaterial({ color: 0x5a3a0c, metalness: 0.8, roughness: 0.55, alphaMap: tex, transparent: true, depthWrite: false });
+  const top = 0.83 * 0.92;
+  const stamp = new THREE.Mesh(new THREE.PlaneGeometry(IW * top * 0.86, ID * top * 0.86), stampMat);
+  stamp.rotation.x = -Math.PI / 2;
+  stamp.position.y = IH / 2 + 0.003;
+  ingot.add(stamp);
+}
+
+/* ---------- sparks (melt) ---------- */
+const SPARKS = 260;
+const sparkGeo = new THREE.BufferGeometry();
+const sparkPos = new Float32Array(SPARKS * 3);
+const sparkVel = new Float32Array(SPARKS);
+const resetSpark = (i) => {
+  sparkPos[i * 3] = (Math.random() - 0.5) * IW;
+  sparkPos[i * 3 + 1] = (Math.random() - 0.3) * IH;
+  sparkPos[i * 3 + 2] = (Math.random() - 0.5) * ID;
+  sparkVel[i] = 0.3 + Math.random() * 0.9;
+};
+for (let i = 0; i < SPARKS; i++) { resetSpark(i); sparkPos[i * 3 + 1] += Math.random() * 1.5; }
+sparkGeo.setAttribute('position', new THREE.BufferAttribute(sparkPos, 3));
+const sparkMat = new THREE.PointsMaterial({ color: 0xffb347, size: 0.035, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false });
+const sparks = new THREE.Points(sparkGeo, sparkMat);
+model.add(sparks);
+
+/* ---------- 2. wire: coil → necklace ---------- */
+const TURNS = 3, HL = 2.7, HR = 0.58;            // coil (spool) shape
+const NR = 1.55, NH = 0.55, ARC = 0.93;           // necklace shape
+const helixAt = (t, o) => {
+  const a = t * Math.PI * 2 * TURNS;
+  return o.set((t - 0.5) * HL, Math.cos(a) * HR, Math.sin(a) * HR);
+};
+const neckAt = (t, o) => {
+  const th = (t - 0.5) * Math.PI * 2 * ARC;
+  const c = Math.cos(th);
+  return o.set(
+    NR * Math.sin(th),
+    -NH * (1 + c) / 2 + NH * 0.5 - 0.32 * Math.exp(-th * th * 5),
+    NR * c * 0.62,
+  );
+};
+const _a = new THREE.Vector3(), _b = new THREE.Vector3();
+const shapeAt = (t, form, o) => {
+  helixAt(t, _a); neckAt(t, _b);
+  const e = ease(form);
+  o.lerpVectors(_a, _b, e);
+  // a little flourish mid-transform so it feels hand-bent, not tweened
+  const k = Math.sin(Math.PI * e);
+  o.z += k * 0.35 * Math.sin(t * Math.PI * 2);
+  o.y += k * 0.18 * Math.sin(t * Math.PI * 6);
+  return o;
+};
+
+// box clasp and jump ring, fitted to the two ends of the chain at the finale
+const claspGrp = new THREE.Group();
+{
+  const b = new THREE.Mesh(new RoundedBoxGeometry(0.2, 0.12, 0.08, 2, 0.02), pendantGold);
+  const r = new THREE.Mesh(new THREE.TorusGeometry(0.06, 0.016, 10, 24), pendantGold);
+  r.rotation.y = Math.PI / 2;
+  const a0 = neckAt(0, new THREE.Vector3()), a1 = neckAt(1, new THREE.Vector3());
+  b.position.copy(a0); r.position.copy(a1);
+  claspGrp.add(b, r);
+}
+model.add(claspGrp);
+
+// spool the wire winds onto (lacquer core + gold flanges)
+const spool = new THREE.Group();
+{
+  const lacquer = new THREE.MeshPhysicalMaterial({ color: 0x2a0a10, roughness: 0.35, clearcoat: 1, clearcoatRoughness: 0.1 });
+  const core = new THREE.Mesh(new THREE.CylinderGeometry(HR - 0.045, HR - 0.045, HL + 0.1, 48), lacquer);
+  core.rotation.z = Math.PI / 2;
+  spool.add(core);
+  for (const sx of [-1, 1]) {
+    const fl = new THREE.Mesh(new THREE.CylinderGeometry(HR + 0.12, HR + 0.12, 0.04, 64), pendantGold);
+    fl.rotation.z = Math.PI / 2;
+    fl.position.x = sx * (HL / 2 + 0.1);
+    spool.add(fl);
+  }
+}
+model.add(spool);
+
+let wire = null, wireKey = '';
+const wireSamples = 220;
+function updateWire(grow, form, radius) {
+  const key = `${grow.toFixed(3)}|${form.toFixed(3)}|${radius.toFixed(4)}`;
+  if (key === wireKey) return;
+  wireKey = key;
+  if (wire) { model.remove(wire); wire.geometry.dispose(); wire = null; }
+  if (grow < 0.004 || radius < 0.002) return;
+  const t0 = 0.5 - grow / 2, t1 = 0.5 + grow / 2;
+  const n = Math.max(8, Math.round(wireSamples * grow));
+  const pts = [];
+  for (let i = 0; i <= n; i++) pts.push(shapeAt(lerp(t0, t1, i / n), form, new THREE.Vector3()));
+  const curve = new THREE.CatmullRomCurve3(pts);
+  wire = new THREE.Mesh(new THREE.TubeGeometry(curve, Math.max(16, n * 2), radius, 10, false), wireMat);
+  model.add(wire);
+}
+
+/* ---------- 3. links ---------- */
+// arc-length table on the finished necklace so links are evenly spaced
+const arcT = [];
+{
+  const N = 1200; let len = 0; const prev = new THREE.Vector3(), cur = new THREE.Vector3();
+  neckAt(0, prev); const cum = [0];
+  for (let i = 1; i <= N; i++) { neckAt(i / N, cur); len += cur.distanceTo(prev); cum.push(len); prev.copy(cur); }
+  const LINKS = Math.round(len / 0.085);
+  let j = 0;
+  for (let k = 0; k < LINKS; k++) {
+    const target = ((k + 0.5) / LINKS) * len;
+    while (cum[j + 1] < target) j++;
+    arcT.push((j + (target - cum[j]) / (cum[j + 1] - cum[j])) / N);
+  }
+}
+const LINKS = arcT.length;
+const links = new THREE.InstancedMesh(new THREE.TorusGeometry(0.052, 0.014, 10, 20), linkMat, LINKS);
+links.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+model.add(links);
+const _m = new THREE.Matrix4(), _p = new THREE.Vector3(), _q = new THREE.Vector3();
+const _T = new THREE.Vector3(), _N = new THREE.Vector3(), _B = new THREE.Vector3(), UP = new THREE.Vector3(0, 1, 0);
+function updateLinks(form, link) {
+  for (let i = 0; i < LINKS; i++) {
+    const t = arcT[i];
+    const order = Math.abs(t - 0.5) * 2;                 // solder from the centre outward
+    const s = smooth(order * 0.75, order * 0.75 + 0.25, link);
+    if (s <= 0.001) { _m.makeScale(0, 0, 0); links.setMatrixAt(i, _m); continue; }
+    shapeAt(t, form, _p);
+    shapeAt(Math.min(1, t + 0.002), form, _q);
+    _T.subVectors(_q, _p).normalize();
+    _N.crossVectors(_T, UP).normalize();
+    _B.crossVectors(_T, _N).normalize();
+    if (i % 2) _m.makeBasis(_T, _N, _B); else _m.makeBasis(_T, _B, _N.multiplyScalar(-1));
+    const pop = s + Math.sin(s * Math.PI) * 0.35;        // tiny overshoot as each link closes
+    _m.scale(_q.set(1.38 * pop, pop, pop));
+    _m.setPosition(_p);
+    links.setMatrixAt(i, _m);
+  }
+  links.instanceMatrix.needsUpdate = true;
+}
+
+/* ---------- 4. pendant ---------- */
+const pendant = new THREE.Group();
+const hang = new THREE.Group(); pendant.add(hang);
+const bail = new THREE.Mesh(new THREE.TorusGeometry(0.055, 0.016, 10, 24), pendantGold);
+bail.rotation.y = Math.PI / 2; bail.position.y = 0.035;
+
+// ---- Moss agate pendant, built to match the reference photo ----
+// The stone's outline drives everything else, so cup, prongs and leaves all sit ON its edge.
+const ST = { s: 1.15, y: -0.26 };                       // stone scale + centre offset
+const tearR = (t) => 0.2 * Math.pow(Math.sin(Math.PI * Math.min(1, t * 1.02)), 0.75) * (1 - 0.22 * t);
+const tearY = (t) => lerp(-0.3, 0.22, t);
+const TEAR = [];
+for (let i = 0; i <= 32; i++) { const t = i / 32; TEAR.push(new THREE.Vector2(Math.max(0, tearR(t)), tearY(t))); }
+// point on the stone's silhouette (x-y plane); side = +1 right edge, -1 left edge; k pulls it in/out
+const rim = (t, side, k = 1) => new THREE.Vector2(side * tearR(t) * ST.s * k, tearY(t) * ST.s + ST.y);
+
+const stone = new THREE.Mesh(new THREE.LatheGeometry(TEAR, 32), gemMat);
+stone.scale.set(ST.s, ST.s, ST.s * 0.62);
+stone.position.y = ST.y;
+
+// gold cup behind the stone: shows as a thin gold rim and gives the leaves something to grow from
+const cup = new THREE.Mesh(new THREE.LatheGeometry(TEAR, 32), pendantGold);
+cup.scale.set(ST.s * 1.08, ST.s * 1.05, ST.s * 0.42);
+cup.position.set(0, ST.y - 0.004, -0.035);
+
+// prongs: small gold beads gripping the rim (upper pair, lower pair, bottom)
+const setting = new THREE.Group();
+const prongGeo = new THREE.SphereGeometry(0.021, 12, 10);
+[[0.8, 1], [0.8, -1], [0.3, 1], [0.3, -1]].forEach(([t, sd]) => {
+  const p = rim(t, sd, 0.97);
+  const pr = new THREE.Mesh(prongGeo, pendantGold);
+  pr.position.set(p.x, p.y, 0.075);
+  setting.add(pr);
+});
+{
+  const pr = new THREE.Mesh(prongGeo, pendantGold);
+  pr.position.set(0, tearY(0) * ST.s + ST.y + 0.012, 0.06);
+  setting.add(pr);
+}
+
+// leaves: flat pointed blades with a raised midrib, rooted on the rim and fanning down both sides
+const leafShape = new THREE.Shape();
+const LL = 0.14, LW = 0.05;
+leafShape.moveTo(0, 0);
+leafShape.quadraticCurveTo(LL * 0.42, LW, LL, 0);
+leafShape.quadraticCurveTo(LL * 0.42, -LW, 0, 0);
+const leafGeo = new THREE.ExtrudeGeometry(leafShape, { depth: 0.008, bevelEnabled: true, bevelThickness: 0.006, bevelSize: 0.006, bevelSegments: 2, curveSegments: 10 });
+leafGeo.translate(0, 0, -0.004);
+const veinGeo = new THREE.CylinderGeometry(0.0035, 0.0035, LL * 0.82, 6);
+veinGeo.rotateZ(Math.PI / 2); veinGeo.translate(LL * 0.43, 0, 0.012);
+
+const leaves = new THREE.Group();
+const addLeaf = (x, y, z, angle, size, tilt) => {
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(leafGeo, pendantGold), new THREE.Mesh(veinGeo, pendantGold));
+  g.position.set(x, y, z);
+  g.rotation.set(0, tilt, angle);
+  g.scale.setScalar(size);
+  leaves.add(g);
+};
+// side leaves: root just inside the rim, blade follows the edge downward and flares outward
+[[0.96, 1.15], [0.85, 1.1], [0.74, 1.0], [0.64, 0.88]].forEach(([t, size], i) => {
+  [1, -1].forEach((sd) => {
+    const tt = sd > 0 ? t : t - 0.05;                     // stagger the two sides like the photo
+    const root = rim(tt, sd, 0.9);
+    const below = rim(tt - 0.06, sd, 0.9);
+    const dir = Math.atan2(below.y - root.y, below.x - root.x) + sd * 0.55;
+    addLeaf(root.x, root.y, 0.05 + i * 0.004, dir, size, sd * 0.25);
+  });
+});
+// two leaves at the crown, sprouting from under the bail
+addLeaf(0.0, tearY(1) * ST.s + ST.y + 0.01, 0.06, Math.PI * 0.82, 0.95, 0);
+addLeaf(0.0, tearY(1) * ST.s + ST.y + 0.01, 0.065, Math.PI * 0.12, 0.9, 0);
+
+hang.add(bail, cup, setting, stone, leaves);
+const gem = stone;
+model.add(pendant);
+const pendantAnchor = neckAt(0.5, new THREE.Vector3());
+
+/* ---------- theme ---------- */
+const state = { side: 1, sideTarget: 1, theme: null, metal: null };
+function applyTheme3D(t) {
+  goldMats.forEach((m) => { m.color.set(state.metal || t.gold); m.roughness = t.rough; });
+  rimLight.color.set(t.rim);
+  // stone is moss agate in every language: the reference piece is fixed, only metal and light change
+  gemMat.color.set(0x8fb08a);
+  gemMat.envMapIntensity = 0.55;
+  gemMat.transmission = 0.08;
+  gemMat.ior = 1.55;
+  gemMat.roughness = 0.12;
+  gemMat.clearcoat = 0.6;
+  gemMat.emissive.set(0x0c1a0c);
+  gemMat.emissiveIntensity = 0.04;
+  renderer.toneMappingExposure = t.exposure;
+  state.sideTarget = t.side === 'left' ? 1 : -1;
+}
+
+/* ---------- layout ---------- */
+let W = 1, H = 1, narrow = false;
+function resize() {
+  W = window.innerWidth; H = window.innerHeight;
+  narrow = W / H < 0.95 || W < 760;
+  renderer.setSize(W, H, false);
+  camera.aspect = W / H;
+  camera.position.z = narrow ? 10.5 : 8;
+  camera.updateProjectionMatrix();
+}
+window.addEventListener('resize', resize);
+resize();
+
+/* ---------- input ---------- */
+let scrollTarget = 0, scrollCur = 0;
+const mouse = { x: 0, y: 0, sx: 0, sy: 0 };
+const readScroll = () => {
+  const max = document.documentElement.scrollHeight - window.innerHeight;
+  scrollTarget = max > 0 ? window.scrollY / max : 0;
+};
+window.addEventListener('scroll', readScroll, { passive: true });
+window.addEventListener('pointermove', (e) => { mouse.x = e.clientX / W - 0.5; mouse.y = e.clientY / H - 0.5; });
+readScroll();
+scrollCur = scrollTarget;
+
+/* ---------- frame loop ---------- */
+const clock = new THREE.Clock();
+const SECTIONS = 7; // hero=0 … finale=7
+function frame() {
+  const dt = Math.min(clock.getDelta(), 0.05);
+  const time = clock.elapsedTime;
+  scrollCur += (scrollTarget - scrollCur) * Math.min(1, dt * 5);
+  const s = scrollCur * SECTIONS * 1.04; // reaches the finale a little before the footer
+
+  // stage values
+  // ch1 alloy & melt · ch2 roll & anneal · ch3 draw wire · ch4 hand-link · ch5 solder & fuse · ch6 cast pendant · finale clasp
+  const heat = smooth(0.8, 1.4, s) * (1 - smooth(1.9, 2.5, s));
+  const melt = smooth(0.9, 1.9, s);
+  const anneal = smooth(1.95, 2.35, s) * (1 - smooth(2.5, 2.9, s));
+  const grow = smooth(2.4, 3.4, s);
+  const form = smooth(3.4, 4.4, s);
+  const link = smooth(4.0, 4.9, s);
+  const fuse = smooth(4.6, 5.1, s) * (1 - smooth(5.4, 5.9, s));
+  const crown = smooth(5.6, 6.4, s);
+  const claspP = smooth(6.5, 6.9, s);
+  const fin = smooth(6.5, 7.0, s);
+
+  // ingot melts and shrinks into the coil
+  const ingotScale = Math.max(0.0001, 1 - melt);
+  ingot.visible = ingotScale > 0.01;
+  ingot.scale.set(ingotScale, ingotScale * (1 - 0.4 * melt), ingotScale);
+  ingot.rotation.y = melt * 0.6;
+  ingotMat.emissiveIntensity = heat * 1.6;
+  wireMat.emissiveIntensity = heat * 1.1 * (1 - grow * 0.4);
+  glowLight.intensity = heat * 6 + anneal * 4;
+  wireMat.emissiveIntensity += anneal * 1.4;
+  linkMat.emissiveIntensity = fuse * 1.1;   // torch glow while soldering the joints
+
+  // sparks
+  sparkMat.opacity = heat * 0.95 * (1 - melt * 0.5);
+  if (sparkMat.opacity > 0.01) {
+    for (let i = 0; i < SPARKS; i++) {
+      sparkPos[i * 3 + 1] += sparkVel[i] * dt;
+      sparkPos[i * 3] += Math.sin(time * 2 + i) * dt * 0.08;
+      if (sparkPos[i * 3 + 1] > 1.6) resetSpark(i);
+    }
+    sparkGeo.attributes.position.needsUpdate = true;
+  }
+
+  // wire coils off the ingot, then bends into a necklace, then thins into the chain
+  const radius = lerp(0.034, 0.0, smooth(0.15, 0.85, link));
+  updateWire(grow, form, radius);
+  updateLinks(form, link);
+
+  // spool appears with the wire and fades away as the wire is lifted off to be shaped
+  const spoolS = smooth(1.9, 2.6, s) * (1 - smooth(3.2, 3.8, s));
+  spool.visible = spoolS > 0.01;
+  spool.scale.set(1, Math.max(0.001, spoolS), Math.max(0.001, spoolS));
+
+  claspGrp.visible = claspP > 0.01;
+  claspGrp.scale.setScalar(Math.max(0.001, claspP));
+
+  // pendant drops in
+  pendant.visible = crown > 0.001;
+  pendant.position.set(pendantAnchor.x, pendantAnchor.y + (1 - ease(crown)) * 1.4, pendantAnchor.z);
+  pendant.scale.setScalar(Math.max(0.001, crown));
+  hang.rotation.z = Math.sin(time * 1.6) * 0.05 * crown + (1 - crown) * 0.4;
+  gem.rotation.y = Math.sin(time * 0.5) * 0.25;
+
+  // model choreography
+  mouse.sx += (mouse.x - mouse.sx) * Math.min(1, dt * 3);
+  mouse.sy += (mouse.y - mouse.sy) * Math.min(1, dt * 3);
+  const idle = Math.sin(time * 0.5) * 0.12;
+  model.rotation.x = lerp(0.32, 0.42, form) - crown * 0.12 + mouse.sy * 0.18;
+  model.rotation.y = lerp(-0.55, -0.72, grow) * (1 - form) + idle + mouse.sx * 0.35 + fin * Math.PI * 0.18 * Math.sin(time * 0.4);
+  model.rotation.z = (1 - form) * 0.06;
+  model.position.y = lerp(0, 0.35, form) + Math.sin(time * 0.9) * 0.04;
+
+  // screen placement (opposite the copy)
+  state.side += (state.sideTarget - state.side) * Math.min(1, dt * 4);
+  const halfH = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.position.z;
+  const halfW = halfH * camera.aspect;
+  // on the hero, centred themes lift the ingot above the title
+  const hero = state.theme && state.theme.heroCenter ? 1 - smooth(0.25, 0.95, s) : 0;
+  root.position.x = narrow ? 0 : lerp(state.side * halfW * 0.48, 0, hero);
+  root.position.y = narrow ? halfH * 0.5 : lerp(0, halfH * 0.5, hero);
+  const fit = narrow ? Math.min(0.9, (halfW * 0.8) / 1.9) * lerp(1, 0.82, form) : Math.min(1.15, (halfW * 0.44) / 1.75);
+  const spoolShrink = 1 - 0.2 * smooth(1.4, 2.4, s) * (1 - smooth(3.0, 3.9, s));
+  root.scale.setScalar(fit * lerp(1, 1.08, fin) * lerp(1, 0.95, hero) * spoolShrink);
+
+  renderer.render(scene, camera);
+
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+/* ---------- theme hookup (switcher lives in ui.js) ---------- */
+window.addEventListener('aurelle:metal', (e) => { state.metal = e.detail; goldMats.forEach((m) => m.color.set(e.detail)); });
+if (window.AURELLE && window.AURELLE.theme) { state.theme = window.AURELLE.theme; applyTheme3D(state.theme); state.side = state.sideTarget; }
+window.addEventListener('aurelle:theme', (e) => { state.theme = e.detail; applyTheme3D(e.detail); });
+document.documentElement.classList.add('gl-ready');
+  </script>
+</body>
+</html>

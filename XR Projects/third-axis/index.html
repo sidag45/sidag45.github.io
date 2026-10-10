@@ -1,0 +1,1084 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Third Axis — 3D, gesture and interface work for business websites</title>
+  <meta name="description" content="Third Axis adds 3D product views, camera and gesture controls, and cleaner interfaces to the website your business already has.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <!-- The whole page sits on one live 3D scene -->
+  <canvas id="scene" aria-hidden="true"></canvas>
+  <svg class="gizmo" id="gizmo" viewBox="0 0 60 60" aria-hidden="true">
+    <line x1="22" y1="38" x2="46" y2="38" class="gx"/><text x="49" y="41">x</text>
+    <line x1="22" y1="38" x2="22" y2="12" class="gy"/><text x="19" y="9">y</text>
+    <line x1="22" y1="38" x2="10" y2="50" class="gz"/><text x="3" y="57">z</text>
+  </svg>
+
+  <header class="nav">
+    <a class="brand" href="#top" aria-label="Third Axis home">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+        <line x1="16" y1="17" x2="16" y2="3" />
+        <line x1="16" y1="17" x2="28" y2="24" />
+        <line x1="16" y1="17" x2="4" y2="24" class="z" />
+        <circle cx="16" cy="17" r="2.6" />
+      </svg>
+      <span>Third Axis</span>
+    </a>
+    <nav aria-label="Primary">
+      <ul>
+        <li><a href="#services">Services</a></li>
+        <li><a href="#who">Who it's for</a></li>
+        <li><a href="#process">Process</a></li>
+        <li><a href="#faq">FAQ</a></li>
+      </ul>
+    </nav>
+    <a class="btn btn-small" href="#contact">Book a call</a>
+  </header>
+
+  <!-- Floating control dock: works across the whole page -->
+  <aside class="dock" aria-label="3D controls">
+    <div class="swatches" role="radiogroup" aria-label="Vase glaze">
+      <button class="swatch" role="radio" aria-checked="true"  data-mat="celadon" style="--c:#8FB8A8" title="Celadon"><span class="sr-only">Celadon</span></button>
+      <button class="swatch" role="radio" aria-checked="false" data-mat="brass"   style="--c:#C9A24A" title="Brass"><span class="sr-only">Brass</span></button>
+      <button class="swatch" role="radio" aria-checked="false" data-mat="ink"     style="--c:#2A2C3C" title="Ink"><span class="sr-only">Ink</span></button>
+      <button class="swatch" role="radio" aria-checked="false" data-mat="chalk"   style="--c:#EDEAE4" title="Chalk"><span class="sr-only">Chalk</span></button>
+    </div>
+    <button class="hand-btn" id="hand-toggle" aria-pressed="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V11m0-6.5V4a1.5 1.5 0 0 1 3 0v7m0-5.5a1.5 1.5 0 0 1 3 0V12m0-3.5a1.5 1.5 0 0 1 3 0V15a7 7 0 0 1-7 7h-1.2a6 6 0 0 1-4.6-2.2L3.5 16a1.6 1.6 0 0 1 2.4-2.1L8 15.5"/></svg>
+      <span id="hand-label">Use your hand</span>
+    </button>
+    <div class="cam" id="cam" hidden>
+      <video id="cam-video" playsinline muted></video>
+      <canvas id="cam-overlay"></canvas>
+    </div>
+    <p class="dock-status" id="dock-status" role="status" aria-live="polite">Drag anywhere to turn the model</p>
+  </aside>
+
+  <main id="main">
+    <!-- HERO -->
+    <section class="chapter hero" id="top" data-scene="hero">
+      <div class="panel">
+        <h1>Let customers turn it over before they buy it.</h1>
+        <p class="lede">We add 3D product views, camera and gesture controls, and cleaner interfaces to the website you already have, whether it runs on Shopify, Webflow, WordPress or custom code.</p>
+        <div class="hero-actions">
+          <a class="btn" href="#contact">Book a free site review</a>
+          <a class="btn btn-ghost" href="#services">See what we build</a>
+        </div>
+        <p class="hint">This whole page is a working example. Drag the vase, change its glaze, or turn on your camera and steer it with your hand.</p>
+      </div>
+    </section>
+
+    <!-- 3D ELEMENTS -->
+    <section class="chapter" id="services" data-scene="model" aria-labelledby="svc-3d-h">
+      <div class="panel">
+        <p class="kicker">What we build, part one</p>
+        <h2 id="svc-3d-h">3D elements</h2>
+        <p>Product viewers, colour and material configurators, and scroll-driven scenes for launches. Every model is split, cleaned and compressed, like the vase pulling apart beside this text, so the page still loads quickly on a phone.</p>
+        <ul class="ticks">
+          <li>360° viewers for product pages</li>
+          <li>Configurators for finishes, sizes and options</li>
+          <li>"View in your room" AR on iPhone and Android</li>
+          <li>Scroll stories for new collections</li>
+        </ul>
+        <div class="handoff">
+          <div>
+            <h3>You send</h3>
+            <p>Product photos from a few angles, or CAD files from your manufacturer.</p>
+          </div>
+          <div>
+            <h3>You get</h3>
+            <p>A web-ready model and an embed that drops into your site.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- GESTURE -->
+    <section class="chapter" id="gesture" data-scene="hand" aria-labelledby="svc-g-h">
+      <div class="panel">
+        <p class="kicker">What we build, part two</p>
+        <h2 id="svc-g-h">Gesture and camera control</h2>
+        <p>Interfaces people use with a wave, a pinch or a glance. The hand beside this text is the 21 points a camera tracks. Turn on your camera and it will follow yours.</p>
+        <ul class="ticks">
+          <li>Touch-free kiosks and in-store displays</li>
+          <li>Hand and eye navigation for web pages</li>
+          <li>Virtual try-on for glasses, jewellery and watches</li>
+          <li>Accessible input for people who can't use a mouse</li>
+        </ul>
+        <button class="btn btn-signal" id="hand-toggle-inline">Turn on my camera</button>
+        <p class="privacy-note">Video is processed on the visitor's device and never uploaded.</p>
+      </div>
+    </section>
+
+    <!-- UI -->
+    <section class="chapter" id="interface" data-scene="ui" aria-labelledby="svc-ui-h">
+      <div class="panel">
+        <p class="kicker">What we build, part three</p>
+        <h2 id="svc-ui-h">Interface improvements</h2>
+        <p>Not every site needs 3D. Many need clearer pages, faster loading and a checkout that works on the first tap. We audit what you have and fix the pages that cost you customers.</p>
+        <ul class="ticks">
+          <li>UX audit with a ranked list of fixes</li>
+          <li>Redesign of home, product and booking pages</li>
+          <li>Speed and Core Web Vitals work</li>
+          <li>Accessibility fixes to WCAG 2.2 AA</li>
+        </ul>
+        <div class="compare" id="compare">
+          <div class="mock mock-before" aria-hidden="true">
+            <div class="mb-banner">WELCOME TO OUR WEBSITE!!!</div>
+            <div class="mb-nav"><u>Home</u> | <u>About Us</u> | <u>Products</u> | <u>Gallery</u> | <u>News</u></div>
+            <div class="mb-body">
+              <div class="mb-img"></div>
+              <p>We are a family business established many years ago offering the finest quality ceramics. Click here to learn more about our history...</p>
+              <p class="mb-link"><u>Click here to view products</u></p>
+            </div>
+          </div>
+          <div class="mock mock-after" aria-hidden="true">
+            <div class="ma-nav"><b>Fern &amp; Kiln</b><span>Shop</span><span>Visit</span><span class="ma-cart">Cart</span></div>
+            <div class="ma-body">
+              <div class="ma-img"></div>
+              <div>
+                <p class="ma-h">Hand-thrown vases, glazed in Baltimore</p>
+                <p class="ma-p">Ships in 3 days. Free returns.</p>
+                <span class="ma-btn">Shop vases</span>
+              </div>
+            </div>
+          </div>
+          <div class="compare-handle" aria-hidden="true"><span></span></div>
+          <label class="sr-only" for="compare-range">Compare a sample page before and after redesign</label>
+          <input type="range" id="compare-range" min="0" max="100" value="50">
+          <span class="compare-tag tag-before">Before</span>
+          <span class="compare-tag tag-after">After</span>
+        </div>
+        <p class="caption">Drag to compare a sample product page before and after.</p>
+      </div>
+    </section>
+
+    <!-- WHO -->
+    <section class="chapter" id="who" data-scene="who" aria-labelledby="who-h">
+      <div class="panel">
+        <h2 id="who-h">Built for businesses with something worth seeing</h2>
+        <dl class="who-list" id="who-list">
+          <div tabindex="0" data-i="0"><dt>Retail and e-commerce</dt><dd>A 3D viewer on product pages so shoppers can check the back, the base and the finish.</dd></div>
+          <div tabindex="0" data-i="1"><dt>Real estate and developers</dt><dd>Interactive models of units and floor plans before anything is built.</dd></div>
+          <div tabindex="0" data-i="2"><dt>Jewellery and watches</dt><dd>Close inspection of detail and material, plus try-on from a phone camera.</dd></div>
+          <div tabindex="0" data-i="3"><dt>Showrooms and events</dt><dd>Hands-free kiosks visitors control with a wave, so nobody touches a shared screen.</dd></div>
+          <div tabindex="0" data-i="4"><dt>Restaurants and hospitality</dt><dd>Menus and booking flows that are quick to read and work on the first tap.</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <!-- PROCESS -->
+    <section class="chapter" id="process" data-scene="process" aria-labelledby="process-h">
+      <div class="panel">
+        <h2 id="process-h">How a project runs</h2>
+        <ol class="steps" id="steps">
+          <li data-step="0">
+            <h3>Site review</h3>
+            <p>A free 30-minute call. We look at your site together and tell you where 3D or gesture control would help sales, and where it wouldn't.</p>
+          </li>
+          <li data-step="1">
+            <h3>Prototype</h3>
+            <p>A working demo on a private test page of your own site, so you can try it on your phone before committing to the full build.</p>
+          </li>
+          <li data-step="2">
+            <h3>Build and integrate</h3>
+            <p>We finish the work and install it in your platform. Your team keeps editing content the way they do today.</p>
+          </li>
+          <li data-step="3">
+            <h3>Launch and measure</h3>
+            <p>We track time on page, interaction and conversion for the first month and adjust whatever isn't pulling its weight.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="chapter" id="faq" data-scene="faq" aria-labelledby="faq-h">
+      <div class="panel">
+        <h2 id="faq-h">Questions owners ask us</h2>
+        <div class="faq-list">
+          <details>
+            <summary>Will 3D slow my website down?</summary>
+            <p>Not if it's built properly. Models are compressed and load only when they scroll into view, after everything else on the page. Phones on slower connections get a lighter version.</p>
+          </details>
+          <details>
+            <summary>Does it work with Shopify, Webflow or WordPress?</summary>
+            <p>Yes. We deliver an embed that fits your platform and install it for you. Custom-built sites work too.</p>
+          </details>
+          <details>
+            <summary>What happens to camera video from my customers?</summary>
+            <p>Nothing leaves their device. Tracking runs inside the browser, and the page only sees the positions of points, never the picture. Visitors always choose whether to turn the camera on.</p>
+          </details>
+          <details>
+            <summary>What if a visitor's device can't show 3D or use a camera?</summary>
+            <p>They see a normal image gallery and normal buttons. Every interactive piece we build has a plain fallback, so no one is locked out.</p>
+          </details>
+          <details>
+            <summary>I only have photos of my products. Is that enough?</summary>
+            <p>Usually, yes. A set of photos from different angles is enough to build an accurate model of most products. We'll tell you on the first call if we need anything else.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section class="chapter contact" id="contact" data-scene="contact" aria-labelledby="contact-h">
+      <div class="panel">
+        <h2 id="contact-h">Tell us about your site</h2>
+        <p>Send a link and what you have in mind. We reply within two working days with a time for your free review.</p>
+        <form class="contact-form" id="contact-form" novalidate>
+          <div class="field">
+            <label for="f-name">Your name</label>
+            <input id="f-name" name="name" autocomplete="name" required>
+          </div>
+          <div class="field">
+            <label for="f-site">Website address</label>
+            <input id="f-site" name="site" type="url" inputmode="url" placeholder="https://" required>
+          </div>
+          <fieldset class="field">
+            <legend>What are you interested in?</legend>
+            <div class="chips">
+              <label class="chip"><input type="checkbox" name="interest" value="3D elements"><span>3D elements</span></label>
+              <label class="chip"><input type="checkbox" name="interest" value="Gesture and camera control"><span>Gesture control</span></label>
+              <label class="chip"><input type="checkbox" name="interest" value="Interface improvements"><span>Interface improvements</span></label>
+              <label class="chip"><input type="checkbox" name="interest" value="Not sure yet"><span>Not sure yet</span></label>
+            </div>
+          </fieldset>
+          <div class="field">
+            <label for="f-msg">Anything else we should know?</label>
+            <textarea id="f-msg" name="message" rows="3"></textarea>
+          </div>
+          <p class="form-error" id="form-error" role="alert"></p>
+          <button class="btn" type="submit">Send request</button>
+        </form>
+      </div>
+      <footer class="footer">
+        <span>© <span id="year"></span> Third Axis</span>
+        <span>Made with ❤️ by <a href="https://www.linkedin.com/in/siddharthagarwal2608/" target="_blank" rel="noopener">Siddharth Agarwal</a></span>
+      </footer>
+    </section>
+  </main>
+
+  <script type="module">
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+/* =========================================================
+   Third Axis — one live 3D scene behind the whole page.
+   Each chapter of the page sets which 3D subject is on stage.
+   ========================================================= */
+
+const CONTACT_EMAIL = 'hello@thirdaxis.studio'; // placeholder: change to the real inbox
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const COLORS = {
+  fog: new THREE.Color('#E4E5EA'),
+  ink: new THREE.Color('#1C1B22'),
+  violet: '#4B36E0',
+  signal: '#F5B83D',
+  chalk: '#EDEAE4',
+  brass: '#C9A24A',
+  celadon: '#8FB8A8',
+  inkObj: '#2A2C3C',
+};
+
+/* ---------- Renderer, camera, environment ---------- */
+const canvas = document.getElementById('scene');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const scene = new THREE.Scene();
+scene.background = COLORS.fog.clone();
+
+const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
+camera.position.set(0, 0.4, 9);
+
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture;
+
+const hemi = new THREE.HemisphereLight(0xffffff, 0x8a8c99, 0.6);
+scene.add(hemi);
+const key = new THREE.DirectionalLight(0xffffff, 1.6);
+key.position.set(3, 6, 4);
+key.castShadow = true;
+key.shadow.mapSize.set(1024, 1024);
+key.shadow.camera.left = -4; key.shadow.camera.right = 4;
+key.shadow.camera.top = 4; key.shadow.camera.bottom = -4;
+key.shadow.radius = 6;
+key.shadow.bias = -0.0008;
+key.shadow.normalBias = 0.03;
+scene.add(key);
+scene.add(key.target);
+
+/* Stage: everything that moves together sits on `stage`, offset to the free side of the screen */
+const stage = new THREE.Group();
+scene.add(stage);
+
+const FLOOR_Y = -1.75;
+const grid = new THREE.GridHelper(40, 40, 0x9a9cab, 0xbfc1cc);
+grid.position.y = FLOOR_Y;
+grid.material.transparent = true;
+grid.material.opacity = 0.55;
+stage.add(grid);
+
+const shadowFloor = new THREE.Mesh(
+  new THREE.PlaneGeometry(14, 14),
+  new THREE.ShadowMaterial({ opacity: 0.16 })
+);
+shadowFloor.rotation.x = -Math.PI / 2;
+shadowFloor.position.y = FLOOR_Y + 0.001;
+shadowFloor.receiveShadow = true;
+stage.add(shadowFloor);
+
+/* ---------- Helpers ---------- */
+const lerp = (a, b, t) => a + (b - a) * t;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const damp = (a, b, rate, dt) => lerp(a, b, 1 - Math.exp(-rate * dt));
+const easeInOut = t => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+
+function makeSubject(name) {
+  const group = new THREE.Group();
+  const pivot = new THREE.Group();
+  group.add(pivot);
+  group.name = name;
+  group.userData = { vis: 0, target: 0, mats: null };
+  stage.add(group);
+  return { group, pivot };
+}
+
+function collectMaterials(group) {
+  const mats = new Set();
+  group.traverse(o => {
+    if (o.material) (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => mats.add(m));
+    if (o.isMesh) { o.castShadow = true; }
+  });
+  const list = [...mats];
+  list.forEach(m => { if (m.userData.baseOpacity === undefined) m.userData.baseOpacity = m.opacity; });
+  group.userData.mats = list;
+}
+
+function applyVisibility(group, v) {
+  group.visible = v > 0.004;
+  if (!group.visible) return;
+  const e = easeInOut(clamp(v, 0, 1));
+  group.scale.setScalar(0.72 + 0.28 * e);
+  group.position.y = (1 - e) * -0.6;
+  for (const m of group.userData.mats) {
+    const base = m.userData.baseOpacity;
+    const wantTransparent = e < 0.995 || base < 1 || m.userData.alwaysTransparent;
+    if (m.transparent !== wantTransparent) { m.transparent = wantTransparent; m.needsUpdate = true; }
+    m.opacity = base * e;
+    const dw = e > 0.9 && !m.userData.alwaysTransparent;
+    if (m.depthWrite !== dw) m.depthWrite = dw;
+  }
+}
+
+/* =========================================================
+   Subject 1 — the vase (product viewer + exploded view)
+   ========================================================= */
+const vase = makeSubject('vase');
+const vaseMat = new THREE.MeshPhysicalMaterial({
+  color: COLORS.celadon, roughness: 0.32, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.18, side: THREE.DoubleSide,
+});
+const MATERIALS = {
+  celadon: { color: COLORS.celadon, roughness: 0.32, metalness: 0, clearcoat: 1 },
+  brass:   { color: COLORS.brass,   roughness: 0.26, metalness: 1, clearcoat: 0.2 },
+  ink:     { color: COLORS.inkObj,  roughness: 0.62, metalness: 0, clearcoat: 0.4 },
+  chalk:   { color: COLORS.chalk,   roughness: 0.88, metalness: 0, clearcoat: 0 },
+};
+let matTarget = { ...MATERIALS.celadon, color: new THREE.Color(MATERIALS.celadon.color) };
+
+const profileCurve = new THREE.SplineCurve([
+  new THREE.Vector2(0.001, 0),
+  new THREE.Vector2(0.5, 0.0),
+  new THREE.Vector2(0.72, 0.28),
+  new THREE.Vector2(0.92, 0.8),
+  new THREE.Vector2(0.88, 1.3),
+  new THREE.Vector2(0.62, 1.75),
+  new THREE.Vector2(0.38, 2.12),
+  new THREE.Vector2(0.36, 2.42),
+  new THREE.Vector2(0.48, 2.7),
+]);
+const profile = profileCurve.getPoints(160);
+const VASE_H = 2.7;
+const SLICES = 6;
+const vaseSlices = [];
+const wireMat = new THREE.MeshBasicMaterial({ color: COLORS.violet, wireframe: true, transparent: true, opacity: 0 });
+wireMat.userData.alwaysTransparent = true;
+wireMat.userData.baseOpacity = 0; // driven separately by explode amount
+
+function profileX(y) {
+  for (let i = 1; i < profile.length; i++) {
+    const a = profile[i - 1], b = profile[i];
+    if ((y >= a.y && y <= b.y) || (y <= a.y && y >= b.y)) {
+      const t = (y - a.y) / ((b.y - a.y) || 1);
+      return lerp(a.x, b.x, t);
+    }
+  }
+  return profile[profile.length - 1].x;
+}
+
+for (let k = 0; k < SLICES; k++) {
+  const y0 = (k / SLICES) * VASE_H, y1 = ((k + 1) / SLICES) * VASE_H;
+  const pts = k === 0
+    ? [new THREE.Vector2(0.001, 0), new THREE.Vector2(0.5, 0)]
+    : [new THREE.Vector2(profileX(y0), y0)];
+  profile.forEach(p => { if (p.y > Math.max(y0, 0.01) && p.y < y1) pts.push(p.clone()); });
+  pts.push(new THREE.Vector2(profileX(y1), y1));
+  const geo = new THREE.LatheGeometry(pts, 72);
+  geo.translate(0, -VASE_H / 2, 0);
+  const mesh = new THREE.Mesh(geo, vaseMat);
+  const wire = new THREE.Mesh(new THREE.LatheGeometry(pts, 24).translate(0, -VASE_H / 2, 0), wireMat);
+  wire.scale.setScalar(1.012);
+  mesh.add(wire);
+  vase.pivot.add(mesh);
+  vaseSlices.push(mesh);
+}
+const VASE_BASE_Y = FLOOR_Y + VASE_H / 2 + 0.02;
+vase.pivot.position.y = VASE_BASE_Y;
+collectMaterials(vase.group);
+vaseSlices.forEach(m => { m.receiveShadow = false; m.children[0].castShadow = false; });
+let explode = 0, explodeTarget = 0;
+
+function updateVase(t, dt) {
+  explode = damp(explode, explodeTarget, reduceMotion ? 30 : 3.2, dt);
+  const mid = (SLICES - 1) / 2;
+  vase.pivot.position.y = VASE_BASE_Y + explode * 0.95;
+  vaseSlices.forEach((m, k) => {
+    m.position.y = explode * (k - mid) * 0.34;
+    m.rotation.y = explode * (k - mid) * 0.22;
+  });
+  wireMat.opacity = 0.32 * explode * easeInOut(clamp(vase.group.userData.vis, 0, 1));
+  // material swatch transition
+  vaseMat.color.lerp(matTarget.color, 1 - Math.exp(-6 * dt));
+  vaseMat.roughness = damp(vaseMat.roughness, matTarget.roughness, 6, dt);
+  vaseMat.metalness = damp(vaseMat.metalness, matTarget.metalness, 6, dt);
+  vaseMat.clearcoat = damp(vaseMat.clearcoat, matTarget.clearcoat, 6, dt);
+}
+
+/* =========================================================
+   Subject 2 — tracked hand (21 landmarks)
+   ========================================================= */
+const hand = makeSubject('hand');
+const HAND_CONNECTIONS = [[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[0,17],[17,18],[18,19],[19,20]];
+const TEMPLATE = [
+  [0,0],[-0.35,0.25],[-0.6,0.5],[-0.78,0.75],[-0.92,0.97],
+  [-0.25,1.0],[-0.3,1.45],[-0.33,1.75],[-0.35,2.0],
+  [0,1.05],[0,1.55],[0,1.88],[0,2.15],
+  [0.23,1.0],[0.27,1.45],[0.29,1.75],[0.31,1.98],
+  [0.43,0.88],[0.52,1.22],[0.57,1.45],[0.61,1.65],
+].map(([x, y]) => new THREE.Vector3(x * 1.15, (y - 1.05) * 1.15, 0));
+
+const jointMat = new THREE.MeshStandardMaterial({ color: COLORS.signal, emissive: COLORS.signal, emissiveIntensity: 0.55, roughness: 0.35 });
+const boneMat = new THREE.MeshStandardMaterial({ color: '#C9C8D6', roughness: 0.5, metalness: 0.1 });
+const joints = TEMPLATE.map((_, i) => {
+  const tip = [4, 8, 12, 16, 20].includes(i);
+  const m = new THREE.Mesh(new THREE.SphereGeometry(tip ? 0.095 : 0.07, 20, 14), jointMat);
+  hand.pivot.add(m);
+  return m;
+});
+const boneGeo = new THREE.CylinderGeometry(0.032, 0.032, 1, 10);
+const bones = HAND_CONNECTIONS.map(() => { const b = new THREE.Mesh(boneGeo, boneMat); hand.pivot.add(b); return b; });
+const pinchRingMat = new THREE.MeshBasicMaterial({ color: COLORS.signal, transparent: true, opacity: 0 });
+pinchRingMat.userData.alwaysTransparent = true;
+const pinchRing = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.012, 8, 48), pinchRingMat);
+hand.pivot.add(pinchRing);
+hand.pivot.position.y = 0.2;
+collectMaterials(hand.group);
+pinchRing.castShadow = false;
+pinchRingMat.userData.baseOpacity = 0;
+
+const handPts = TEMPLATE.map(v => v.clone());
+const livePts = TEMPLATE.map(v => v.clone());
+let liveHandFresh = 0; // seconds since last real landmarks
+const UP = new THREE.Vector3(0, 1, 0);
+const tmpV = new THREE.Vector3(), tmpQ = new THREE.Quaternion();
+
+function idlePose(t, out) {
+  const p = reduceMotion ? 0.35 : (Math.sin(t * 1.5) + 1) / 2;
+  const meet = new THREE.Vector3().addVectors(TEMPLATE[4], TEMPLATE[8]).multiplyScalar(0.5);
+  meet.lerp(new THREE.Vector3(-0.5, 0.3, 0), 0.3); meet.z = 0.45;
+  TEMPLATE.forEach((v, i) => out[i].copy(v));
+  [[6, 0.25], [7, 0.6], [8, 1]].forEach(([i, w]) => out[i].lerp(meet, w * p * 0.92));
+  [[2, 0.2], [3, 0.55], [4, 1]].forEach(([i, w]) => out[i].lerp(meet, w * p * 0.92));
+  [10, 11, 12, 14, 15, 16, 18, 19, 20].forEach(i => { out[i].z += p * 0.12 * ((i % 4) || 1); });
+  return p;
+}
+
+function updateHand(t, dt) {
+  liveHandFresh += dt;
+  let pinch;
+  if (liveHandFresh < 0.4) {
+    TEMPLATE.forEach((_, i) => handPts[i].lerp(livePts[i], 1 - Math.exp(-18 * dt)));
+    pinch = clamp(1 - (handPts[4].distanceTo(handPts[8]) - 0.15) / 0.6, 0, 1);
+  } else {
+    const target = TEMPLATE.map(v => v.clone());
+    pinch = idlePose(t, target);
+    TEMPLATE.forEach((_, i) => handPts[i].lerp(target[i], 1 - Math.exp(-10 * dt)));
+  }
+  joints.forEach((j, i) => j.position.copy(handPts[i]));
+  HAND_CONNECTIONS.forEach(([a, b], i) => {
+    const A = handPts[a], B = handPts[b];
+    const len = A.distanceTo(B);
+    bones[i].position.addVectors(A, B).multiplyScalar(0.5);
+    tmpV.subVectors(B, A).normalize();
+    tmpQ.setFromUnitVectors(UP, tmpV);
+    bones[i].quaternion.copy(tmpQ);
+    bones[i].scale.set(1, len, 1);
+  });
+  pinchRing.position.addVectors(handPts[4], handPts[8]).multiplyScalar(0.5);
+  pinchRing.lookAt(camera.position);
+  const pr = pinch > 0.8 ? (pinch - 0.8) * 5 : 0;
+  pinchRing.scale.setScalar(0.6 + pr * 0.8);
+  pinchRingMat.opacity = pr * easeInOut(clamp(hand.group.userData.vis, 0, 1));
+}
+
+/* =========================================================
+   Subject 3 — floating interface panels
+   ========================================================= */
+const ui = makeSubject('ui');
+function roundRect(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
+function drawPanel(kind) {
+  const c = document.createElement('canvas'); c.width = 512; c.height = 360;
+  const g = c.getContext('2d');
+  g.fillStyle = '#F7F7F9'; roundRect(g, 0, 0, 512, 360, 26); g.fill();
+  g.fillStyle = '#E4E5EA'; roundRect(g, 0, 0, 512, 46, [26, 26, 0, 0]); g.fill();
+  ['#E2504C', '#F5B83D', '#5DAA4E'].forEach((col, i) => { g.fillStyle = col; g.beginPath(); g.arc(28 + i * 20, 23, 6, 0, Math.PI * 2); g.fill(); });
+  const line = (x, y, w, col = '#C9CAD4', h = 12) => { g.fillStyle = col; roundRect(g, x, y, w, h, 6); g.fill(); };
+  if (kind === 'product') {
+    g.fillStyle = '#DCD4C8'; roundRect(g, 28, 70, 200, 260, 16); g.fill();
+    g.fillStyle = COLORS.celadon; g.beginPath(); g.ellipse(128, 210, 52, 80, 0, 0, Math.PI * 2); g.fill();
+    line(254, 86, 210, '#1C1B22', 22); line(254, 122, 160); line(254, 146, 190);
+    g.fillStyle = COLORS.violet; roundRect(g, 254, 270, 150, 44, 22); g.fill();
+  } else if (kind === 'checkout') {
+    line(28, 76, 180, '#1C1B22', 22);
+    for (let i = 0; i < 3; i++) { g.strokeStyle = '#C9CAD4'; g.lineWidth = 3; roundRect(g, 28, 120 + i * 58, 456, 44, 10); g.stroke(); line(46, 136 + i * 58, 140); }
+    g.fillStyle = COLORS.violet; roundRect(g, 28, 300, 456, 40, 20); g.fill();
+  } else if (kind === 'booking') {
+    line(28, 76, 160, '#1C1B22', 22);
+    for (let r = 0; r < 4; r++) for (let col = 0; col < 7; col++) {
+      const on = r === 2 && col === 3;
+      g.fillStyle = on ? COLORS.violet : '#E4E5EA';
+      roundRect(g, 28 + col * 66, 122 + r * 54, 56, 44, 10); g.fill();
+    }
+  } else {
+    line(28, 76, 140, '#1C1B22', 22);
+    const bars = [0.35, 0.5, 0.42, 0.66, 0.58, 0.8, 0.92];
+    bars.forEach((b, i) => { g.fillStyle = i === bars.length - 1 ? COLORS.signal : '#B9BBC8'; const h = b * 200; roundRect(g, 40 + i * 64, 330 - h, 40, h, 8); g.fill(); });
+  }
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 4;
+  return tex;
+}
+const uiPanels = ['booking', 'checkout', 'stats', 'product'].map((kind, i) => {
+  const mat = new THREE.MeshStandardMaterial({ map: drawPanel(kind), roughness: 0.55, transparent: true, side: THREE.DoubleSide });
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 1.406), mat);
+  ui.pivot.add(m);
+  return m;
+});
+ui.pivot.position.y = 0.15;
+collectMaterials(ui.group);
+uiPanels.forEach(m => { m.castShadow = true; });
+
+function updateUI(t) {
+  const fan = easeInOut(clamp(ui.group.userData.vis, 0, 1));
+  const n = uiPanels.length;
+  uiPanels.forEach((m, i) => {
+    const k = i - (n - 1) / 2;
+    const bob = reduceMotion ? 0 : Math.sin(t * 0.9 + i * 1.3) * 0.05;
+    m.position.set(k * 0.55 * fan, k * 0.28 * fan + bob, k * 0.55 * fan);
+    m.rotation.set(-0.08, -0.45 * fan, 0.03 * k);
+  });
+}
+
+/* =========================================================
+   Subject 4 — industry ring
+   ========================================================= */
+const who = makeSubject('who');
+const std = (color, extra = {}) => new THREE.MeshStandardMaterial({ color, roughness: 0.45, ...extra });
+function bagObj() {
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.8, 0.3), std(COLORS.violet));
+  const handle = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.035, 10, 32, Math.PI), std(COLORS.inkObj));
+  handle.position.y = 0.4;
+  g.add(body, handle); return g;
+}
+function houseObj() {
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.55, 0.62), std(COLORS.chalk));
+  const s = new THREE.Shape(); s.moveTo(-0.5, 0); s.lineTo(0.5, 0); s.lineTo(0, 0.42); s.closePath();
+  const roofGeo = new THREE.ExtrudeGeometry(s, { depth: 0.7, bevelEnabled: false }); roofGeo.translate(0, 0, -0.35);
+  const roof = new THREE.Mesh(roofGeo, std(COLORS.inkObj)); roof.position.y = 0.275;
+  const door = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.28, 0.02), std(COLORS.signal)); door.position.set(0, -0.135, 0.315);
+  g.add(body, roof, door); g.position.y = -0.1; return g;
+}
+function ringObj() {
+  const g = new THREE.Group();
+  const band = new THREE.Mesh(new THREE.TorusGeometry(0.4, 0.065, 24, 64), std(COLORS.brass, { metalness: 1, roughness: 0.22 }));
+  const gem = new THREE.Mesh(new THREE.OctahedronGeometry(0.17), new THREE.MeshPhysicalMaterial({ color: COLORS.celadon, roughness: 0.05, transmission: 0.3, clearcoat: 1 }));
+  gem.position.y = 0.52;
+  g.add(band, gem); return g;
+}
+function kioskObj() {
+  const g = new THREE.Group();
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.32, 0.06, 32), std(COLORS.inkObj)); base.position.y = -0.6;
+  const pole = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.6, 0.08), std(COLORS.inkObj)); pole.position.y = -0.3;
+  const screen = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.9, 0.06), std(COLORS.inkObj)); screen.position.y = 0.2;
+  const glow = new THREE.Mesh(new THREE.PlaneGeometry(0.52, 0.78), new THREE.MeshStandardMaterial({ color: COLORS.violet, emissive: COLORS.violet, emissiveIntensity: 0.6 }));
+  glow.position.set(0, 0.2, 0.031);
+  g.add(base, pole, screen, glow); return g;
+}
+function clocheObj() {
+  const g = new THREE.Group();
+  const plate = new THREE.Mesh(new THREE.CylinderGeometry(0.56, 0.5, 0.05, 48), std(COLORS.chalk)); plate.position.y = -0.25;
+  const dome = new THREE.Mesh(new THREE.SphereGeometry(0.42, 40, 20, 0, Math.PI * 2, 0, Math.PI / 2), std(COLORS.brass, { metalness: 1, roughness: 0.25, side: THREE.DoubleSide }));
+  dome.position.y = -0.22;
+  const knob = new THREE.Mesh(new THREE.SphereGeometry(0.06, 16, 12), std(COLORS.brass, { metalness: 1, roughness: 0.25 })); knob.position.y = 0.24;
+  g.add(plate, dome, knob); return g;
+}
+const whoItems = [bagObj(), houseObj(), ringObj(), kioskObj(), clocheObj()];
+const RING_R = 1.75;
+const whoRing = new THREE.Group();
+whoItems.forEach((o, i) => {
+  const a = (i / whoItems.length) * Math.PI * 2;
+  const holder = new THREE.Group();
+  holder.position.set(Math.sin(a) * RING_R, 0, Math.cos(a) * RING_R);
+  holder.add(o);
+  holder.userData.angle = a;
+  whoRing.add(holder);
+});
+who.pivot.add(whoRing);
+const plinth = new THREE.Mesh(new THREE.CylinderGeometry(RING_R + 0.55, RING_R + 0.6, 0.08, 72), std('#CDD0DA', { roughness: 0.8 }));
+plinth.position.y = -0.75; plinth.receiveShadow = true;
+who.pivot.add(plinth);
+who.pivot.position.y = -0.2;
+collectMaterials(who.group);
+
+let whoActive = 0, whoManual = false, whoTimer = 0, ringAngle = 0;
+const whoRows = [...document.querySelectorAll('#who-list > div')];
+function setWhoActive(i) {
+  whoActive = i;
+  whoRows.forEach((r, k) => r.classList.toggle('is-active', k === i));
+}
+setWhoActive(0);
+whoRows.forEach((row, i) => {
+  const on = () => { whoManual = true; setWhoActive(i); };
+  const off = () => { whoManual = false; whoTimer = 0; };
+  row.addEventListener('mouseenter', on); row.addEventListener('focus', on);
+  row.addEventListener('mouseleave', off); row.addEventListener('blur', off);
+  row.addEventListener('click', on);
+});
+function updateWho(t, dt) {
+  if (!whoManual && activeScene === 'who' && !reduceMotion) {
+    whoTimer += dt;
+    if (whoTimer > 3.2) { whoTimer = 0; setWhoActive((whoActive + 1) % whoItems.length); }
+  }
+  const target = -whoRing.children[whoActive].userData.angle;
+  let diff = target - ringAngle;
+  diff = Math.atan2(Math.sin(diff), Math.cos(diff));
+  ringAngle += diff * (1 - Math.exp(-4 * dt));
+  whoRing.rotation.y = ringAngle;
+  whoRing.children.forEach((h, i) => {
+    const s = i === whoActive ? 1.25 : 0.85;
+    h.scale.setScalar(damp(h.scale.x, s, 6, dt));
+    h.children[0].rotation.y = -ringAngle - h.userData.angle + (reduceMotion ? 0 : Math.sin(t * 0.8 + i) * 0.3);
+    h.children[0].position.y = i === whoActive && !reduceMotion ? Math.sin(t * 2) * 0.05 + 0.1 : 0;
+  });
+}
+
+/* =========================================================
+   Subject 5 — process path
+   ========================================================= */
+const proc = makeSubject('process');
+const pathCurve = new THREE.CatmullRomCurve3([
+  new THREE.Vector3(-2.0, -1.2, 0.6),
+  new THREE.Vector3(-1.2, -0.9, 0.2),
+  new THREE.Vector3(-0.4, -0.3, -0.6),
+  new THREE.Vector3(0.5, 0.25, 0.5),
+  new THREE.Vector3(1.3, 0.9, -0.3),
+  new THREE.Vector3(1.9, 1.4, 0.1),
+]);
+const tube = new THREE.Mesh(new THREE.TubeGeometry(pathCurve, 160, 0.035, 10), std('#9C9EAD', { roughness: 0.6 }));
+proc.pivot.add(tube);
+const STEP_T = [0.2, 0.43, 0.66, 0.88];
+const nodeMatOff = std('#C3C5D0');
+const nodeMatOn = new THREE.MeshStandardMaterial({ color: COLORS.violet, emissive: COLORS.violet, emissiveIntensity: 0.4, roughness: 0.3 });
+const nodes = STEP_T.map(tt => {
+  const m = new THREE.Mesh(new THREE.SphereGeometry(0.16, 28, 20), nodeMatOff);
+  m.position.copy(pathCurve.getPointAt(tt));
+  proc.pivot.add(m);
+  return m;
+});
+const marker = new THREE.Mesh(new THREE.SphereGeometry(0.08, 20, 14), new THREE.MeshStandardMaterial({ color: COLORS.signal, emissive: COLORS.signal, emissiveIntensity: 0.8 }));
+proc.pivot.add(marker);
+proc.pivot.position.y = 0.1;
+collectMaterials(proc.group);
+let stepActive = 0, stepHover = -1, markerT = STEP_T[0];
+const stepEls = [...document.querySelectorAll('#steps li')];
+stepEls.forEach((li, i) => {
+  li.addEventListener('mouseenter', () => { stepHover = i; });
+  li.addEventListener('mouseleave', () => { stepHover = -1; });
+});
+function updateProcess(t, dt) {
+  const s = stepHover >= 0 ? stepHover : stepActive;
+  stepEls.forEach((li, i) => li.classList.toggle('is-active', i <= s));
+  nodes.forEach((n, i) => {
+    n.material = i <= s ? nodeMatOn : nodeMatOff;
+    n.scale.setScalar(damp(n.scale.x, i === s ? 1.45 : 1, 6, dt));
+  });
+  markerT = damp(markerT, STEP_T[s], reduceMotion ? 30 : 3, dt);
+  marker.position.copy(pathCurve.getPointAt(clamp(markerT, 0, 1)));
+}
+// keep the swapped-in materials visible/fading with the group
+proc.group.userData.mats.push(nodeMatOn);
+nodeMatOn.userData.baseOpacity = 1;
+
+/* =========================================================
+   Chapters → which subject is on stage
+   ========================================================= */
+const SCENES = {
+  hero:    { vase: 1, explode: 0, dark: 0 },
+  model:   { vase: 1, explode: 1, dark: 0 },
+  hand:    { hand: 1, dark: 1 },
+  ui:      { ui: 1, dark: 0 },
+  who:     { who: 1, dark: 0 },
+  process: { process: 1, dark: 0 },
+  faq:     { vase: 1, explode: 0, dark: 0 },
+  contact: { vase: 1, explode: 0, dark: 0 },
+};
+const SUBJECTS = { vase, hand, ui, who, process: proc };
+const chapters = [...document.querySelectorAll('[data-scene]')];
+let activeScene = 'hero';
+let darkness = 0, darkTarget = 0;
+
+function readScroll() {
+  const mid = window.innerHeight * 0.5;
+  let found = chapters[0];
+  for (const c of chapters) {
+    const r = c.getBoundingClientRect();
+    if (r.top <= mid && r.bottom > mid) { found = c; break; }
+  }
+  const name = found.dataset.scene;
+  if (name !== activeScene) {
+    activeScene = name;
+  }
+  const cfg = SCENES[activeScene];
+  Object.entries(SUBJECTS).forEach(([k, s]) => { s.group.userData.target = cfg[k] ? 1 : 0; });
+  explodeTarget = cfg.explode || 0;
+  darkTarget = cfg.dark || 0;
+
+  // process step from scroll progress through its chapter
+  const pr = document.getElementById('process').getBoundingClientRect();
+  const p = clamp((mid - pr.top) / pr.height, 0, 0.999);
+  stepActive = clamp(Math.floor(p * 4.4 - 0.2), 0, 3);
+}
+window.addEventListener('scroll', readScroll, { passive: true });
+
+/* =========================================================
+   Input: drag anywhere to turn, pointer parallax, hand control
+   ========================================================= */
+const user = { yaw: 0, yawT: 0, pitch: 0, pitchT: 0, scale: 1, scaleT: 1, vel: 0 };
+const pointer = { x: 0, y: 0, sx: 0, sy: 0 };
+let drag = null;
+const NO_DRAG = 'a, button, input, textarea, select, label, summary, details, .compare, .dock, .nav, .who-list, .steps';
+
+window.addEventListener('pointermove', e => {
+  pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
+  pointer.y = (e.clientY / window.innerHeight) * 2 - 1;
+  if (!drag) return;
+  const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+  if (e.pointerType === 'touch' && !drag.locked) {
+    if (Math.abs(dx) + Math.abs(dy) < 8) return;
+    if (Math.abs(dy) > Math.abs(dx)) { drag = null; return; }
+    drag.locked = true;
+  }
+  user.yawT += dx * 0.01;
+  user.vel = dx * 0.01;
+  if (e.pointerType !== 'touch') user.pitchT = clamp(user.pitchT + dy * 0.006, -0.6, 0.6);
+  drag.x = e.clientX; drag.y = e.clientY;
+  document.body.classList.add('is-dragging');
+});
+window.addEventListener('pointerdown', e => {
+  if (handOn) return;
+  if (e.target.closest(NO_DRAG)) return;
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  drag = { x: e.clientX, y: e.clientY, locked: false };
+});
+const endDrag = () => { drag = null; document.body.classList.remove('is-dragging'); };
+window.addEventListener('pointerup', endDrag);
+window.addEventListener('pointercancel', endDrag);
+
+/* ---------- Hand tracking (MediaPipe, runs on-device) ---------- */
+const handBtn = document.getElementById('hand-toggle');
+const handBtnInline = document.getElementById('hand-toggle-inline');
+const handLabel = document.getElementById('hand-label');
+const statusEl = document.getElementById('dock-status');
+const camBox = document.getElementById('cam');
+const video = document.getElementById('cam-video');
+const overlay = document.getElementById('cam-overlay');
+const octx = overlay.getContext('2d');
+let handOn = false, landmarker = null, stream = null, lastVideoTime = -1, handLostFor = 0;
+const VISION = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14';
+const MODEL = 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task';
+const DEFAULT_STATUS = 'Drag anywhere to turn the model';
+const dockEl = document.querySelector('.dock');
+const setStatus = s => { statusEl.textContent = s; dockEl.classList.toggle('has-msg', s !== DEFAULT_STATUS); };
+
+async function startHand() {
+  if (!navigator.mediaDevices?.getUserMedia) { setStatus('This browser can’t use a camera here. Dragging still works.'); return; }
+  handOn = true; syncHandButtons();
+  setStatus('Starting camera…');
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480, facingMode: 'user' }, audio: false });
+    video.srcObject = stream;
+    await video.play();
+    camBox.hidden = false;
+    overlay.width = video.videoWidth || 640; overlay.height = video.videoHeight || 480;
+    if (!landmarker) {
+      setStatus('Loading hand tracking…');
+      const vision = await import(`${VISION}/vision_bundle.mjs`);
+      const files = await vision.FilesetResolver.forVisionTasks(`${VISION}/wasm`);
+      const make = delegate => vision.HandLandmarker.createFromOptions(files, {
+        baseOptions: { modelAssetPath: MODEL, delegate }, runningMode: 'VIDEO', numHands: 1,
+      });
+      try { landmarker = await make('GPU'); } catch { landmarker = await make('CPU'); }
+    }
+    if (!handOn) return;
+    setStatus('Show your hand to the camera');
+  } catch (err) {
+    console.warn(err);
+    stopHand();
+    setStatus(err && err.name === 'NotAllowedError'
+      ? 'Camera access was blocked. Allow it in your browser settings to try hand control.'
+      : 'Couldn’t start the camera. Dragging still works.');
+  }
+}
+function stopHand() {
+  handOn = false; syncHandButtons();
+  if (stream) stream.getTracks().forEach(t => t.stop());
+  stream = null; video.srcObject = null; camBox.hidden = true;
+  user.scaleT = 1; user.pitchT = 0;
+  setStatus(DEFAULT_STATUS);
+}
+function syncHandButtons() {
+  handBtn.setAttribute('aria-pressed', String(handOn));
+  handLabel.textContent = handOn ? 'Stop camera' : 'Use your hand';
+  handBtnInline.textContent = handOn ? 'Stop my camera' : 'Turn on my camera';
+}
+const toggleHand = () => (handOn ? stopHand() : startHand());
+handBtn.addEventListener('click', toggleHand);
+handBtnInline.addEventListener('click', toggleHand);
+
+function drawOverlay(lm) {
+  octx.clearRect(0, 0, overlay.width, overlay.height);
+  if (!lm) return;
+  const W = overlay.width, H = overlay.height;
+  octx.strokeStyle = 'rgba(238,237,243,.85)'; octx.lineWidth = 3;
+  HAND_CONNECTIONS.forEach(([a, b]) => { octx.beginPath(); octx.moveTo(lm[a].x * W, lm[a].y * H); octx.lineTo(lm[b].x * W, lm[b].y * H); octx.stroke(); });
+  octx.fillStyle = COLORS.signal;
+  lm.forEach(p => { octx.beginPath(); octx.arc(p.x * W, p.y * H, 5, 0, Math.PI * 2); octx.fill(); });
+}
+
+function trackHand(dt) {
+  if (!handOn || !landmarker || video.readyState < 2) return;
+  if (video.currentTime === lastVideoTime) return;
+  lastVideoTime = video.currentTime;
+  const res = landmarker.detectForVideo(video, performance.now());
+  const lm = res.landmarks && res.landmarks[0];
+  drawOverlay(lm);
+  if (!lm) {
+    handLostFor += dt;
+    if (handLostFor > 0.6) setStatus('Show your hand to the camera');
+    return;
+  }
+  handLostFor = 0;
+  const palm = lm[9], wrist = lm[0];
+  const palmLen = Math.hypot((palm.x - wrist.x) * 4 / 3, palm.y - wrist.y) || 0.1;
+  const pinchD = Math.hypot((lm[4].x - lm[8].x) * 4 / 3, lm[4].y - lm[8].y) / palmLen;
+
+  if (activeScene === 'hand') {
+    // mirror the real hand onto the 3D skeleton
+    const s = 1.3 / palmLen;
+    lm.forEach((p, i) => {
+      livePts[i].set(-(p.x - palm.x) * (4 / 3) * s, -(p.y - palm.y) * s, -p.z * s * 1.2);
+    });
+    liveHandFresh = 0;
+    setStatus(pinchD < 0.35 ? 'Pinch detected' : 'Tracking your hand. Try a pinch.');
+  } else {
+    // steer the model on stage
+    user.yawT = (0.5 - palm.x) * 5;
+    user.pitchT = clamp((palm.y - 0.5) * 1.6, -0.6, 0.6);
+    user.scaleT = clamp(lerp(0.75, 1.3, (pinchD - 0.2) / 1.0), 0.75, 1.3);
+    setStatus('Move your hand to turn it. Pinch to shrink, spread to grow.');
+  }
+}
+
+/* =========================================================
+   Layout + render loop
+   ========================================================= */
+let anchor = new THREE.Vector2();
+function resize() {
+  const w = window.innerWidth, h = window.innerHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  const visH = 2 * camera.position.z * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+  const visW = visH * camera.aspect;
+  if (w > 900) { anchor.set(visW * 0.2, 0); camera.fov = 35; }
+  else { anchor.set(0, visH * 0.2); }
+  const narrow = w <= 900 ? clamp(w / 900, 0.55, 1) : 1;
+  stage.scale.setScalar(narrow);
+  stage.position.set(anchor.x, anchor.y, 0);
+  camera.updateProjectionMatrix();
+}
+window.addEventListener('resize', resize);
+resize();
+readScroll();
+
+const gizmoEl = document.getElementById('gizmo');
+const gizmoEuler = new THREE.Euler(0, 0, 0, 'XYZ');
+const camInv = new THREE.Quaternion();
+const GIZMO_AXES = [
+  { v: new THREE.Vector3(1, 0, 0), cls: 'gx' },
+  { v: new THREE.Vector3(0, 1, 0), cls: 'gy' },
+  { v: new THREE.Vector3(0, 0, 1), cls: 'gz' },
+].map(a => {
+  const line = gizmoEl.querySelector('.' + a.cls);
+  line.setAttribute('x1', '30'); line.setAttribute('y1', '30');
+  return { ...a, line, text: line.nextElementSibling };
+});
+const clock = new THREE.Clock();
+const darkBg = COLORS.ink.clone(), lightBg = COLORS.fog.clone();
+const gridLight = [new THREE.Color(0x9a9cab), new THREE.Color(0xbfc1cc)];
+
+function frame() {
+  const dt = Math.min(clock.getDelta(), 0.05);
+  const t = clock.elapsedTime;
+
+  trackHand(dt);
+
+  // user rotation: inertia when not dragging or tracking
+  if (!drag && !handOn && !reduceMotion) { user.yawT += user.vel; user.vel *= 0.92; }
+  user.yaw = damp(user.yaw, user.yawT, 8, dt);
+  user.pitch = damp(user.pitch, user.pitchT, 8, dt);
+  user.scale = damp(user.scale, user.scaleT, 6, dt);
+  if (!drag && !handOn) user.pitchT = damp(user.pitchT, 0, 0.8, dt);
+
+  // subject visibility
+  Object.values(SUBJECTS).forEach(s => {
+    const d = s.group.userData;
+    d.vis = damp(d.vis, d.target, reduceMotion ? 30 : 4, dt);
+    applyVisibility(s.group, d.vis);
+  });
+
+  const idle = reduceMotion ? 0 : t * 0.25;
+  const scrollSpin = reduceMotion ? 0 : window.scrollY * 0.0012;
+  vase.pivot.rotation.set(user.pitch, idle + scrollSpin + user.yaw, 0);
+  vase.pivot.scale.setScalar(user.scale);
+  hand.pivot.rotation.set(user.pitch * 0.5, (liveHandFresh < 0.4 ? 0 : Math.sin(t * 0.5) * 0.35) + user.yaw, 0);
+  ui.pivot.rotation.set(user.pitch * 0.6, user.yaw * 0.6 + (reduceMotion ? 0 : Math.sin(t * 0.3) * 0.1), 0);
+  ui.pivot.scale.setScalar(user.scale);
+  who.pivot.rotation.set(0.12 + user.pitch * 0.4, user.yaw * 0.5, 0);
+  proc.pivot.rotation.set(user.pitch * 0.5, -0.35 + user.yaw * 0.6 + (reduceMotion ? 0 : Math.sin(t * 0.25) * 0.15), 0);
+  proc.pivot.scale.setScalar(user.scale);
+
+  if (vase.group.visible) updateVase(t, dt);
+  if (hand.group.visible) updateHand(t, dt);
+  if (ui.group.visible) updateUI(t);
+  if (who.group.visible) updateWho(t, dt);
+  if (proc.group.visible) updateProcess(t, dt);
+
+  // dark chapter (gesture)
+  darkness = damp(darkness, darkTarget, reduceMotion ? 30 : 3, dt);
+  scene.background.copy(lightBg).lerp(darkBg, darkness);
+  document.body.classList.toggle('is-dark', darkness > 0.5);
+  grid.material.opacity = lerp(0.55, 0.22, darkness);
+  shadowFloor.material.opacity = lerp(0.16, 0.05, darkness);
+  hemi.intensity = lerp(0.6, 0.35, darkness);
+
+  // camera parallax
+  pointer.sx = damp(pointer.sx, pointer.x, 3, dt);
+  pointer.sy = damp(pointer.sy, pointer.y, 3, dt);
+  const par = reduceMotion ? 0 : 1;
+  camera.position.x = pointer.sx * 0.35 * par;
+  camera.position.y = 0.4 - pointer.sy * 0.25 * par;
+  camera.lookAt(stage.position.x * 0.0, 0, 0);
+
+  // 2D gizmo shows the on-stage model's orientation
+  const onVase = !!SCENES[activeScene].vase;
+  gizmoEuler.set(onVase ? vase.pivot.rotation.x : user.pitch, onVase ? vase.pivot.rotation.y : user.yaw, 0);
+  camInv.copy(camera.quaternion).invert();
+  GIZMO_AXES.forEach(ax => {
+    tmpV.copy(ax.v).applyEuler(gizmoEuler).applyQuaternion(camInv);
+    const x = 30 + tmpV.x * 20, y = 30 - tmpV.y * 20;
+    ax.line.setAttribute('x2', x.toFixed(1)); ax.line.setAttribute('y2', y.toFixed(1));
+    ax.text.setAttribute('x', (30 + tmpV.x * 26 - 3).toFixed(1)); ax.text.setAttribute('y', (30 - tmpV.y * 26 + 3).toFixed(1));
+  });
+
+  renderer.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+/* =========================================================
+   Page UI: swatches, compare slider, form
+   ========================================================= */
+document.querySelectorAll('.swatch').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.swatch').forEach(b => b.setAttribute('aria-checked', String(b === btn)));
+    const m = MATERIALS[btn.dataset.mat];
+    matTarget = { ...m, color: new THREE.Color(m.color) };
+    // bring the vase into view if it isn't on stage
+    if (!SCENES[activeScene].vase) setStatus('Glaze changed. Scroll to the top to see the vase.');
+  });
+});
+
+const compare = document.getElementById('compare');
+const range = document.getElementById('compare-range');
+range.addEventListener('input', () => compare.style.setProperty('--pos', range.value + '%'));
+
+document.getElementById('year').textContent = new Date().getFullYear();
+
+const form = document.getElementById('contact-form');
+const errEl = document.getElementById('form-error');
+form.addEventListener('submit', e => {
+  e.preventDefault();
+  const name = form.name.value.trim();
+  const site = form.site.value.trim();
+  form.name.setAttribute('aria-invalid', String(!name));
+  form.site.setAttribute('aria-invalid', String(!site));
+  if (!name || !site) {
+    errEl.textContent = !name ? 'Add your name so we know who to reply to.' : 'Add your website address so we can review it.';
+    (!name ? form.name : form.site).focus();
+    return;
+  }
+  errEl.textContent = '';
+  const interests = [...form.querySelectorAll('input[name="interest"]:checked')].map(i => i.value).join(', ') || 'Not specified';
+  const body = `Name: ${name}\nWebsite: ${site}\nInterested in: ${interests}\n\n${form.message.value.trim()}`;
+  window.location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent('Site review request from ' + name)}&body=${encodeURIComponent(body)}`;
+});
+
+</script>
+</body>
+</html>

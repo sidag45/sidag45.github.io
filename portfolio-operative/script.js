@@ -1044,51 +1044,103 @@
       rest.map((id, i) => fig(id, i + 2)).join('') +
       '<h4>PROPOSED STUDY</h4><div class="study"><span class="k">NOT YET RUN</span>' + A.study + '</div>';
   }
-  // Unseal sequence: the heading types out at a readable pace while the rest of the file sits
-  // under redaction bars and the imagery stays blurred; when the heading completes, everything is revealed.
+  // Unseal sequence: every letter in the file starts as a cycling symbol. The heading decodes first, left to right;
+  // then the rest of the file decodes strictly in reading order, letter by letter, while the imagery comes into focus.
+  // Each letter is swapped only for symbols that measure exactly the same width in the font, weight and case it is
+  // shown in, and only letters and digits scramble (punctuation keeps every line break in place), so nothing reflows.
+  const ALNUM = /[A-Za-z0-9]/;
+  // letters only swap with letter-class symbols and digits only with digits, so line-break rules (e.g. after a hyphen) never change
+  const CANDS = '0123456789#_&<>=^ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+  const DIGIT = /[0-9]/;
+  const measureCtx = document.createElement('canvas').getContext('2d');
+  const metricCache = new Map();
+  function metricsFor(el) {
+    const cs = getComputedStyle(el), up = cs.textTransform === 'uppercase', low = cs.textTransform === 'lowercase';
+    const font = cs.fontStyle + ' ' + cs.fontWeight + ' 100px ' + cs.fontFamily, key = font + '|' + cs.textTransform;
+    let m = metricCache.get(key); if (m) return m;
+    measureCtx.font = font;
+    const shown = (c) => (up ? c.toUpperCase() : low ? c.toLowerCase() : c);
+    const width = {}, groups = new Map();
+    const w = (d) => (width[d] !== undefined ? width[d] : (width[d] = Math.round(measureCtx.measureText(d).width * 1000) / 1000));
+    const kind = (c) => (DIGIT.test(c) ? 'n' : 'a');
+    for (const c of CANDS) { const d = shown(c), k = kind(c) + w(d); const g = groups.get(k) || []; if (!g.includes(d)) g.push(d); groups.set(k, g); }
+    m = { pool: (ch) => { const d = shown(ch); return (groups.get(kind(ch) + w(d)) || []).filter((x) => x !== d); } };
+    metricCache.set(key, m); return m;
+  }
+  const pick = (pool) => pool[(Math.random() * pool.length) | 0];
   let typeRaf = 0, typeTm = 0, finishTyping = () => {};
-  const unwrapRedactions = (root) => root.querySelectorAll('span.rd').forEach((s) => s.replaceWith(...s.childNodes));
   function unsealFile(root) {
     const title = root.querySelector('#vxTitle');
     finishTyping();
-    if (reduce || !title) return;
-    // redact every other text node (sketch SVG text is blurred with its drawing instead)
+    if (reduce || !title) { root.classList.remove('sealed'); return; }
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-      acceptNode: (n) => (n.nodeValue.trim() && !title.contains(n) && !n.parentElement.closest('svg, .cls')
-        ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT),
+      acceptNode: (n) => (n.nodeValue.trim() && !n.parentElement.closest('svg') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT),
     });
-    const items = [];
-    for (let n = walker.nextNode(); n; n = walker.nextNode()) items.push(n);
-    for (const n of items) { const s = document.createElement('span'); s.className = 'rd'; n.replaceWith(s); s.append(n); }
+    const head = [], body = [];
+    for (let n = walker.nextNode(); n; n = walker.nextNode()) (title.contains(n) ? head : body).push(n);
+    const lead = 100, perHead = 28, cycle = 180;                      // ms before decoding, per heading letter, scramble before a letter locks
+    const headEnd = lead + Math.min(520, Math.max(260, title.textContent.length * perHead)) + cycle;
+    const bodyTotal = body.reduce((t, n) => t + n.nodeValue.length, 0) || 1;
+    const spread = Math.min(650, 180 + bodyTotal * 0.1);            // the wave down the page
+    // each text node becomes a holder span: locked letters as plain text, unresolved symbols in a faint .sc span
+    let g = 0;
+    // a node is always a decoded prefix followed by one faint scrambled tail: two runs at most, so the line
+    // breaker sees the same widths it will see once decoded
+    const escStr = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const paint = (p) => {
+      p.el.innerHTML = escStr(p.full.slice(0, p.k)) + (p.k < p.full.length ? '<span class="sc">' + escStr(p.cur.slice(p.k).join('')) + '</span>' : '');
+    };
+    const mk = (n, lockAt) => {
+      const full = n.nodeValue, locks = new Float32Array(full.length), cur = full.split(''), pools = [];
+      const M = metricsFor(n.parentElement);
+      for (let i = 0; i < full.length; i++) {
+        locks[i] = lockAt(i);
+        const pool = ALNUM.test(full[i]) ? M.pool(full[i]) : null;
+        pools[i] = pool && pool.length ? pool : null;
+        if (pools[i]) cur[i] = pick(pools[i]);           // punctuation, spaces and letters with no same-width twin stay themselves, faint until reached
+      }
+      const el = document.createElement('span'); el.className = 'dc'; n.replaceWith(el);
+      const p = { el, full, locks, cur, pools, k: 0, done: false }; paint(p); return p;
+    };
+    // one clock in reading order: the heading at its own pace, everything else faster, nothing out of turn
+    const hLen = title.textContent.length || 1, hRate = (headEnd - lead - cycle) / hLen, bRate = spread / bodyTotal;
+    let clock = lead + cycle, headDone = 0;
+    const ordered = [...head, ...body].sort((x, y) => (x.compareDocumentPosition(y) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1));
+    const parts = ordered.map((n) => { const inHead = title.contains(n); const rate = inHead ? hRate : bRate;
+      const part = mk(n, () => { const at = clock; clock += rate; return at; }); if (inHead) headDone = clock; return part; });
     root.classList.add('sealed');
     root.querySelectorAll('video').forEach((v) => v.pause());
 
-    // type the heading
-    const full = title.textContent, typed = document.createTextNode(''), ghost = document.createElement('span');
-    ghost.className = 'tw-ghost'; ghost.textContent = full;
-    const caret = document.createElement('span'); caret.className = 'tw-caret'; caret.setAttribute('aria-hidden', 'true');
-    title.replaceChildren(typed, caret, ghost);
-    const per = 75, lead = 260, hold = 280;             // ms per character, before first key, after last key
-    const ms = Math.min(1700, Math.max(650, full.length * per));
-    const t0 = performance.now() + lead;
-    let shown = -1;
-    const opened = performance.now();
+    const t0 = performance.now();
+    let lastSwap = 0, focused = false, stamped = false;
+    const opened = t0;
     const skip = (e) => { if (e.timeStamp && performance.now() - opened < 60) return; finishTyping(); };
     root.addEventListener('click', skip);
+    const settle = (p) => { if (p.el.isConnected) p.el.replaceWith(document.createTextNode(p.full)); p.done = true; };
     finishTyping = () => {
       cancelAnimationFrame(typeRaf); clearTimeout(typeTm);
       root.removeEventListener('click', skip);
-      title.textContent = full;
-      root.classList.remove('sealed'); root.classList.add('unsealing'); SFX.stamp();
-      typeTm = setTimeout(() => { root.classList.remove('unsealing'); unwrapRedactions(root); }, 700);
-      finishTyping = () => { clearTimeout(typeTm); root.classList.remove('unsealing'); unwrapRedactions(root); finishTyping = () => {}; };
+      for (const p of parts) if (!p.done) settle(p);
+      root.classList.remove('sealed');
+      finishTyping = () => {};
     };
     const step = (now) => {
-      const k = Math.max(0, Math.min(full.length, Math.floor(((now - t0) / ms) * full.length) + (now >= t0 ? 1 : 0)));
-      if (k !== shown) { if (k > 0 && k > shown) SFX.click(); shown = k; typed.nodeValue = full.slice(0, k); ghost.textContent = full.slice(k); }
-      if (k < full.length) { typeRaf = requestAnimationFrame(step); return; }
-      caret.classList.add('done');
-      typeTm = setTimeout(() => finishTyping(), hold);
+      const t = now - t0, swap = now - lastSwap > 40;             // symbols re-roll 25 times a second
+      if (swap) lastSwap = now;
+      let pending = false, ticked = false;
+      for (const p of parts) {
+        if (p.done) continue;
+        let changed = false;
+        while (p.k < p.full.length && t >= p.locks[p.k]) { p.cur[p.k] = p.full[p.k]; p.k++; changed = true; ticked = true; }
+        const left = p.k < p.full.length;
+        if (left && swap) for (let i = p.k; i < p.full.length; i++) if (p.pools[i] && Math.random() < 0.7) { p.cur[i] = pick(p.pools[i]); changed = true; }
+        if (!left) settle(p); else { pending = true; if (changed) paint(p); }
+      }
+      if (ticked) SFX.click(t < headDone ? 0.8 : 0.4);                // a key tick as letters lock, softer through the body
+      if (!stamped && t >= headDone) { stamped = true; SFX.stamp(); }    // stamp when the heading is complete
+      if (!focused && t >= headDone + 60) { focused = true; root.classList.remove('sealed'); }
+      if (pending) { typeRaf = requestAnimationFrame(step); return; }
+      finishTyping();
     };
     typeRaf = requestAnimationFrame(step);
   }
@@ -1116,8 +1168,8 @@
     $('nextFile').onclick = () => { const i = FILES.indexOf(f); openFile(FILES[(i + 1) % FILES.length].id); };
     $('decrypt').onclick = () => decrypt(f);
     vx.querySelectorAll('.intel-img').forEach((b) => b.addEventListener('click', () => openLightbox(b.dataset.src, b.dataset.caption, b)));
-    unsealFile(vx);            // heading types out, then redactions lift and imagery unblurs
-    say('File ' + f.code + ' "' + f.name + '" unsealed. Clearance logged for ' + agent + '.');
+    unsealFile(vx);            // symbols decode into letters: heading first, then the file; imagery comes into focus
+    say('File ' + f.code + ' "' + f.name + '" unsealed. Clearance logged for ' + agent + '.', true);
   }
   function decrypt(f) {
     const box = $('cipher'), el = $('cipherTxt'), target = f.secret;
@@ -1167,18 +1219,18 @@
   const out = $('dockOut'), dock = $('dock'), dIn = $('dockIn');
   if (matchMedia('(max-width: 600px)').matches) { dock.classList.add('min'); $('dockMin').textContent = '[+]'; }
   let typingQ = Promise.resolve();
-  function line(text, cls) {
+  function line(text, cls, quiet) {
     const el = document.createElement('div'); if (cls) el.className = cls;
     out.appendChild(el);
     if (reduce || cls) { el.textContent = text; out.scrollTop = out.scrollHeight; return Promise.resolve(); }
     return new Promise((res) => {
       let i = 0; const tm = setInterval(() => {
-        el.textContent = 'A5: ' + text.slice(0, ++i); out.scrollTop = out.scrollHeight; SFX.click(0.45);
+        el.textContent = 'A5: ' + text.slice(0, ++i); out.scrollTop = out.scrollHeight; if (!quiet) SFX.click(0.45);
         if (i >= text.length) { clearInterval(tm); res(); }
       }, 12);
     });
   }
-  function say(text) { typingQ = typingQ.then(() => line(text)); return typingQ; }
+  function say(text, quiet) { typingQ = typingQ.then(() => line(text, undefined, quiet)); return typingQ; }
   const go = (id) => jump(id);
   const cmds = {
     help: () => say('Commands: RECORD, OPS, PROFILE, UPLINK, LOCATE <CP|HK|ND>, OPEN <name>, LIST, FILTER <xr|tools|client|engineering|all>, WHOAMI, TIME, SOUND, PLAIN, LOGOUT, CLEAR.'),

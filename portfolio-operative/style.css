@@ -391,6 +391,11 @@ html.plain body > :not(#plain):not(script){display:none!important}
   @page{margin:16mm}
 }
 
+/* decode wrappers must not pick up any ".vx … span" styling */
+.vx span.dc.dc,.vx span.dc.dc span.sc{all:unset}
+.vx span.dc.dc span.sc{opacity:.28}
+.vx{font-kerning:none;font-variant-ligatures:none;text-rendering:optimizeSpeed}
+
 /* ---------- boot terminal (from the original dossier) ---------- */
 /* ============ BOOT TERMINAL ============ */
 #boot{
