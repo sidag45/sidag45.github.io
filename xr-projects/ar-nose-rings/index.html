@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Nose Pin Atelier — AR Try-On</title>
+  <meta name="description" content="Try on 15 styles of nose pins and nose rings in real time with your camera. Built with three.js." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Jost:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div id="stage">
+    <video id="video" playsinline muted></video>
+    <canvas id="scene"></canvas>
+    <div class="vignette"></div>
+    <div id="flash"></div>
+  </div>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="eyebrow">XR Projects</span>
+      <h1>Nose Pin Atelier</h1>
+    </div>
+    <div class="status" id="status" data-state="off" role="status">
+      <span class="dot"></span><span id="statusText">Camera off</span>
+    </div>
+  </header>
+
+  <aside class="tools">
+    <div class="seg" role="group" aria-label="Which nostril">
+      <button type="button" data-side="1" aria-pressed="true">Left</button>
+      <button type="button" data-side="-1" aria-pressed="false">Right</button>
+    </div>
+    <button type="button" id="adjustBtn" class="tool" aria-expanded="false" aria-controls="adjust">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
+      <span>Adjust</span>
+    </button>
+    <button type="button" id="snapBtn" class="tool">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
+      <span>Photo</span>
+    </button>
+  </aside>
+
+  <section id="adjust" class="panel" hidden aria-label="Fit adjustments">
+    <p class="panel-title">Fine-tune the fit</p>
+    <label>Up / down <output id="upDownOut"></output>
+      <input id="upDown" type="range" min="-5" max="5" step="0.1" /></label>
+    <label>Toward cheek / tip <output id="inOutOut"></output>
+      <input id="inOut" type="range" min="-5" max="5" step="0.1" /></label>
+    <label>Size <output id="sizeOut"></output>
+      <input id="size" type="range" min="0.6" max="1.6" step="0.01" /></label>
+    <button type="button" id="resetBtn" class="link">Reset fit</button>
+  </section>
+
+  <div class="now" aria-live="polite">
+    <span id="nowIndex">01 / 15</span>
+    <h2 id="nowName">Stud</h2>
+    <p id="nowDesc"></p>
+  </div>
+
+  <nav class="tray" aria-label="Styles">
+    <button type="button" class="arrow" id="prev" aria-label="Previous style">‹</button>
+    <div id="carousel" class="carousel"></div>
+    <button type="button" class="arrow" id="next" aria-label="Next style">›</button>
+  </nav>
+
+  <div class="intro" id="intro">
+    <div class="intro-card">
+      <span class="eyebrow">Real-time AR · three.js</span>
+      <h1>Types of Nose Pins,<br /><em>on you.</em></h1>
+      <p>Fifteen styles, from a single stud to an antique drop. Look at the camera, pick a style, and switch nostrils to see what suits you.</p>
+      <button type="button" id="startBtn" class="primary">Start camera</button>
+      <p class="error" id="introError" role="alert"></p>
+      <p class="fine">Runs entirely in your browser. Your video never leaves this device.</p>
+      <p class="credit">Made with ❤️ by <a href="https://www.linkedin.com/in/siddharthagarwal2608/" target="_blank" rel="noopener">Siddharth Agarwal</a></p>
+    </div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

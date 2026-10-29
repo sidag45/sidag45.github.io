@@ -1,0 +1,39 @@
+Part 1: Why priceRange belongs in the Model
+Answer: priceRange is data that describes each restaurant, and the Model is responsible for owning the application's data and the rules applied to it. Keeping it in the Model means any View (cards, a table, a dashboard) and any Controller action can use the same price information without duplicating it.
+
+
+Part 6: MVC Questions
+Q1. What problem does MVC help solve?
+A1. MVC solves the problem of tangled code where data, business rules, display logic, and event handling are all mixed together. By separating these into a Model, View, and Controller, each part has one clear responsibility. This makes the application easier to read, test, debug, and change without breaking unrelated features.
+
+Q2. Why should the Controller not contain the rule restaurant.rating >= 4.5?
+A2. "Top rated means 4.5 or higher" is a business rule, and business rules belong in the Model. If the Controller holds that rule, it would have to be duplicated anywhere else top-rated restaurants are needed, and changing the threshold would mean hunting through event handlers. Keeping it in the Model gives one source of truth and keeps the Controller focused on coordinating.
+
+Q3. If cards were replaced with a table, which component would change most?
+A3. The View would change the most, because it is the only component responsible for how restaurants are presented.
+
+Q4. Does MVC require three separate JavaScript files?
+A4. No. MVC is about separating responsibilities, not about the number of files. A single file could still follow MVC if the Model, View, and Controller are kept as distinct objects with clear roles.
+
+Q5. If data came from a REST API, which component should manage it?
+A5. The Model should manage it, since it owns the application's data. The Model would fetch the restaurants from the API, store them, and expose functions like getInexpensiveRestaurants() to the rest of the app.
+
+
+MVC Detective
+Problem:
+The Controller's click handler reaches directly into restaurantModel.restaurants and applies the business rule rating >= 4.5 itself. This puts Model responsibilities (data access and filtering rules) inside the Controller, so the rule can get duplicated and the Controller becomes harder to maintain.
+
+Correct:
+
+// Update model.js
+getTopRatedRestaurants: () => {
+  return this.restaurants.filter(function (restaurant) {
+    return restaurant.rating >= 4.5;
+  });
+}
+
+// Update controller.js
+showTopRatedButton.addEventListener("click", function () {
+  const topRated = restaurantModel.getTopRatedRestaurants();
+  restaurantView.displayRestaurants(topRated);
+});
